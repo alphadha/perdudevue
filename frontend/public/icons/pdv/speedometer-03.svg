@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="speedometer-03" clip-path="url(#clip0_0_262)">
+<path id="Icon" d="M3.54167 8.5C3.54167 5.76159 5.76159 3.54167 8.5 3.54167M11.6874 5.3125L8.49993 8.5M15.5833 8.5C15.5833 12.412 12.412 15.5833 8.5 15.5833C4.58798 15.5833 1.41667 12.412 1.41667 8.5C1.41667 4.58798 4.58798 1.41667 8.5 1.41667C12.412 1.41667 15.5833 4.58798 15.5833 8.5ZM9.20833 8.5C9.20833 8.8912 8.8912 9.20833 8.5 9.20833C8.1088 9.20833 7.79167 8.8912 7.79167 8.5C7.79167 8.1088 8.1088 7.79167 8.5 7.79167C8.8912 7.79167 9.20833 8.1088 9.20833 8.5Z" stroke-width="1.41667" stroke-linecap="round" stroke-linejoin="round" stroke="#13263F"/>
+</g>
+<defs>
+<clipPath id="clip0_0_262">
+<rect width="17" height="17" fill="white"/>
+</clipPath>
+</defs>
+</svg>

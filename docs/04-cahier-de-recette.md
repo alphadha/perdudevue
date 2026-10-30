@@ -1,10 +1,20 @@
 # Cahier de recette — Perdues de Vue
 
-Recette **métier + sécurité**. Chaque lot a un GO/NOGO. Jeu de données minimum en fin de document.
+**Livrable exécutable (modèle Swiss Impact)** : [`Cahier_de_recette_Perdues_de_Vue.xlsx`](./Cahier_de_recette_Perdues_de_Vue.xlsx)
 
-Statuts et règles UX : `01-regles-ux-memos-figma.md`. Tickets : `03-backlog-technique.md`.
+| Feuille | Contenu |
+|---|---|
+| Mode d'emploi | Principes, colonnes, jeux de données, GO/NOGO |
+| Parcours | 14 parcours ordonnés (rôles + objectif) |
+| Tests | Étapes N°1→N… — Action / Résultat / Priorité / Statut testeur |
+| Synthèse | Comptages P0 / P1 / P2 par parcours |
+| Légende lots & statuts | Mapping lots CDC ↔ parcours + statuts Figma |
 
-Notation : **C** critique (bloque GO) · **M** majeur · **m** mineur.
+Régénération : `python docs/_gen_cahier_recette.py`.
+
+Ci-dessous : **index compact** (IDs R*/S*) croisé avec le Excel. Statuts UX : `01-regles-ux-memos-figma.md`. Tickets : `03-backlog-technique.md`.
+
+Notation md : **C** = P0 Excel · **M** = P1 · **m** = P2.
 
 ---
 
