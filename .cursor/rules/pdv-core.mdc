@@ -1,0 +1,15 @@
+---
+description: Principes projet Perdues de Vue (lots, sources, Bootstrap, français métier)
+alwaysApply: true
+---
+
+# Perdues de Vue — cœur
+
+- Sources : **Prod UI Figma BAT** > mémos Figma > CDC > Excel. Décisions dans `docs/00-cadrage-et-decisions.md`.
+- Coder uniquement le **lot demandé**. Pas de Stripe/Qonto/caméra tant que le lot ne le dit pas.
+- Front Figma : Next.js + Bootstrap 5 (structure/modals) + **tokens Prod UI** (`styles/pdv.css`, classes `pdv-*`). Fidélité visuelle stricte aux écrans BAT validés — pas d’écart CSS/design/éléments.
+- Back-office admin (hors Figma) : **Filament**. API Laravel `/api/v1`.
+- Vocabulaire figé : code assigné ≠ code de restitution ; statuts Figma (`a_graver`, `active`, `perdue`, `inactive`, `a_recuperer`, `livraison_demandee`, `en_livraison`).
+- Un code assigné n’est **jamais** réutilisé. Format : **`FR` + 4 chiffres + 2 lettres** (ex. `FR5487OK`). Pas d’inscription client publique V1.
+- PII : l’opticien dépositaire ne voit le propriétaire que s’il est **déjà son client**.
+- Après une modif : proposer un nom de branche et un message de commit (français, pourquoi).

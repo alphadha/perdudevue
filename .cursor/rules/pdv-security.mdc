@@ -1,0 +1,15 @@
+---
+description: Sécurité et RGPD Perdues de Vue (IDOR, PII, tokens, secrets)
+alwaysApply: true
+---
+
+# Sécurité
+
+- IDOR : tester l’autre opticien et l’autre client sur chaque GET/PATCH/DELETE.
+- Pas d’énumération d’emails (login / reset / invitation).
+- Tokens publics (restitution, invitation) : aléatoires, TTL, non séquentiels.
+- Rate-limit login, OTP, renvoi de code de restitution.
+- Ne pas logger codes de restitution, MDP, OTP en clair.
+- Minimisation : pas de PII propriétaire dans les payloads « paire retrouvée » du dépositaire.
+- Secrets uniquement en env. Jamais dans le front public (sauf clé Stripe **publishable** au lot 7).
+- XSS : pas de `dangerouslySetInnerHTML` sur des libellés métier.

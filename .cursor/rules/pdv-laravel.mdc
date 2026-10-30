@@ -1,0 +1,24 @@
+---
+description: Conventions Laravel API (policies, tenant, state machine, audit)
+globs: backend/**/*.php
+alwaysApply: false
+---
+
+# Laravel
+
+- Controller mince. Métier dans un Service. Validation = FormRequest. Sortie = Resource.
+- `authorize` partout. Hors tenant → **404**, pas 403.
+- Statut paire : transitions explicites, jamais `$pair->update(['status' => $request->status])`.
+- `assigned_code` n’est pas mass-assignable en update.
+
+```php
+// ❌ BAD
+$pair->update($request->all());
+
+// ✅ GOOD
+$pair = $this->pairs->markEngraved($pair, $request->user());
+```
+
+- Audit après association, remise, inactivation, accès fiche client.
+- Back-office admin (hors Figma) : **Filament**, rôle `admin_pdv` uniquement. Pas d’écrans admin dans Next.js.
+- Email/SMS via outbox/job, log `notifications`.

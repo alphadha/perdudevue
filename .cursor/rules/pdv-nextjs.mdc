@@ -1,0 +1,21 @@
+---
+description: Next.js structure Bootstrap 5, sans CSS custom, IA Figma
+globs: frontend/**/*.{ts,tsx,js,jsx,css}
+alwaysApply: false
+---
+
+# Next.js + Bootstrap
+
+- Pas de CSS custom, modules, Tailwind, ou `style={{}}` de layout.
+- Classes Bootstrap uniquement. Modals = Bootstrap Modal.
+- Une fiche paire, branchée sur `status`. Pas de copies par statut.
+- Copy FR Figma. CTA « Remettre des lunettes » disabled s’il n’y a pas de `a_recuperer`.
+- 422 : `invalid-feedback` par champ. Identité client : n’afficher le bloc que si l’API l’envoie.
+
+```tsx
+// ❌ BAD
+<div style={{ color: '#1B4' }}>À récupérer</div>
+
+// ✅ GOOD
+<span className="badge text-bg-warning">À récupérer</span>
+```

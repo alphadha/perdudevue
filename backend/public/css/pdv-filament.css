@@ -1,0 +1,120 @@
+/* Perdues de Vue — tokens Prod UI appliqués au BO Filament */
+
+:root {
+  --pdv-vert: #7cb19a;
+  --pdv-texte: #13263f;
+  --pdv-legende: #355175;
+  --pdv-blanc: #fcfcfc;
+  --pdv-cta: #24364d;
+  --pdv-nav-active: #e2ede8;
+  --pdv-page-bg: #e9f2ee;
+  --pdv-stroke: #dee5ed;
+  --pdv-stroke-strong: #bbc8dd;
+  --pdv-radius: 8px;
+}
+
+.fi-body,
+.fi-simple-layout,
+.fi-simple-main,
+.fi-main,
+.fi-main-ctn {
+  background-color: var(--pdv-page-bg) !important;
+}
+
+.fi-sidebar {
+  background-color: var(--pdv-blanc) !important;
+}
+
+.fi-topbar {
+  background-color: var(--pdv-blanc) !important;
+  border-bottom-color: var(--pdv-stroke) !important;
+}
+
+.fi-logo {
+  max-height: 2.5rem;
+}
+
+/* Sidebar : texte / icônes navy foncé (pas bleu clair) */
+.fi-sidebar-group-label,
+.fi-sidebar-item-label,
+.fi-sidebar-item-btn,
+.fi-sidebar-group-btn {
+  color: var(--pdv-texte) !important;
+}
+
+.fi-sidebar-item-btn .fi-icon,
+.fi-sidebar-group-btn .fi-icon,
+.fi-sidebar-item-btn svg,
+.fi-sidebar-group-btn svg,
+.fi-sidebar-group-collapse-btn,
+.fi-sidebar-group-collapse-btn svg {
+  color: var(--pdv-cta) !important;
+}
+
+.fi-sidebar-item-button:hover,
+.fi-sidebar-item-btn:hover,
+.fi-sidebar-item-button:focus-visible,
+.fi-sidebar-item-btn:focus-visible {
+  background-color: var(--pdv-nav-active) !important;
+}
+
+.fi-sidebar-item-active > .fi-sidebar-item-btn,
+.fi-sidebar-item-active .fi-sidebar-item-button,
+.fi-sidebar-item-btn[aria-current="page"] {
+  background-color: var(--pdv-nav-active) !important;
+}
+
+.fi-sidebar-item-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
+.fi-sidebar-item-active > .fi-sidebar-item-btn .fi-icon,
+.fi-sidebar-item-active > .fi-sidebar-item-btn svg {
+  color: var(--pdv-cta) !important;
+  font-weight: 600;
+}
+
+.fi-header-heading,
+.fi-wi-stats-overview-stat-value,
+.fi-section-header-heading {
+  color: var(--pdv-texte) !important;
+}
+
+.fi-header-subheading,
+.fi-wi-stats-overview-stat-description,
+.fi-ta-empty-state-description {
+  color: var(--pdv-legende) !important;
+}
+
+/* CTA primaire : fond CTA + texte blanc */
+.fi-btn.fi-color-primary,
+.fi-btn-color-primary,
+button.fi-btn.fi-color-primary,
+.fi-ac-btn-action.fi-color-primary,
+.fi-simple-main .fi-btn.fi-color-primary {
+  background-color: var(--pdv-cta) !important;
+  border-color: var(--pdv-cta) !important;
+  color: var(--pdv-blanc) !important;
+  border-radius: var(--pdv-radius) !important;
+}
+
+.fi-btn.fi-color-primary:hover,
+.fi-btn-color-primary:hover,
+button.fi-btn.fi-color-primary:hover,
+.fi-ac-btn-action.fi-color-primary:hover {
+  background-color: #1a2838 !important;
+  border-color: #1a2838 !important;
+  color: var(--pdv-blanc) !important;
+}
+
+.fi-btn.fi-color-primary .fi-btn-label,
+.fi-btn.fi-color-primary .fi-icon,
+.fi-btn.fi-color-primary svg,
+.fi-btn-color-primary .fi-btn-label,
+.fi-btn-color-primary svg {
+  color: var(--pdv-blanc) !important;
+}
+
+.fi-simple-card,
+.fi-section,
+.fi-wi-stats-overview-stat,
+.fi-ta-ctn {
+  border-radius: var(--pdv-radius) !important;
+}
