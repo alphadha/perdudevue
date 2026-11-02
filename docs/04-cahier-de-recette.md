@@ -1,6 +1,16 @@
 # Cahier de recette — Perdues de Vue
 
-**Livrable exécutable (modèle Swiss Impact)** : [`Cahier_de_recette_Perdues_de_Vue.xlsx`](./Cahier_de_recette_Perdues_de_Vue.xlsx)
+**Livrable exécutable (modèle Swiss Impact)** :
+
+| Format | Fichier | Ouvrir avec |
+|---|---|---|
+| **Markdown (recommandé dans Cursor)** | [`Cahier_de_recette_Perdues_de_Vue.md`](./Cahier_de_recette_Perdues_de_Vue.md) | Preview MD |
+| Excel | [`Cahier_de_recette_Perdues_de_Vue.xlsx`](./Cahier_de_recette_Perdues_de_Vue.xlsx) | Excel / LibreOffice |
+| CSV (feuille Tests) | [`Cahier_de_recette_Tests.csv`](./Cahier_de_recette_Tests.csv) | Excel / Sheets |
+
+Automatisation Playwright : [`../e2e/`](../e2e/) · audit seed/écarts : [`05-audit-cahier-recette.md`](./05-audit-cahier-recette.md).
+
+Si l’Excel refuse de s’ouvrir : fermer Excel, supprimer tout fichier `~$Cahier_*.xlsx`, puis ouvrir le **Markdown** ou régénérer avec `python docs/_gen_cahier_recette.py` puis `python docs/_export_cahier_readable.py`.
 
 | Feuille | Contenu |
 |---|---|

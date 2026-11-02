@@ -2,7 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvCheckbox from "@/components/pdv/PdvCheckbox";
+import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError, setSession } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
 
@@ -79,55 +81,39 @@ export default function InvitationPage() {
                 Définissez uniquement votre mot de passe.
               </p>
               {error ? <div className="alert alert-danger">{error}</div> : null}
-              <form onSubmit={onSubmit}>
-                <div className="mb-3">
-                  <label className="form-label" htmlFor="password">
-                    Mot de passe*
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    className={`form-control${fieldErrors.password ? " is-invalid" : ""}`}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    required
-                  />
-                  <FieldError message={fieldErrors.password} />
-                  <ul className="list-unstyled small mt-2 mb-0">
-                    <li>8 caractères minimum</li>
-                    <li>Au moins une majuscule</li>
-                    <li>Au moins un chiffre</li>
-                  </ul>
+              <form className="d-flex flex-column gap-3" onSubmit={onSubmit}>
+                <PdvField
+                  id="password"
+                  type="password"
+                  label="Mot de passe*"
+                  value={password}
+                  error={fieldErrors.password}
+                  hint="8 caractères minimum, une majuscule et un chiffre."
+                  required
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <PdvField
+                  id="confirmation"
+                  type="password"
+                  label="Confirmer le mot de passe*"
+                  value={confirmation}
+                  required
+                  onChange={(event) => setConfirmation(event.target.value)}
+                />
+                <div className="pdv-field">
+                  <div className="pdv-toggle-line">
+                    <PdvCheckbox
+                      checked={cgu}
+                      aria-label="J’accepte les conditions générales d’utilisation"
+                      onChange={setCgu}
+                    />
+                    <span className="pdv-toggle-line__label">J’accepte les conditions générales d’utilisation</span>
+                  </div>
+                  {fieldErrors.cgu_accepted ? <p className="pdv-field__error">{fieldErrors.cgu_accepted}</p> : null}
                 </div>
-                <div className="mb-3">
-                  <label className="form-label" htmlFor="confirmation">
-                    Confirmer le mot de passe*
-                  </label>
-                  <input
-                    id="confirmation"
-                    type="password"
-                    className="form-control"
-                    value={confirmation}
-                    onChange={(event) => setConfirmation(event.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-check mb-4">
-                  <input
-                    className={`form-check-input${fieldErrors.cgu_accepted ? " is-invalid" : ""}`}
-                    type="checkbox"
-                    id="cgu"
-                    checked={cgu}
-                    onChange={(event) => setCgu(event.target.checked)}
-                  />
-                  <label className="form-check-label" htmlFor="cgu">
-                    J’accepte les conditions générales d’utilisation
-                  </label>
-                  <FieldError message={fieldErrors.cgu_accepted} />
-                </div>
-                <button className="btn btn-primary w-100" type="submit" disabled={pending}>
+                <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
                   Activer mon compte
-                </button>
+                </PdvButton>
               </form>
             </>
           ) : null}

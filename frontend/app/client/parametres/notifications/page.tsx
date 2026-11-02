@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvToggle from "@/components/pdv/PdvToggle";
 import { api, ApiRequestError } from "@/lib/api";
 import type { ClientProfile } from "@/lib/types";
 
@@ -63,36 +65,20 @@ export default function ClientNotificationsPage() {
         <Link href="/client/parametres">Revenir aux paramètres</Link>
       </p>
       <h1 className="h4 mb-4">Notifications</h1>
-      <form onSubmit={(event) => void onSubmit(event)}>
-        <div className="form-check form-switch mb-3">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="consent-email"
-            checked={consentEmail}
-            onChange={(event) => setConsentEmail(event.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="consent-email">
-            Recevoir les notifications par email
-          </label>
-        </div>
-        <div className="form-check form-switch mb-4">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            role="switch"
-            id="consent-sms"
-            checked={consentSms}
-            onChange={(event) => setConsentSms(event.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="consent-sms">
-            Recevoir les notifications par SMS
-          </label>
-        </div>
-        <button type="submit" className="btn btn-primary w-100" disabled={pending || !dirty}>
+      <form className="d-flex flex-column gap-3" onSubmit={(event) => void onSubmit(event)}>
+        <PdvToggle
+          checked={consentEmail}
+          onChange={setConsentEmail}
+          label="Recevoir les notifications par email"
+        />
+        <PdvToggle
+          checked={consentSms}
+          onChange={setConsentSms}
+          label="Recevoir les notifications par SMS"
+        />
+        <PdvButton type="submit" variant="primary" size="l" block disabled={pending || !dirty}>
           Enregistrer les modifications
-        </button>
+        </PdvButton>
       </form>
     </>
   );

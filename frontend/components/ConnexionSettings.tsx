@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import AppToast from "@/components/AppToast";
-import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError } from "@/lib/api";
 import type { AuthUser } from "@/lib/types";
 
@@ -102,97 +103,86 @@ export default function ConnexionSettings({ backHref, accountPrefix, email: init
       </p>
       <h1 className="h4 mb-4">Informations de connexion</h1>
       <div className="mb-4">
-        <div className="d-flex justify-content-between align-items-center mb-1">
-          <span className="form-label mb-0">Adresse e-mail</span>
-          <button type="button" className="btn btn-link p-0" onClick={() => setEditEmail((open) => !open)}>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <span className="pdv-field__label">Adresse e-mail</span>
+          <PdvButton type="button" variant="tertiary" onClick={() => setEditEmail((open) => !open)}>
             Modifier
-          </button>
+          </PdvButton>
         </div>
         {editEmail ? (
-          <form onSubmit={(event) => void saveEmail(event)}>
-            <input
-              className={`form-control mb-2${fieldErrors.email ? " is-invalid" : ""}`}
+          <form className="d-flex flex-column gap-3" onSubmit={(event) => void saveEmail(event)}>
+            <PdvField
+              id="connexion-email"
+              label="Nouvelle adresse e-mail*"
               type="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              error={fieldErrors.email}
               required
+              onChange={(event) => setEmail(event.target.value)}
             />
-            <FieldError message={fieldErrors.email} />
-            <label className="form-label" htmlFor="current-email">
-              Mot de passe actuel
-            </label>
-            <input
+            <PdvField
               id="current-email"
-              className={`form-control mb-2${fieldErrors.current_password ? " is-invalid" : ""}`}
+              label="Mot de passe actuel*"
               type="password"
               autoComplete="current-password"
               value={currentForEmail}
-              onChange={(event) => setCurrentForEmail(event.target.value)}
+              error={fieldErrors.current_password}
               required
+              onChange={(event) => setCurrentForEmail(event.target.value)}
             />
-            <FieldError message={fieldErrors.current_password} />
-            <button className="btn btn-primary" type="submit" disabled={pending}>
+            <PdvButton type="submit" variant="primary" size="l" disabled={pending}>
               Enregistrer
-            </button>
+            </PdvButton>
           </form>
         ) : (
-          <p className="form-control-plaintext">{displayEmail}</p>
+          <p className="pdv-field__hint mb-0">{displayEmail}</p>
         )}
       </div>
       <div>
-        <div className="d-flex justify-content-between align-items-center mb-1">
-          <span className="form-label mb-0">Mot de passe</span>
-          <button type="button" className="btn btn-link p-0" onClick={() => setEditPassword((open) => !open)}>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <span className="pdv-field__label">Mot de passe</span>
+          <PdvButton type="button" variant="tertiary" onClick={() => setEditPassword((open) => !open)}>
             Modifier
-          </button>
+          </PdvButton>
         </div>
         {editPassword ? (
-          <form onSubmit={(event) => void savePassword(event)}>
-            <label className="form-label" htmlFor="current-password">
-              Mot de passe actuel
-            </label>
-            <input
+          <form className="d-flex flex-column gap-3" onSubmit={(event) => void savePassword(event)}>
+            <PdvField
               id="current-password"
-              className={`form-control mb-2${fieldErrors.current_password ? " is-invalid" : ""}`}
+              label="Mot de passe actuel*"
               type="password"
               autoComplete="current-password"
               value={currentForPassword}
-              onChange={(event) => setCurrentForPassword(event.target.value)}
+              error={fieldErrors.current_password}
               required
+              onChange={(event) => setCurrentForPassword(event.target.value)}
             />
-            <FieldError message={fieldErrors.current_password} />
-            <label className="form-label" htmlFor="new-password">
-              Nouveau mot de passe
-            </label>
-            <input
+            <PdvField
               id="new-password"
-              className={`form-control mb-2${fieldErrors.password ? " is-invalid" : ""}`}
+              label="Nouveau mot de passe*"
               type="password"
               autoComplete="new-password"
               value={password}
-              onChange={(event) => setPassword(event.target.value)}
+              error={fieldErrors.password}
               required
+              onChange={(event) => setPassword(event.target.value)}
             />
-            <FieldError message={fieldErrors.password} />
-            <label className="form-label" htmlFor="confirm-password">
-              Confirmation
-            </label>
-            <input
+            <PdvField
               id="confirm-password"
-              className="form-control mb-2"
+              label="Confirmation*"
               type="password"
               autoComplete="new-password"
               value={passwordConfirmation}
-              onChange={(event) => setPasswordConfirmation(event.target.value)}
+              hint="8 caractères minimum, une majuscule et un chiffre."
               required
+              onChange={(event) => setPasswordConfirmation(event.target.value)}
             />
-            <p className="small text-secondary">8 caractères minimum, une majuscule et un chiffre.</p>
-            <button className="btn btn-primary" type="submit" disabled={pending}>
+            <PdvButton type="submit" variant="primary" size="l" disabled={pending}>
               Enregistrer
-            </button>
+            </PdvButton>
           </form>
         ) : (
-          <p className="form-control-plaintext">••••••••••</p>
+          <p className="pdv-field__hint mb-0">••••••••••</p>
         )}
       </div>
     </>

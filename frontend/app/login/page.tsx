@@ -5,16 +5,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useMemo, useState } from "react";
 import BrandPanel from "@/components/BrandPanel";
 import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvToggle from "@/components/pdv/PdvToggle";
 import { api, ApiRequestError, setSession } from "@/lib/api";
 import type { AuthUser, Space } from "@/lib/types";
+
+type LoginSpace = Exclude<Space, "admin">;
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialSpace = searchParams.get("space") === "opticien" ? "opticien" : "client";
-  const [space, setSpace] = useState<Exclude<Space, "admin">>(initialSpace);
+  const initialSpace: LoginSpace = searchParams.get("space") === "opticien" ? "opticien" : "client";
+  const [space, setSpace] = useState<LoginSpace>(initialSpace);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
@@ -23,14 +28,19 @@ function LoginForm() {
     if (space === "opticien") {
       return {
         title: "Vous êtes opticien et vous n’avez pas encore de compte ?",
-        body: "Vous pouvez nous contacter par mail à support@perduesdevue.fr. Nous vous assisterons dans la création de votre compte.",
+        body: "Vous pouvez nous contacter par mail à support@perduesdevue.com. Nous vous assisterons dans la création de votre compte.",
       };
     }
     return {
       title: "Vous n’avez pas encore de compte ?",
-      body: "Rapprochez-vous de votre opticien. Il pourra créer votre compte et vous recevrez ensuite un email pour accéder à votre espace.",
+      body: "Rapprochez-vous de votre opticien. Il pourra créer votre compte et vous recevrez un email pour accéder à votre espace.",
     };
   }, [space]);
+
+  function selectSpace(next: LoginSpace) {
+    setSpace(next);
+    router.replace(`/login?space=${next}`, { scroll: false });
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -38,7 +48,7 @@ function LoginForm() {
     setFieldErrors({});
     setPending(true);
     try {
-            const data = await api<{ token: string; user: AuthUser }>("/auth/login", {
+      const data = await api<{ token: string; user: AuthUser }>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
           email: email.trim(),
@@ -67,79 +77,95 @@ function LoginForm() {
   }
 
   return (
-    <div className="container-fluid min-vh-100">
-      <div className="row min-vh-100">
-        <BrandPanel space={space} />
-        <div className={space === "client" ? "col-12" : "col-lg-6"}>
-          <div className="container py-5">
-            <div className="row justify-content-center">
-              <div className="col-12 col-sm-10 col-md-8 col-lg-10 col-xl-8">
-                <h1 className="h3 mb-4">Content de vous revoir !</h1>
-                <h2 className="h4 mb-3">Connexion</h2>
-                <div className="btn-group mb-4" role="group" aria-label="Espace">
+    <div className="pdv-login">
+      <BrandPanel />
+
+      <div className="pdv-login__main">
+        <header className="pdv-login__hero pdv-login__hero--mobile">
+          <div className="pdv-login__pattern" aria-hidden>
+            <img src="/brand/login-pattern-a.svg" alt="" />
+            <img src="/brand/login-pattern-b.svg" alt="" />
+            <img src="/brand/login-pattern-a.svg" alt="" />
+            <img src="/brand/login-pattern-b.svg" alt="" />
+            <img src="/brand/login-pattern-a.svg" alt="" />
+          </div>
+          <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
+        </header>
+
+        <div className="pdv-login__body">
+          <h1 className="pdv-login__title">Bienvenue chez Perdues de Vue !</h1>
+
+          <div className="pdv-login__section">
+            <h2 className="pdv-login__subtitle">Connexion</h2>
+
+            <PdvToggle
+              checked={space === "client"}
+              onChange={(isClient) => selectSpace(isClient ? "client" : "opticien")}
+              leftLabel="Espace Opticien"
+              rightLabel="Espace Client"
+              ariaLabel="Choisir l’espace Opticien ou Client"
+            />
+
+            {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
+
+            <form className="pdv-login__form" onSubmit={onSubmit} noValidate>
+              <div className="pdv-field">
+                <label className="pdv-field__label" htmlFor="email">
+                  Adresse e-mail*
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className={`pdv-field__control${fieldErrors.email ? " is-invalid" : ""}`}
+                  placeholder="adresse@mail.fr"
+                  autoComplete="username"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+                <FieldError message={fieldErrors.email} />
+              </div>
+
+              <div className="pdv-field">
+                <label className="pdv-field__label" htmlFor="password">
+                  Mot de passe*
+                </label>
+                <div className="pdv-field__password">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    className={`pdv-field__control${fieldErrors.password ? " is-invalid" : ""}`}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
                   <button
                     type="button"
-                    className={`btn ${space === "opticien" ? "btn-primary" : "btn-outline-primary"}`}
-                    onClick={() => setSpace("opticien")}
+                    className="pdv-field__eye"
+                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    onClick={() => setShowPassword((current) => !current)}
                   >
-                    Espace Opticien
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${space === "client" ? "btn-primary" : "btn-outline-primary"}`}
-                    onClick={() => setSpace("client")}
-                  >
-                    Espace Client
+                    <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
                   </button>
                 </div>
-                {error ? <div className="alert alert-danger">{error}</div> : null}
-                <form onSubmit={onSubmit} noValidate>
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="email">
-                      Adresse e-mail*
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      className={`form-control${fieldErrors.email ? " is-invalid" : ""}`}
-                      placeholder="adresse@mail.fr"
-                      autoComplete="username"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      required
-                    />
-                    <FieldError message={fieldErrors.email} />
-                  </div>
-                  <div className="mb-2">
-                    <label className="form-label" htmlFor="password">
-                      Mot de passe*
-                    </label>
-                    <input
-                      id="password"
-                      type="password"
-                      autoComplete="current-password"
-                      className={`form-control${fieldErrors.password ? " is-invalid" : ""}`}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                    />
-                    <FieldError message={fieldErrors.password} />
-                  </div>
-                  <div className="text-end mb-4">
-                    <Link href={`/mot-de-passe-oublie?space=${space}`}>Mot de passe oublié</Link>
-                  </div>
-                  <button className="btn btn-primary w-100" type="submit" disabled={pending}>
-                    {pending ? "Connexion…" : "Se connecter"}
-                  </button>
-                </form>
-                <div className="card mt-4">
-                  <div className="card-body">
-                    <p className="card-title mb-2">{help.title}</p>
-                    <p className="card-text mb-0">{help.body}</p>
-                  </div>
+                <FieldError message={fieldErrors.password} />
+                <div className="pdv-field__forgot">
+                  <Link href={`/mot-de-passe-oublie?space=${space}`}>Mot de passe oublié</Link>
                 </div>
               </div>
-            </div>
+
+              <div className="pdv-login__submit">
+                <PdvButton variant="primary" size="l" block type="submit" disabled={pending}>
+                  {pending ? "Connexion…" : "Se connecter"}
+                </PdvButton>
+
+                <aside className="pdv-login__help">
+                  <p className="pdv-login__help-title">{help.title}</p>
+                  <p className="pdv-login__help-body">{help.body}</p>
+                </aside>
+              </div>
+            </form>
           </div>
         </div>
       </div>

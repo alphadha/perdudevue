@@ -1,6 +1,7 @@
 "use client";
 
 import BootstrapModal from "@/components/opticien/BootstrapModal";
+import PdvButton from "@/components/pdv/PdvButton";
 import type { ShopPair } from "@/lib/types";
 
 type EngraveProps = {
@@ -20,13 +21,13 @@ export function PairEngraveModal({ pending, onConfirm, onClose }: EngraveProps) 
         </p>
         <p className="mb-0">Ne confirmez que si la paire a bien été gravée.</p>
       </div>
-      <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={onConfirm}>
+      <div className="modal-footer">
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Indiquer comme gravée
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );
@@ -48,13 +49,13 @@ export function PairInactiveModal({ pair, pending, onConfirm, onClose }: Inactiv
           correspond à une paire définitivement perdue ou cassée par le client.
         </p>
       </div>
-      <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={onConfirm}>
+      <div className="modal-footer">
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Déclarer comme inactive
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );

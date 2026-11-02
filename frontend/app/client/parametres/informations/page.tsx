@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
-import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError } from "@/lib/api";
 import type { ClientProfile } from "@/lib/types";
 
@@ -77,50 +78,35 @@ export default function ClientInformationsPage() {
         <Link href="/client/parametres">Revenir aux paramètres</Link>
       </p>
       <h1 className="h4 mb-4">Informations personnelles</h1>
-      <form onSubmit={(event) => void save(event)}>
-        <div className="mb-3">
-          <label className="form-label" htmlFor="last-name">
-            Nom
-          </label>
-          <input
-            id="last-name"
-            className={`form-control${fieldErrors.last_name ? " is-invalid" : ""}`}
-            value={lastName}
-            onChange={(event) => setLastName(event.target.value)}
-            required
-          />
-          <FieldError message={fieldErrors.last_name} />
-        </div>
-        <div className="mb-3">
-          <label className="form-label" htmlFor="first-name">
-            Prénom
-          </label>
-          <input
-            id="first-name"
-            className={`form-control${fieldErrors.first_name ? " is-invalid" : ""}`}
-            value={firstName}
-            onChange={(event) => setFirstName(event.target.value)}
-            required
-          />
-          <FieldError message={fieldErrors.first_name} />
-        </div>
-        <div className="mb-4">
-          <label className="form-label" htmlFor="phone">
-            Téléphone
-          </label>
-          <input
-            id="phone"
-            className={`form-control${fieldErrors.phone ? " is-invalid" : ""}`}
-            type="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            required
-          />
-          <FieldError message={fieldErrors.phone} />
-        </div>
-        <button className="btn btn-primary w-100" type="submit" disabled={pending}>
+      <form className="d-flex flex-column gap-3" onSubmit={(event) => void save(event)}>
+        <PdvField
+          id="last-name"
+          label="Nom"
+          value={lastName}
+          error={fieldErrors.last_name}
+          required
+          onChange={(event) => setLastName(event.target.value)}
+        />
+        <PdvField
+          id="first-name"
+          label="Prénom"
+          value={firstName}
+          error={fieldErrors.first_name}
+          required
+          onChange={(event) => setFirstName(event.target.value)}
+        />
+        <PdvField
+          id="phone"
+          label="Téléphone"
+          type="tel"
+          value={phone}
+          error={fieldErrors.phone}
+          required
+          onChange={(event) => setPhone(event.target.value)}
+        />
+        <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
           Enregistrer
-        </button>
+        </PdvButton>
       </form>
     </>
   );

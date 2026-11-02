@@ -1,0 +1,21 @@
+{
+  "name": "pdv-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:cahier": "playwright test specs/cahier-all.spec.ts",
+    "test:headed": "playwright test --headed",
+    "test:p01": "playwright test specs/p01-fondations.spec.ts",
+    "test:p02": "playwright test specs/p02-auth-opticien.spec.ts",
+    "test:p06": "playwright test specs/p06-restitution.spec.ts",
+    "test:p13": "playwright test specs/p13-securite.spec.ts",
+    "test:p14": "playwright test specs/p14-e2e-magasin.spec.ts",
+    "audit": "python _audit_coverage.py",
+    "report": "playwright show-report playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.20.5"
+  }
+}

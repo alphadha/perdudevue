@@ -28,26 +28,29 @@ export default function ClientHomePage() {
 
   return (
     <>
-      <h1 className="h4 mb-1">Mes lunettes</h1>
-      <p className="text-secondary">Retrouvez ici toutes vos paires enregistrées.</p>
+      <h1 className="pdv-client-page-title">Mes lunettes</h1>
+      <p className="pdv-client-page-sub">Retrouvez ici toutes vos paires enregistrées.</p>
       {pairs.length === 0 ? (
-        <p>Aucune paire enregistrée pour le moment.</p>
+        <p className="pdv-client-empty">Aucune paire de lunette enregistrée pour le moment</p>
       ) : (
-        <div className="d-grid gap-3">
+        <div className="pdv-client-pairs d-grid">
           {pairs.map((pair) => (
-            <div className="card" key={pair.uuid}>
-              <div className="card-body">
-                <h2 className="h6">{pair.title}</h2>
-                <p className="small text-secondary mb-2">Code assigné : {pair.assigned_code}</p>
-                <div className="d-flex flex-wrap gap-2 mb-3">
-                  <PairStatusBadge status={pair.status} label={pair.status_label} />
-                  {pair.pickup_code ? (
-                    <span className="badge text-bg-success">Code de restitution : {pair.pickup_code}</span>
-                  ) : null}
-                </div>
-                <Link href={`/client/lunettes/${pair.uuid}`}>Voir la fiche</Link>
+            <article className="pdv-client-pair-card" key={pair.uuid}>
+              <h2 className="pdv-client-pair-card__title">{pair.title}</h2>
+              <p className="pdv-client-pair-card__code">Code assigné : {pair.assigned_code}</p>
+              <div className="d-flex flex-wrap gap-2 mb-0">
+                <PairStatusBadge status={pair.status} label={pair.status_label} />
+                {pair.pickup_code ? (
+                  <span className="pdv-tag pdv-tag--a_recuperer">
+                    Code de restitution : <strong>{pair.pickup_code}</strong>
+                  </span>
+                ) : null}
               </div>
-            </div>
+              <Link className="pdv-client-pair-card__link" href={`/client/lunettes/${pair.uuid}`}>
+                <span>Voir la fiche</span>
+                <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
+              </Link>
+            </article>
           ))}
         </div>
       )}

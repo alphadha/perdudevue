@@ -1,4 +1,5 @@
-import FieldError from "@/components/FieldError";
+import PdvField from "@/components/pdv/PdvField";
+import PdvToggle from "@/components/pdv/PdvToggle";
 import type { ClientPayload } from "@/lib/types";
 
 type Props = {
@@ -15,95 +16,67 @@ export default function ClientFormFields({ value, fieldErrors, onChange, idPrefi
 
   return (
     <>
-      <div className="row">
-        <div className="col-md-6 mb-3">
-          <label className="form-label" htmlFor={`${idPrefix}-last`}>
-            Nom*
-          </label>
-          <input
+      <div className="row g-3">
+        <div className="col-md-6">
+          <PdvField
             id={`${idPrefix}-last`}
-            className={`form-control${fieldErrors.last_name ? " is-invalid" : ""}`}
+            label="Nom*"
             value={value.last_name}
             placeholder="Dupond"
-            onChange={(event) => set("last_name", event.target.value)}
+            error={fieldErrors.last_name}
             required
+            onChange={(event) => set("last_name", event.target.value)}
           />
-          <FieldError message={fieldErrors.last_name} />
         </div>
-        <div className="col-md-6 mb-3">
-          <label className="form-label" htmlFor={`${idPrefix}-first`}>
-            Prénom*
-          </label>
-          <input
+        <div className="col-md-6">
+          <PdvField
             id={`${idPrefix}-first`}
-            className={`form-control${fieldErrors.first_name ? " is-invalid" : ""}`}
+            label="Prénom*"
             value={value.first_name}
             placeholder="Corentin"
-            onChange={(event) => set("first_name", event.target.value)}
+            error={fieldErrors.first_name}
             required
+            onChange={(event) => set("first_name", event.target.value)}
           />
-          <FieldError message={fieldErrors.first_name} />
         </div>
       </div>
-      <div className="mb-3">
-        <label className="form-label" htmlFor={`${idPrefix}-email`}>
-          Adresse e-mail*
-        </label>
-        <input
-          id={`${idPrefix}-email`}
-          type="email"
-          className={`form-control${fieldErrors.email ? " is-invalid" : ""}`}
-          placeholder="adresse@mail.fr"
-          value={value.email}
-          onChange={(event) => set("email", event.target.value)}
-          required
-        />
-        <FieldError message={fieldErrors.email} />
-      </div>
-      <div className="mb-3">
-        <label className="form-label" htmlFor={`${idPrefix}-phone`}>
-          Numéro de téléphone*
-        </label>
-        <input
-          id={`${idPrefix}-phone`}
-          className={`form-control${fieldErrors.phone ? " is-invalid" : ""}`}
-          placeholder="00 00 00 00 00"
-          value={value.phone}
-          onChange={(event) => set("phone", event.target.value)}
-          required
-        />
-        <FieldError message={fieldErrors.phone} />
-      </div>
-      <p className="fw-medium mb-1">Préférences de notifications de votre client*</p>
-      <p className="small text-secondary">
-        Le client doit donner son accord pour chaque mode de communication. Ces choix peuvent être
-        modifiés ultérieurement.
-      </p>
-      <div className="form-check form-switch mb-2">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          role="switch"
-          id={`${idPrefix}-consent-email`}
-          checked={value.consent_email}
-          onChange={(event) => set("consent_email", event.target.checked)}
-        />
-        <label className="form-check-label" htmlFor={`${idPrefix}-consent-email`}>
-          Le client accepte de recevoir les notifications par email
-        </label>
-      </div>
-      <div className="form-check form-switch mb-3">
-        <input
-          className="form-check-input"
-          type="checkbox"
-          role="switch"
-          id={`${idPrefix}-consent-sms`}
-          checked={value.consent_sms}
-          onChange={(event) => set("consent_sms", event.target.checked)}
-        />
-        <label className="form-check-label" htmlFor={`${idPrefix}-consent-sms`}>
-          Le client accepte de recevoir les notifications par SMS
-        </label>
+      <PdvField
+        id={`${idPrefix}-email`}
+        type="email"
+        label="Adresse e-mail*"
+        placeholder="adresse@mail.fr"
+        value={value.email}
+        error={fieldErrors.email}
+        required
+        onChange={(event) => set("email", event.target.value)}
+      />
+      <PdvField
+        id={`${idPrefix}-phone`}
+        label="Numéro de téléphone*"
+        placeholder="00 00 00 00 00"
+        value={value.phone}
+        error={fieldErrors.phone}
+        required
+        onChange={(event) => set("phone", event.target.value)}
+      />
+      <div className="pdv-field">
+        <p className="pdv-field__label">Préférences de notifications de votre client*</p>
+        <p className="pdv-field__hint">
+          Le client doit donner son accord pour chaque mode de communication. Ces choix peuvent être
+          modifiés ultérieurement
+        </p>
+        <div className="d-flex flex-column gap-2 mt-1">
+          <PdvToggle
+            checked={value.consent_email}
+            onChange={(checked) => set("consent_email", checked)}
+            label="Le client accepte les notifications par email"
+          />
+          <PdvToggle
+            checked={value.consent_sms}
+            onChange={(checked) => set("consent_sms", checked)}
+            label="Le client accepte les notifications par SMS"
+          />
+        </div>
       </div>
     </>
   );

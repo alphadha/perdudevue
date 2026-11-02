@@ -2,7 +2,10 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
-import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvCheckbox from "@/components/pdv/PdvCheckbox";
+import PdvField from "@/components/pdv/PdvField";
+import PdvSelect from "@/components/pdv/PdvSelect";
 import { api, ApiRequestError } from "@/lib/api";
 import { ASSIGNED_CODE_EXAMPLE } from "@/lib/assignedCode";
 import type { PairCatalog, ShopClient, ShopPair } from "@/lib/types";
@@ -46,7 +49,7 @@ export default function RegisterPairModal({ lockedClient, onCreated, onClose }: 
   const suggestions = useMemo(() => {
     const needle = clientQuery.trim().toLowerCase();
     if (!needle) {
-      return clients.slice(0, 8);
+      return [];
     }
     return clients
       .filter((client) =>
@@ -65,12 +68,6 @@ export default function RegisterPairModal({ lockedClient, onCreated, onClose }: 
     (brand !== OTHER || Boolean(customBrand.trim())) &&
     colors.length > 0 &&
     (!alreadyEngraved || Boolean(assignedCode.trim()));
-
-  function toggleColor(color: string) {
-    setColors((current) =>
-      current.includes(color) ? current.filter((item) => item !== color) : [...current, color],
-    );
-  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -113,195 +110,143 @@ export default function RegisterPairModal({ lockedClient, onCreated, onClose }: 
       <form onSubmit={(event) => void onSubmit(event)}>
         <div className="modal-body">
           {formError ? <div className="alert alert-danger">{formError}</div> : null}
-          <div className="mb-3">
-            <label className="form-label" htmlFor="pair-client">
-              Client*
-            </label>
-            <input
-              id="pair-client"
-              className={`form-control${fieldErrors.client_uuid ? " is-invalid" : ""}`}
-              placeholder="Rechercher un nom, numéro de téléphone ou adresse mail..."
-              value={clientQuery}
-              disabled={Boolean(lockedClient)}
-              onChange={(event) => {
-                setClientQuery(event.target.value);
-                setClientUuid("");
-              }}
-              required
-            />
-            <FieldError message={fieldErrors.client_uuid} />
-            {!lockedClient && suggestions.length > 0 && !clientUuid ? (
-              <ul className="list-group mt-1">
-                {suggestions.map((client) => (
-                  <button
-                    type="button"
-                    className="list-group-item list-group-item-action"
-                    key={client.uuid}
-                    onClick={() => {
-                      setClientUuid(client.uuid);
-                      setClientQuery(`${client.last_name} ${client.first_name}`);
-                    }}
-                  >
-                    {client.last_name} {client.first_name} · {client.email}
-                  </button>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="pair-type">
-              Type de lunettes*
-            </label>
-            <select
-              id="pair-type"
-              className={`form-select${fieldErrors.type ? " is-invalid" : ""}`}
-              value={type}
-              onChange={(event) => setType(event.target.value)}
-              required
-            >
-              <option value="">Sélectionner dans la liste</option>
-              {catalog?.types.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
+          <PdvField
+            id="pair-client"
+            label="Client*"
+            placeholder="Rechercher un nom, téléphone ou adresse mail..."
+            value={clientQuery}
+            disabled={Boolean(lockedClient)}
+            error={fieldErrors.client_uuid}
+            required
+            onChange={(event) => {
+              setClientQuery(event.target.value);
+              setClientUuid("");
+            }}
+          />
+          {!lockedClient && suggestions.length > 0 && !clientUuid ? (
+            <ul className="list-group">
+              {suggestions.map((client) => (
+                <button
+                  type="button"
+                  className="list-group-item list-group-item-action"
+                  key={client.uuid}
+                  onClick={() => {
+                    setClientUuid(client.uuid);
+                    setClientQuery(`${client.last_name} ${client.first_name}`);
+                  }}
+                >
+                  {client.last_name} {client.first_name} · {client.email}
+                </button>
               ))}
-            </select>
-            <FieldError message={fieldErrors.type} />
-          </div>
-          <div className="row">
-            <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="pair-brand">
-                Marque*
-              </label>
-              <input
+            </ul>
+          ) : null}
+          <PdvSelect
+            id="pair-type"
+            label="Type de lunettes*"
+            value={type}
+            error={fieldErrors.type}
+            required
+            onChange={(event) => setType(event.target.value)}
+          >
+            <option value="">Sélectionner dans la liste</option>
+            {catalog?.types.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </PdvSelect>
+          <div className="pdv-field-row">
+            <div>
+              <PdvField
                 id="pair-brand"
-                className={`form-control${fieldErrors.brand ? " is-invalid" : ""}`}
+                label="Marque*"
                 list="pair-brands"
-                placeholder="Saisir le nom de la marque..."
+                placeholder="Nom de la marque..."
                 value={brand}
-                onChange={(event) => setBrand(event.target.value)}
+                error={fieldErrors.brand}
                 required
+                onChange={(event) => setBrand(event.target.value)}
               />
               <datalist id="pair-brands">
                 {catalog?.brands.map((item) => (
                   <option key={item} value={item} />
                 ))}
               </datalist>
-              <FieldError message={fieldErrors.brand} />
               {brand === OTHER ? (
-                <input
-                  className={`form-control mt-2${fieldErrors.custom_brand ? " is-invalid" : ""}`}
+                <PdvField
+                  id="pair-custom-brand"
+                  label="Autre marque*"
                   placeholder="Nom de la marque"
                   value={customBrand}
-                  onChange={(event) => setCustomBrand(event.target.value)}
+                  error={fieldErrors.custom_brand}
                   required
+                  onChange={(event) => setCustomBrand(event.target.value)}
                 />
               ) : null}
-              <FieldError message={fieldErrors.custom_brand} />
             </div>
-            <div className="col-md-6 mb-3">
-              <p className="form-label">Couleur(s)*</p>
-              <div className="dropdown">
-                <button
-                  className={`form-select text-start${fieldErrors.colors ? " is-invalid" : ""}`}
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  data-bs-auto-close="outside"
-                  aria-expanded="false"
-                >
-                  {colors.length > 0 ? colors.join(", ") : "Sélectionner dans la liste"}
-                </button>
-                <ul className="dropdown-menu w-100">
-                  {catalog?.colors.map((color) => (
-                    <li key={color}>
-                      <label className="dropdown-item" htmlFor={`color-${color}`}>
-                        <input
-                          className="form-check-input me-2"
-                          type="checkbox"
-                          id={`color-${color}`}
-                          checked={colors.includes(color)}
-                          onChange={() => toggleColor(color)}
-                        />
-                        {color}
-                      </label>
-                    </li>
-                  ))}
-                </ul>
+            <PdvSelect
+              id="pair-colors"
+              label="Couleurs*"
+              multiple
+              placeholder="Sélectionner dans la liste"
+              value={colors}
+              error={fieldErrors.colors}
+              onValuesChange={setColors}
+            >
+              {catalog?.colors.map((color) => (
+                <option key={color} value={color}>
+                  {color}
+                </option>
+              ))}
+            </PdvSelect>
+          </div>
+          <PdvField
+            id="pair-description"
+            label="Description (optionnel)"
+            placeholder="ex: Monture titane, Monture acetate..."
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+          <hr className="pdv-panel__divider" />
+          <div className="pdv-engrave">
+            <p className="pdv-field__label">La paire est-t-elle déjà gravée d’un code unique ?</p>
+            <div className="pdv-choice-row">
+              <div className="pdv-choice">
+                <PdvCheckbox checked={alreadyEngraved} onChange={() => setAlreadyEngraved(true)} aria-label="Oui" />
+                <span className="pdv-choice__label">Oui</span>
               </div>
-              <FieldError message={fieldErrors.colors} />
+              <div className="pdv-choice">
+                <PdvCheckbox checked={!alreadyEngraved} onChange={() => setAlreadyEngraved(false)} aria-label="Non" />
+                <span className="pdv-choice__label">Non</span>
+              </div>
             </div>
-          </div>
-          <div className="mb-3">
-            <label className="form-label" htmlFor="pair-description">
-              Description (optionnel)
-            </label>
-            <input
-              id="pair-description"
-              className="form-control"
-              placeholder="ex: Monture titane, Monture acetate..."
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </div>
-          <hr />
-          <p>La paire est-t-elle déjà gravée d’un code unique ?</p>
-          <div className="mb-3">
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="engraved-yes"
-                checked={alreadyEngraved}
-                onChange={() => setAlreadyEngraved(true)}
-              />
-              <label className="form-check-label" htmlFor="engraved-yes">
-                Oui
-              </label>
-            </div>
-            <div className="form-check form-check-inline">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="engraved-no"
-                checked={!alreadyEngraved}
-                onChange={() => setAlreadyEngraved(false)}
-              />
-              <label className="form-check-label" htmlFor="engraved-no">
-                Non
-              </label>
-            </div>
-          </div>
-          {alreadyEngraved ? (
-            <div className="mb-3">
-              <label className="form-label" htmlFor="pair-code">
-                Code unique assigné*
-              </label>
-              <input
+            {alreadyEngraved ? (
+              <PdvField
                 id="pair-code"
-                className={`form-control${fieldErrors.assigned_code ? " is-invalid" : ""}`}
+                label="Code unique assigné*"
                 placeholder={`Ex : ${ASSIGNED_CODE_EXAMPLE}`}
                 value={assignedCode}
-                onChange={(event) => setAssignedCode(event.target.value.toUpperCase())}
+                error={fieldErrors.assigned_code}
                 maxLength={8}
                 required
+                onChange={(event) => setAssignedCode(event.target.value.toUpperCase())}
               />
-              <FieldError message={fieldErrors.assigned_code} />
-            </div>
-          ) : (
-            <p className="small">
-              Cette paire n’étant pas encore gravée, un code unique lui sera automatiquement attribué lors de
-              son enregistrement. Ce code devra ensuite être apposé sur la paire. Vous pourrez retrouver ce
-              code dans la fiche d’information de la paire.
-            </p>
-          )}
+            ) : (
+              <p className="pdv-field__hint mb-0">
+                Cette paire n’étant pas encore gravée, un code unique lui sera automatiquement attribué lors de
+                son enregistrement. Ce code devra ensuite être apposé sur la paire. Vous pourrez retrouver ce
+                code dans la fiche d’information de la paire.
+              </p>
+            )}
+          </div>
         </div>
-        <div className="modal-footer flex-column">
-          <button type="submit" className="btn btn-primary w-100" disabled={pending || !canSubmit}>
+        <div className="modal-footer">
+          <PdvButton type="submit" variant="primary" size="l" block disabled={pending || !canSubmit}>
             Enregistrer la paire
-          </button>
-          <button type="button" className="btn btn-link" onClick={() => onClose(true)}>
+          </PdvButton>
+          <PdvButton type="button" variant="tertiary" onClick={() => onClose(true)}>
             Annuler
-          </button>
+          </PdvButton>
         </div>
       </form>
     </BootstrapModal>

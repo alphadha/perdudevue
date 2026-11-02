@@ -2,7 +2,8 @@
 
 import { FormEvent, useState } from "react";
 import BootstrapModal, { ModalSuccessMark } from "@/components/opticien/BootstrapModal";
-import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError } from "@/lib/api";
 import { ASSIGNED_CODE_EXAMPLE } from "@/lib/assignedCode";
 import type { FoundPairPreview, ShopRestitution } from "@/lib/types";
@@ -66,9 +67,9 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
           <p className="mb-0">Le propriétaire a été notifié que ses lunettes ont été retrouvées.</p>
         </div>
         <div className="modal-footer flex-column">
-          <button type="button" className="btn btn-primary w-100" onClick={() => onDone()}>
+          <PdvButton type="button" variant="primary" size="l" block onClick={() => onDone()}>
             Fermer
-          </button>
+          </PdvButton>
         </div>
       </BootstrapModal>
     );
@@ -83,32 +84,32 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
             Vérifiez bien que la paire identifiée est la bonne. Cette action permettra au propriétaire de la paire
             d’être notifié.
           </p>
-          <ul className="list-group">
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Paire :</span>
-              <span>{preview.type_label}</span>
+          <ul className="pdv-recap-list">
+            <li>
+              <span>Type de lunettes</span>
+              <strong>{preview.type_label}</strong>
             </li>
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Marque :</span>
-              <span>{preview.brand}</span>
+            <li>
+              <span>Marque</span>
+              <strong>{preview.brand}</strong>
             </li>
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Couleur(s) :</span>
-              <span>{preview.colors.join(", ")}</span>
+            <li>
+              <span>Couleur(s)</span>
+              <strong>{preview.colors.join(", ")}</strong>
             </li>
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Code assigné :</span>
-              <span>{preview.assigned_code}</span>
+            <li>
+              <span>Code assigné</span>
+              <strong>{preview.assigned_code}</strong>
             </li>
           </ul>
         </div>
         <div className="modal-footer flex-column">
-          <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={() => void confirm()}>
+          <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirm()}>
             Confirmer le signalement
-          </button>
-          <button type="button" className="btn btn-link" onClick={() => onClose(true)}>
+          </PdvButton>
+          <PdvButton type="button" variant="tertiary" onClick={() => onClose(true)}>
             Annuler
-          </button>
+          </PdvButton>
         </div>
       </BootstrapModal>
     );
@@ -118,28 +119,25 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
     <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 1/3" onClose={() => onClose(true)}>
       <form onSubmit={(event) => void identify(event)}>
         <div className="modal-body">
-          <label className="form-label" htmlFor="found-assigned-code">
-            Code assigné à la paire*
-          </label>
-          <input
+          <PdvField
             id="found-assigned-code"
-            className={`form-control${error ? " is-invalid" : ""}`}
+            label="Code assigné à la paire*"
             placeholder={ASSIGNED_CODE_EXAMPLE}
             value={assignedCode}
-            onChange={(event) => setAssignedCode(event.target.value.toUpperCase())}
+            error={error ?? undefined}
             maxLength={8}
             autoComplete="off"
             required
+            onChange={(event) => setAssignedCode(event.target.value.toUpperCase())}
           />
-          <FieldError message={error ?? undefined} />
         </div>
         <div className="modal-footer flex-column">
-          <button type="submit" className="btn btn-primary w-100" disabled={pending}>
+          <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
             Signaler comme retrouvé
-          </button>
-          <button type="button" className="btn btn-link" onClick={() => onClose(true)}>
+          </PdvButton>
+          <PdvButton type="button" variant="tertiary" onClick={() => onClose(true)}>
             Annuler
-          </button>
+          </PdvButton>
         </div>
       </form>
     </BootstrapModal>

@@ -8,7 +8,9 @@ description: >-
 
 # Recette PDV
 
-Source : `docs/04-cahier-de-recette.md`.
+Sources : `docs/Cahier_de_recette_Perdues_de_Vue.xlsx` · `docs/04-cahier-de-recette.md` · audit `docs/05-audit-cahier-recette.md`.
+
+E2E Playwright : `e2e/` (`npm test` dans ce dossier, front :3000 + API :8000 seedés).
 
 ## Quand on ajoute une feature
 

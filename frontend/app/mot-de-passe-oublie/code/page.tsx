@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useEffect, useState } from "react";
-import BrandPanel from "@/components/BrandPanel";
+import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
+import AuthFlowShell from "@/components/AuthFlowShell";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 import type { Space } from "@/lib/types";
 
@@ -23,6 +23,8 @@ function OtpForm() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [resendPending, setResendPending] = useState(false);
+  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     setEmail(sessionStorage.getItem("pdv_reset_email") ?? "");
@@ -50,62 +52,73 @@ function OtpForm() {
     if (!email) {
       return;
     }
-    await api("/auth/password/forgot", {
-      method: "POST",
-      body: JSON.stringify({ email }),
-    });
+    setResendPending(true);
+    setError(null);
+    try {
+      await api("/auth/password/forgot", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+    } catch (caught) {
+      setError(caught instanceof ApiRequestError ? caught.message : "Renvoi impossible.");
+    } finally {
+      setResendPending(false);
+    }
+  }
+
+  function updateDigit(index: number, raw: string) {
+    const digit = raw.replace(/\D/g, "").slice(-1);
+    const next = [...code];
+    next[index] = digit;
+    setCode(next);
+    if (digit && index < 5) {
+      inputsRef.current[index + 1]?.focus();
+    }
+  }
+
+  function onKeyDown(index: number, key: string) {
+    if (key === "Backspace" && !code[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
   }
 
   return (
-    <div className="container-fluid min-vh-100">
-      <div className="row min-vh-100">
-        <BrandPanel space={space} />
-        <div className={space === "client" ? "col-12" : "col-lg-6"}>
-          <div className="container py-5">
-            <div className="row justify-content-center">
-              <div className="col-12 col-sm-10 col-md-8 col-xl-8">
-                <Link href={`/mot-de-passe-oublie?space=${space}`} className="d-inline-block mb-3">
-                  Retour
-                </Link>
-                <div className="progress mb-4">
-                  <div className="progress-bar w-50" />
-                </div>
-                <h1 className="h5 mb-4">Saisissez le code à 6 chiffres envoyé au {email ? maskEmail(email) : "votre e-mail"}</h1>
-                {error ? <div className="alert alert-danger">{error}</div> : null}
-                <form onSubmit={onSubmit}>
-                  <div className="d-flex justify-content-between gap-2 mb-3">
-                    {code.map((digit, index) => (
-                      <input
-                        key={index}
-                        className="form-control text-center"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(event) => {
-                          const next = [...code];
-                          next[index] = event.target.value.replace(/\D/g, "").slice(-1);
-                          setCode(next);
-                        }}
-                        required
-                      />
-                    ))}
-                  </div>
-                  <p>
-                    Vous n’avez pas reçu de code ?{" "}
-                    <button type="button" className="btn btn-link p-0 align-baseline" onClick={() => void resend()}>
-                      Renvoyer un code
-                    </button>
-                  </p>
-                  <button className="btn btn-primary w-100" type="submit" disabled={pending}>
-                    Continuer
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
+    <AuthFlowShell backHref={`/mot-de-passe-oublie?space=${space}`} title="Mot de passe oublié" progress={50}>
+      {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
+      <form className="pdv-login__form pdv-otp-form" onSubmit={onSubmit} noValidate>
+        <h1 className="pdv-otp-form__title">
+          Saisissez le code à 6 chiffres envoyé {email ? `au ${maskEmail(email)}` : "à votre e-mail"}
+        </h1>
+        <div className="pdv-otp-form__digits" role="group" aria-label="Code à 6 chiffres">
+          {code.map((digit, index) => (
+            <input
+              key={index}
+              ref={(node) => {
+                inputsRef.current[index] = node;
+              }}
+              className="pdv-otp-form__digit"
+              inputMode="numeric"
+              autoComplete={index === 0 ? "one-time-code" : "off"}
+              maxLength={1}
+              value={digit}
+              aria-label={`Chiffre ${index + 1}`}
+              onChange={(event) => updateDigit(index, event.target.value)}
+              onKeyDown={(event) => onKeyDown(index, event.key)}
+              required
+            />
+          ))}
         </div>
-      </div>
-    </div>
+        <div className="pdv-otp-form__resend">
+          <p>Vous n’avez pas reçu de code ?</p>
+          <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resend()}>
+            {resendPending ? "Envoi…" : "Renvoyer un code"}
+          </button>
+        </div>
+        <PdvButton variant="primary" size="l" block type="submit" disabled={pending || code.join("").length < 6}>
+          {pending ? "Vérification…" : "Confirmer"}
+        </PdvButton>
+      </form>
+    </AuthFlowShell>
   );
 }
 

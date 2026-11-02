@@ -1,0 +1,105 @@
+{
+  "catalog_total": 127,
+  "ids_referenced_in_code": 127,
+  "covered": 127,
+  "missing": 0,
+  "coverage_pct": 100.0,
+  "cahier_all_spec": true,
+  "executeCase_router": true,
+  "runner_files": [
+    "P01",
+    "P02",
+    "P03",
+    "P04",
+    "P05",
+    "P06",
+    "P07",
+    "P08",
+    "P09",
+    "P10",
+    "P11",
+    "P12",
+    "P13",
+    "P14"
+  ],
+  "runner_case_counts": {
+    "P01": 6,
+    "P02": 8,
+    "P03": 7,
+    "P04": 12,
+    "P05": 14,
+    "P06": 14,
+    "P07": 9,
+    "P08": 6,
+    "P09": 11,
+    "P10": 7,
+    "P11": 6,
+    "P12": 7,
+    "P13": 10,
+    "P14": 10
+  },
+  "spec_test_counts": {
+    "cahier-all.spec.ts": {
+      "tests": 1,
+      "skips_calls": 0
+    },
+    "p01-fondations.spec.ts": {
+      "tests": 6,
+      "skips_calls": 0
+    },
+    "p02-auth-opticien.spec.ts": {
+      "tests": 8,
+      "skips_calls": 1
+    },
+    "p03-invitation-client.spec.ts": {
+      "tests": 7,
+      "skips_calls": 1
+    },
+    "p04-clients.spec.ts": {
+      "tests": 10,
+      "skips_calls": 1
+    },
+    "p05-paires.spec.ts": {
+      "tests": 8,
+      "skips_calls": 1
+    },
+    "p06-restitution.spec.ts": {
+      "tests": 13,
+      "skips_calls": 1
+    },
+    "p07-client-space.spec.ts": {
+      "tests": 8,
+      "skips_calls": 2
+    },
+    "p08-notifications.spec.ts": {
+      "tests": 6,
+      "skips_calls": 0
+    },
+    "p09-envoi-distance.spec.ts": {
+      "tests": 8,
+      "skips_calls": 2
+    },
+    "p10-admin-filament.spec.ts": {
+      "tests": 4,
+      "skips_calls": 1
+    },
+    "p11-lots-codes.spec.ts": {
+      "tests": 1,
+      "skips_calls": 0
+    },
+    "p12-facturation.spec.ts": {
+      "tests": 1,
+      "skips_calls": 0
+    },
+    "p13-securite.spec.ts": {
+      "tests": 10,
+      "skips_calls": 2
+    },
+    "p14-e2e-magasin.spec.ts": {
+      "tests": 4,
+      "skips_calls": 1
+    }
+  },
+  "missing_by_parcours": {},
+  "missing_ids": []
+}

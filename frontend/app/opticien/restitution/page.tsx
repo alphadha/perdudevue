@@ -8,15 +8,18 @@ import HandoverModal from "@/components/opticien/HandoverModal";
 import MarkShippedModal from "@/components/opticien/MarkShippedModal";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvRowActions, { type PdvRowAction } from "@/components/pdv/PdvRowActions";
 import PdvSearchBar from "@/components/pdv/PdvSearchBar";
-import PdvSortHeader from "@/components/pdv/PdvSortHeader";
+import PdvSelect from "@/components/pdv/PdvSelect";
+import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatSyncLabel } from "@/lib/formatSync";
 import { downloadLabelFile } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
 import { formatFrDate, type ShopRestitution, type ShippingLabelFile } from "@/lib/types";
 
 type ToastState = { title?: string; message: string };
-type SortKey = "reference" | "type" | "brand" | "client" | "assigned_code" | "status" | "found_at";
+type SortKey = "reference" | "type" | "brand" | "colors" | "status" | "found_at";
 
 const PAIR_TYPES = ["Vue", "Soleil", "Solaire de Vue"] as const;
 
@@ -81,26 +84,58 @@ export default function RestitutionPage() {
       reference: (item) => item.reference,
       type: (item) => item.type,
       brand: (item) => item.brand,
-      client: (item) => (item.client ? `${item.client.last_name} ${item.client.first_name}` : ""),
-      assigned_code: (item) => item.assigned_code,
+      colors: (item) => item.colors.join(", "),
       status: (item) => item.status_label,
       found_at: (item) => item.found_at,
     });
   }, [items, query, typeFilter, sort]);
 
-  function header(label: string, key: SortKey) {
-    return (
-      <PdvSortHeader
-        label={label}
-        active={sort?.key === key}
-        onClick={() => setSort((current) => toggleSort(current, key))}
-      />
-    );
-  }
-
   const canHandOver = items.some((item) => item.actions.can_hand_over);
   const selectable = filtered.filter((item) => item.actions.can_select_for_labels);
-  const allSelectableChecked = selectable.length > 0 && selectable.every((item) => selected.includes(item.uuid));
+
+  const restitutionColumns: PdvTableColumn<ShopRestitution, SortKey>[] = [
+    { key: "reference", label: "Ref dossier", width: 130, render: (item) => (item.reference ? `#${item.reference}` : "") },
+    { key: "type", label: "Type", width: 130, render: (item) => item.type },
+    { key: "brand", label: "Marque", width: 120, render: (item) => item.brand },
+    { key: "colors", label: "Couleur(s)", width: 140, render: (item) => item.colors.join(", ") },
+    {
+      key: "status",
+      label: "Statut",
+      width: 160,
+      render: (item) => <PairStatusBadge status={item.status} label={item.status_label} />,
+    },
+    { key: "found_at", label: "Date signalement", width: 140, render: (item) => formatFrDate(item.found_at) },
+  ];
+
+  function restitutionActions(item: ShopRestitution): PdvRowAction[] {
+    const items: PdvRowAction[] = [];
+    if (item.actions.can_hand_over) {
+      items.push({ label: "Remettre au client", onClick: () => setHandoverOpen(true) });
+    }
+    if (item.actions.can_resend) {
+      items.push({ label: "Relancer le client", onClick: () => setResendTarget(item) });
+    }
+    if (item.actions.can_download_label || item.actions.can_mark_shipped) {
+      items.push(
+        {
+          label: "Télécharger le bordereau",
+          disabled: !item.actions.can_download_label,
+          onClick: () => void downloadOne(item),
+        },
+        {
+          label: "Indiquer comme en livraison",
+          disabled: !item.actions.can_mark_shipped,
+          onClick: () => setShipTarget(item),
+        },
+      );
+    } else if (item.status === "livraison_demandee") {
+      items.push(
+        { label: "Télécharger le bordereau", disabled: true },
+        { label: "Indiquer comme en livraison", disabled: true },
+      );
+    }
+    return items;
+  }
 
   async function downloadLabels(uuids: string[]) {
     try {
@@ -145,9 +180,7 @@ export default function RestitutionPage() {
     }
   }
 
-  const syncLabel = syncedAt
-    ? `Dernière synchronisation à ${syncedAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} le ${syncedAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}.`
-    : "Chargement…";
+  const syncLabel = syncedAt ? formatSyncLabel(syncedAt) : "Chargement…";
 
   return (
     <>
@@ -192,164 +225,62 @@ export default function RestitutionPage() {
       </div>
       <div className="pdv-panel">
         <div className="pdv-toolbar">
-          <PdvSearchBar value={query} onChange={setQuery} placeholder="Rechercher" />
+          <PdvSearchBar value={query} onChange={setQuery} placeholder="Rechercher un dossier..." />
           <div className="pdv-toolbar__filters">
-            <label className="pdv-filter">
-              <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} aria-label="Filtrer par type">
-                <option value="">Tous les types</option>
-                {PAIR_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="pdv-filter">
-              <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filtrer par statut">
-                <option value="">Tous les statuts</option>
-                <option value="a_recuperer">À récupérer</option>
-                <option value="livraison_demandee">Livraison demandée</option>
-                <option value="en_livraison">En livraison</option>
-              </select>
-            </label>
+            <PdvSelect
+              variant="filter"
+              aria-label="Filtrer par type"
+              value={typeFilter}
+              onChange={(event) => setTypeFilter(event.target.value)}
+            >
+              <option value="">Tous les types</option>
+              {PAIR_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </PdvSelect>
+            <PdvSelect
+              variant="filter"
+              aria-label="Filtrer par statut"
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
+              <option value="">Tous les statuts</option>
+              <option value="a_recuperer">À récupérer</option>
+              <option value="livraison_demandee">Livraison demandée</option>
+              <option value="en_livraison">En livraison</option>
+            </PdvSelect>
           </div>
         </div>
       </div>
       {loading ? (
         <p>Chargement des dossiers…</p>
       ) : (
-        <div className="pdv-table-wrap table-responsive">
-          <table className="pdv-table">
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    className="pdv-check"
-                    type="checkbox"
-                    checked={allSelectableChecked}
-                    {...(selectable.length === 0 ? { disabled: true } : {})}
-                    onChange={(event) => {
-                      setSelected(event.target.checked ? selectable.map((item) => item.uuid) : []);
-                    }}
-                    aria-label="Sélectionner les dossiers en livraison demandée"
-                  />
-                </th>
-                {header("Ref dossier", "reference")}
-                {header("Type", "type")}
-                {header("Marque", "brand")}
-                {header("Client", "client")}
-                {header("Code assigné", "assigned_code")}
-                {header("Statut", "status")}
-                {header("Date signalement", "found_at")}
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={9}>Aucun dossier de restitution en cours.</td>
-                </tr>
-              ) : (
-                filtered.map((item) => (
-                  <tr key={item.uuid}>
-                    <td>
-                      <input
-                        className="pdv-check"
-                        type="checkbox"
-                        checked={selected.includes(item.uuid)}
-                        {...(!item.actions.can_select_for_labels ? { disabled: true } : {})}
-                        onChange={(event) => {
-                          setSelected((current) =>
-                            event.target.checked
-                              ? [...current, item.uuid]
-                              : current.filter((uuid) => uuid !== item.uuid),
-                          );
-                        }}
-                        aria-label={`Sélectionner ${item.assigned_code}`}
-                      />
-                    </td>
-                    <td>{item.reference ? `#${item.reference}` : ""}</td>
-                    <td>{item.type}</td>
-                    <td>{item.brand}</td>
-                    <td>
-                      {item.client ? `${item.client.last_name} ${item.client.first_name}` : null}
-                    </td>
-                    <td>{item.assigned_code}</td>
-                    <td>
-                      <PairStatusBadge status={item.status} label={item.status_label} />
-                    </td>
-                    <td>{formatFrDate(item.found_at)}</td>
-                    <td>
-                      <div className="dropdown">
-                        <button
-                          className="pdv-icon-btn"
-                          type="button"
-                          data-bs-toggle="dropdown"
-                          aria-expanded="false"
-                          aria-label="Actions"
-                        >
-                          <img src="/icons/pdv/dots-vertical.svg" alt="" width={20} height={20} />
-                        </button>
-                        <ul className="dropdown-menu dropdown-menu-end">
-                          {item.actions.can_hand_over ? (
-                            <li>
-                              <button type="button" className="dropdown-item" onClick={() => setHandoverOpen(true)}>
-                                Remettre au client
-                              </button>
-                            </li>
-                          ) : null}
-                          {item.actions.can_resend ? (
-                            <li>
-                              <button type="button" className="dropdown-item" onClick={() => setResendTarget(item)}>
-                                Relancer le client
-                              </button>
-                            </li>
-                          ) : null}
-                          {item.actions.can_download_label || item.actions.can_mark_shipped ? (
-                            <>
-                              <li>
-                                <button
-                                  type="button"
-                                  className="dropdown-item"
-                                  disabled={!item.actions.can_download_label}
-                                  onClick={() => void downloadOne(item)}
-                                >
-                                  Télécharger le bordereau
-                                </button>
-                              </li>
-                              <li>
-                                <button
-                                  type="button"
-                                  className="dropdown-item"
-                                  disabled={!item.actions.can_mark_shipped}
-                                  onClick={() => setShipTarget(item)}
-                                >
-                                  Indiquer comme en livraison
-                                </button>
-                              </li>
-                            </>
-                          ) : item.status === "livraison_demandee" ? (
-                            <>
-                              <li>
-                                <button type="button" className="dropdown-item disabled" disabled>
-                                  Télécharger le bordereau
-                                </button>
-                              </li>
-                              <li>
-                                <button type="button" className="dropdown-item disabled" disabled>
-                                  Indiquer comme en livraison
-                                </button>
-                              </li>
-                            </>
-                          ) : null}
-                        </ul>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="pdv-panel pdv-panel--table">
+          <PdvTable
+            columns={restitutionColumns}
+            rows={filtered}
+            getRowId={(item) => item.uuid}
+            empty="Aucun dossier de restitution en cours."
+            sort={sort}
+            onSort={(key) => setSort((current) => toggleSort(current, key))}
+            selection={{
+              selected,
+              isEnabled: (item) => item.actions.can_select_for_labels,
+              headerAriaLabel: "Sélectionner les dossiers en livraison demandée",
+              rowAriaLabel: (item) => `Sélectionner ${item.assigned_code}`,
+              onToggleAll: (checked) => {
+                setSelected(checked ? selectable.map((item) => item.uuid) : []);
+              },
+              onToggleRow: (id, checked) => {
+                setSelected((current) =>
+                  checked ? [...current, id] : current.filter((uuid) => uuid !== id),
+                );
+              },
+            }}
+            actions={(item) => <PdvRowActions items={restitutionActions(item)} />}
+          />
         </div>
       )}
 

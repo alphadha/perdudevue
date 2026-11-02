@@ -6,6 +6,8 @@ import { useState } from "react";
 import { DeleteAccountModal, LogoutModal } from "@/components/client/ClientModals";
 import { api, ApiRequestError, clearSession } from "@/lib/api";
 
+const SUPPORT = "support@perduesdevue.com";
+
 export default function ClientSettingsPage() {
   const router = useRouter();
   const [logoutOpen, setLogoutOpen] = useState(false);
@@ -36,42 +38,64 @@ export default function ClientSettingsPage() {
 
   return (
     <>
-      <p>
-        <Link href="/client">Revenir à l’accueil</Link>
-      </p>
-      <h1 className="h4 mb-4">Paramètres du compte</h1>
-      <div className="list-group mb-4">
-        <Link className="list-group-item list-group-item-action" href="/client/parametres/informations">
-          Informations personnelles
+      <Link href="/client" className="pdv-back-link">
+        <img src="/icons/pdv/chevron-right.svg" alt="" width={16} height={16} className="pdv-back-link__chevron" />
+        Revenir à l’accueil
+      </Link>
+      <h1 className="pdv-client-page-title">Paramètres du compte</h1>
+
+      <h2 className="pdv-settings-section-title">Mon compte</h2>
+      <div className="pdv-settings-list mb-4">
+        <Link className="pdv-settings-item" href="/client/parametres/informations">
+          <span className="pdv-settings-item__label">
+            <img src="/icons/pdv/users-01.svg" alt="" width={20} height={20} />
+            Informations personnelles
+          </span>
+          <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
         </Link>
-        <Link className="list-group-item list-group-item-action" href="/client/parametres/connexion">
-          Informations de connexion
+        <Link className="pdv-settings-item" href="/client/parametres/connexion">
+          <span className="pdv-settings-item__label">
+            <img src="/icons/pdv/passcode.svg" alt="" width={20} height={20} />
+            Informations de connexion
+          </span>
+          <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
         </Link>
-        <Link className="list-group-item list-group-item-action" href="/client/parametres/notifications">
-          Notifications
+        <Link className="pdv-settings-item" href="/client/parametres/notifications">
+          <span className="pdv-settings-item__label">
+            <img src="/icons/pdv/bell-02.svg" alt="" width={20} height={20} />
+            Notifications
+          </span>
+          <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
         </Link>
-        <button type="button" className="list-group-item list-group-item-action" onClick={() => setDeleteOpen(true)}>
-          Supprimer mon compte
+        <button type="button" className="pdv-settings-item" onClick={() => setLogoutOpen(true)}>
+          <span className="pdv-settings-item__label">
+            <img src="/icons/pdv/log-out-01.svg" alt="" width={20} height={20} />
+            Se déconnecter
+          </span>
+        </button>
+        <button type="button" className="pdv-settings-item pdv-settings-item--danger" onClick={() => setDeleteOpen(true)}>
+          <span className="pdv-settings-item__label">Supprimer mon compte</span>
         </button>
       </div>
-      <div className="list-group mb-4">
-        <a className="list-group-item list-group-item-action" href="mailto:support@perduesdevue.fr">
-          Conditions générales d’utilisation
+
+      <h2 className="pdv-settings-section-title">Documents légaux</h2>
+      <div className="pdv-settings-list mb-4">
+        <a className="pdv-settings-item" href={`mailto:${SUPPORT}`}>
+          <span className="pdv-settings-item__label">Conditions générales d’utilisation</span>
         </a>
-        <a className="list-group-item list-group-item-action" href="mailto:support@perduesdevue.fr">
-          Politique de confidentialité
+        <a className="pdv-settings-item" href={`mailto:${SUPPORT}`}>
+          <span className="pdv-settings-item__label">Politique de confidentialité</span>
         </a>
-        <button type="button" className="list-group-item list-group-item-action" onClick={() => setLogoutOpen(true)}>
-          Me déconnecter
-        </button>
       </div>
-      <div className="alert alert-info">
-        <p className="fw-semibold mb-1">Besoin d’aide ?</p>
-        <p className="mb-0">
+
+      <aside className="pdv-help-card">
+        <p className="pdv-help-card__title">Vous avez besoin d’aide ?</p>
+        <p className="pdv-help-card__body">
           Notre support client est à votre disposition pour répondre à toutes vos questions. Vous pouvez nous
-          contacter par mail à <a href="mailto:support@perduesdevue.fr">support@perduesdevue.fr</a>.
+          contacter par mail à {SUPPORT}.
         </p>
-      </div>
+      </aside>
+
       {logoutOpen ? (
         <LogoutModal pending={pending} onConfirm={logout} onClose={() => setLogoutOpen(false)} />
       ) : null}

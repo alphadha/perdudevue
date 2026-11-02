@@ -67,10 +67,24 @@ export default function PairFichePage() {
     }
   }
 
+  async function copyAssignedCode() {
+    if (!pair) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(pair.assigned_code);
+      showToast("Code assigné copié.");
+    } catch {
+      showToast("Copie du code assigné impossible.");
+    }
+  }
+
   if (error) {
     return (
       <>
-        <Link href="/opticien/lunettes">Revenir aux lunettes</Link>
+        <PdvButton variant="tertiary" href="/opticien/lunettes" iconLeft="/icons/pdv/arrow-narrow-left.svg">
+          Revenir aux lunettes
+        </PdvButton>
         <p className="mt-3">{error}</p>
       </>
     );
@@ -80,41 +94,46 @@ export default function PairFichePage() {
     return <p>Chargement de la fiche…</p>;
   }
 
+  const events = [...(pair.events ?? [])].sort((a, b) => {
+    const left = a.at ? Date.parse(a.at) : 0;
+    const right = b.at ? Date.parse(b.at) : 0;
+    return right - left;
+  });
+
   return (
     <>
       <AppToast message={toast} />
       <p className="mb-3">
-        <PdvButton variant="tertiary" href="/opticien/lunettes">
+        <PdvButton variant="tertiary" href="/opticien/lunettes" iconLeft="/icons/pdv/arrow-narrow-left.svg">
           Revenir aux lunettes
         </PdvButton>
       </p>
       <div className="pdv-page-head">
         <div>
-          <h1 className="mb-2">{pair.title}</h1>
-          <PairStatusBadge status={pair.status} label={pair.status_label} />
+          <h1>{pair.title}</h1>
         </div>
         <div className="d-flex flex-wrap gap-2">
           {pair.status === "a_graver" ? (
-            <>
-              <PdvButton variant="secondary" size="m" onClick={() => downloadAssignedCode(pair)}>
-                Télécharger le code assigné
-              </PdvButton>
-              <PdvButton variant="primary" size="m" onClick={() => mutations.setEngravePair(pair)}>
-                Indiquer comme gravée
-              </PdvButton>
-            </>
+            <PdvButton
+              variant="secondary"
+              size="l"
+              iconLeft="/icons/pdv/download-01.svg"
+              onClick={() => downloadAssignedCode(pair)}
+            >
+              Télécharger le code assigné
+            </PdvButton>
           ) : null}
           {pair.status === "active" ? (
-            <PdvButton variant="secondary" size="m" onClick={() => mutations.setInactivePair(pair)}>
-              Passer en &quot;inactive&quot;
+            <PdvButton variant="secondary" size="l" onClick={() => mutations.setInactivePair(pair)}>
+              Déclarer comme inactive
             </PdvButton>
           ) : null}
           {pair.actions.can_hand_over ? (
-            <PdvButton variant="primary" size="m" onClick={() => setHandoverOpen(true)}>
+            <PdvButton variant="primary" size="l" onClick={() => setHandoverOpen(true)}>
               Remettre au client
             </PdvButton>
           ) : pair.status === "a_recuperer" ? (
-            <PdvButton variant="primary" size="m" disabled>
+            <PdvButton variant="primary" size="l" disabled>
               Remettre au client
             </PdvButton>
           ) : null}
@@ -122,100 +141,106 @@ export default function PairFichePage() {
             <>
               <PdvButton
                 variant="secondary"
-                size="m"
+                size="l"
+                iconLeft="/icons/pdv/download-01.svg"
                 disabled={!pair.actions.can_download_label}
                 onClick={() => void downloadLabel()}
               >
                 Télécharger le bordereau
               </PdvButton>
               {pair.actions.can_mark_shipped ? (
-                <PdvButton variant="primary" size="m" onClick={() => setShipOpen(true)}>
+                <PdvButton variant="primary" size="l" onClick={() => setShipOpen(true)}>
                   Indiquer comme en livraison
                 </PdvButton>
               ) : null}
             </>
           ) : pair.status === "livraison_demandee" ? (
             <>
-              <PdvButton variant="secondary" size="m" disabled>
+              <PdvButton variant="secondary" size="l" disabled>
                 Télécharger le bordereau
               </PdvButton>
-              <PdvButton variant="primary" size="m" disabled>
+              <PdvButton variant="primary" size="l" disabled>
                 Indiquer comme en livraison
               </PdvButton>
             </>
           ) : null}
         </div>
       </div>
-      <div className="row g-4">
-        <div className="col-lg-6">
-          <div className="card">
-            <div className="card-body">
-              <h2 className="h5">Informations</h2>
-              {pair.client ? (
-                <>
-                  <p className="d-flex justify-content-between mb-2">
-                    <span>Client</span>
-                    <span>
-                      <Link href={`/opticien/clients/${pair.client.uuid}`}>
-                        {pair.client.last_name} {pair.client.first_name}
-                      </Link>
-                    </span>
-                  </p>
-                  <p className="d-flex justify-content-between mb-2">
-                    <span>Numéro de téléphone client</span>
-                    <span>{pair.client.phone}</span>
-                  </p>
-                  <p className="d-flex justify-content-between mb-2">
-                    <span>Adresse mail client</span>
-                    <span>{pair.client.email}</span>
-                  </p>
-                </>
-              ) : null}
-              <p className="d-flex justify-content-between mb-2">
-                <span>Type de lunettes</span>
-                <span>{pair.type}</span>
-              </p>
-              <p className="d-flex justify-content-between mb-2">
-                <span>Marque</span>
-                <span>{pair.brand}</span>
-              </p>
-              <p className="d-flex justify-content-between mb-2">
-                <span>Couleur(s)</span>
-                <span>{pair.colors.join(", ")}</span>
-              </p>
-              <p className="d-flex justify-content-between mb-2">
-                <span>Description</span>
-                <span>{pair.description ?? ""}</span>
-              </p>
-              <p className="d-flex justify-content-between mb-2">
-                <span>Code assigné</span>
-                <span>{pair.assigned_code}</span>
-              </p>
-              <p className="d-flex justify-content-between mb-0">
-                <span>Date d&apos;enregistrement</span>
-                <span>{formatFrDate(pair.registered_at)}</span>
-              </p>
+      <div className="pdv-fiche-grid">
+        <div className="pdv-panel pdv-panel--fiche">
+          <div className="pdv-fiche-card-head">
+            <h2>Informations</h2>
+            <PairStatusBadge status={pair.status} label={pair.status_label} />
+          </div>
+          <div className="pdv-kv">
+            {pair.client ? (
+              <>
+                <div className="pdv-kv__row">
+                  <span className="pdv-kv__label">Client</span>
+                  <span className="pdv-kv__value">
+                    <Link href={`/opticien/clients/${pair.client.uuid}`}>
+                      {pair.client.first_name} {pair.client.last_name}
+                    </Link>
+                  </span>
+                </div>
+                <div className="pdv-kv__row">
+                  <span className="pdv-kv__label">Numéro de téléphone client</span>
+                  <span className="pdv-kv__value">{pair.client.phone}</span>
+                </div>
+                <div className="pdv-kv__row">
+                  <span className="pdv-kv__label">Adresse mail client</span>
+                  <span className="pdv-kv__value">{pair.client.email}</span>
+                </div>
+              </>
+            ) : null}
+            <div className="pdv-kv__row">
+              <span className="pdv-kv__label">Type de lunettes</span>
+              <span className="pdv-kv__value">{pair.type}</span>
+            </div>
+            <div className="pdv-kv__row">
+              <span className="pdv-kv__label">Marque</span>
+              <span className="pdv-kv__value">{pair.brand}</span>
+            </div>
+            <div className="pdv-kv__row">
+              <span className="pdv-kv__label">Couleurs</span>
+              <span className="pdv-kv__value">{pair.colors.join(", ")}</span>
+            </div>
+            <div className="pdv-kv__row">
+              <span className="pdv-kv__label">Code assigné</span>
+              <span className="pdv-kv__value">
+                {pair.assigned_code}
+                <button type="button" className="pdv-copy-btn" aria-label="Copier le code assigné" onClick={() => void copyAssignedCode()}>
+                  <img src="/icons/pdv/copy-06.svg" alt="" width={14} height={14} />
+                </button>
+              </span>
+            </div>
+            <div className="pdv-kv__row">
+              <span className="pdv-kv__label">Date d&apos;enregistrement</span>
+              <span className="pdv-kv__value">{formatFrDate(pair.registered_at)}</span>
             </div>
           </div>
         </div>
-        <div className="col-lg-6">
-          <div className="card">
-            <div className="card-body">
-              <h2 className="h5">Historique des événements</h2>
-              {pair.events && pair.events.length > 0 ? (
-                <ul className="list-unstyled mb-0">
-                  {pair.events.map((event) => (
-                    <li key={`${event.type}-${event.at}`} className="mb-3">
-                      <div className="small text-secondary">{formatFrDate(event.at)}</div>
-                      <div>{event.label}</div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mb-0 text-secondary">Aucun événement.</p>
-              )}
-            </div>
+        <div className="pdv-panel pdv-panel--fiche">
+          <div className="pdv-fiche-card-head">
+            <h2>Historique des événements</h2>
           </div>
+          {events.length > 0 ? (
+            <ul className="pdv-timeline">
+              {events.map((event, index) => (
+                <li key={`${event.type}-${event.at}-${index}`} className="pdv-timeline__item">
+                  <span className="pdv-timeline__mark">
+                    <span className="pdv-timeline__dot" />
+                  </span>
+                  <span className="pdv-timeline__body">
+                    <span className="pdv-timeline__date">{formatFrDate(event.at)}</span>
+                    <span className="pdv-timeline__label">{event.label}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="pdv-timeline__date mb-0">Aucun événement.</p>
+          )}
         </div>
       </div>
 

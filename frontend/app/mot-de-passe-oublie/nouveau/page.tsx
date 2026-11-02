@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useState } from "react";
-import BrandPanel from "@/components/BrandPanel";
+import AuthFlowShell from "@/components/AuthFlowShell";
 import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 import type { Space } from "@/lib/types";
 
@@ -16,6 +16,8 @@ function NewPasswordForm() {
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
@@ -25,9 +27,10 @@ function NewPasswordForm() {
     setCode(sessionStorage.getItem("pdv_reset_code") ?? "");
   }, []);
 
-  const longEnough = password.length >= 8;
-  const hasUpper = /[A-Z]/.test(password);
-  const hasDigit = /[0-9]/.test(password);
+  const longEnough = password.length > 8;
+  const hasCase = /[A-Z]/.test(password) && /[a-z]/.test(password);
+  const hasDigitAndSpecial = /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
+  const canSubmit = longEnough && hasCase && hasDigitAndSpecial && password === confirmation && confirmation.length > 0;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -64,64 +67,85 @@ function NewPasswordForm() {
   }
 
   return (
-    <div className="container-fluid min-vh-100">
-      <div className="row min-vh-100">
-        <BrandPanel space={space} />
-        <div className={space === "client" ? "col-12" : "col-lg-6"}>
-          <div className="container py-5">
-            <div className="row justify-content-center">
-              <div className="col-12 col-sm-10 col-md-8 col-xl-8">
-                <Link href={`/mot-de-passe-oublie/code?space=${space}`} className="d-inline-block mb-3">
-                  Retour
-                </Link>
-                <div className="progress mb-4">
-                  <div className="progress-bar w-100" />
-                </div>
-                <h1 className="h4 mb-4">Nouveau mot de passe</h1>
-                {error ? <div className="alert alert-danger">{error}</div> : null}
-                <form onSubmit={onSubmit}>
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="password">
-                      Mot de passe*
-                    </label>
-                    <input
-                      id="password"
-                      type="password"
-                      className={`form-control${fieldErrors.password ? " is-invalid" : ""}`}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                    />
-                    <FieldError message={fieldErrors.password} />
-                    <ul className="list-unstyled small mt-2 mb-0">
-                      <li className={longEnough ? "text-success" : "text-muted"}>8 caractères minimum</li>
-                      <li className={hasUpper ? "text-success" : "text-muted"}>Au moins une majuscule</li>
-                      <li className={hasDigit ? "text-success" : "text-muted"}>Au moins un chiffre</li>
-                    </ul>
-                  </div>
-                  <div className="mb-4">
-                    <label className="form-label" htmlFor="confirmation">
-                      Confirmer le mot de passe*
-                    </label>
-                    <input
-                      id="confirmation"
-                      type="password"
-                      className="form-control"
-                      value={confirmation}
-                      onChange={(event) => setConfirmation(event.target.value)}
-                      required
-                    />
-                  </div>
-                  <button className="btn btn-primary w-100" type="submit" disabled={pending}>
-                    Valider
-                  </button>
-                </form>
-              </div>
-            </div>
+    <AuthFlowShell
+      backHref={`/mot-de-passe-oublie/code?space=${space}`}
+      title="Nouveau mot de passe"
+      progress={100}
+    >
+      {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
+      <form className="pdv-login__form" onSubmit={onSubmit} noValidate>
+        <div className="pdv-field">
+          <label className="pdv-field__label" htmlFor="password">
+            Mot de passe*
+          </label>
+          <div className="pdv-field__password">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              className={`pdv-field__control${fieldErrors.password ? " is-invalid" : ""}`}
+              placeholder="Saisissez votre mot de passe"
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="pdv-field__eye"
+              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              onClick={() => setShowPassword((current) => !current)}
+            >
+              <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
+            </button>
+          </div>
+          <FieldError message={fieldErrors.password} />
+          <ul className="pdv-password-rules">
+            <li className={longEnough ? "is-ok" : undefined}>
+              <img src="/icons/pdv/info-circle.svg" alt="" width={16} height={16} />
+              <span>Plus de 8 caractères</span>
+            </li>
+            <li className={hasCase ? "is-ok" : undefined}>
+              <img src="/icons/pdv/info-circle.svg" alt="" width={16} height={16} />
+              <span>Une majuscule et une minuscule</span>
+            </li>
+            <li className={hasDigitAndSpecial ? "is-ok" : undefined}>
+              <img src="/icons/pdv/info-circle.svg" alt="" width={16} height={16} />
+              <span>Un chiffre et un caractère spécial</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="pdv-field">
+          <label className="pdv-field__label" htmlFor="confirmation">
+            Confirmer le mot de passe*
+          </label>
+          <div className="pdv-field__password">
+            <input
+              id="confirmation"
+              type={showConfirmation ? "text" : "password"}
+              className="pdv-field__control"
+              placeholder="Saisissez votre mot de passe"
+              autoComplete="new-password"
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+              required
+            />
+            <button
+              type="button"
+              className="pdv-field__eye"
+              aria-label={showConfirmation ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              onClick={() => setShowConfirmation((current) => !current)}
+            >
+              <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
+            </button>
           </div>
         </div>
-      </div>
-    </div>
+
+        <PdvButton variant="primary" size="l" block type="submit" disabled={pending || !canSubmit}>
+          {pending ? "Enregistrement…" : "Réinitialiser le mot de passe"}
+        </PdvButton>
+      </form>
+    </AuthFlowShell>
   );
 }
 

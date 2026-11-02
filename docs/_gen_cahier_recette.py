@@ -100,8 +100,8 @@ t(P05, 14, "P0", "OPT-A", "Seed P1", "S’assurer d’une paire Active P1 code F
 
 # ─── P06 Restitution critique ─────────────────────────────────────────────────
 P06 = "P06 — Restitution magasin (critique)"
-t(P06, 1, "P0", "C1", "Espace client", "Sur P1 Active, déclarer perdue + confirmer", "Statut Perdue. Event créé. Pas de notif magasin d’origine (NO-03).", "R5-02 · R6-06")
-t(P06, 2, "P0", "OPT-B", "Signaler retrouvé", "Saisir le code assigné P1 (C1 n’est PAS client de B)", "Dossier restitution créé. Aucun nom/email/tél C1 affiché.", "R4-01")
+t(P06, 1, "P0", "C2", "Espace client", "Sur une paire Active (ex. seed FR6001AA), déclarer perdue + confirmer. Note : seed P1 FR5487OK est déjà a_recuperer chez B.", "Statut Perdue. Event créé. Pas de notif magasin d’origine (NO-03).", "R5-02 · R6-06")
+t(P06, 2, "P0", "OPT-B", "Signaler retrouvé", "Saisir le code assigné P1 FR5487OK (déjà en dépôt seed) OU une paire perdue de C1 ; C1 n’est PAS client de B", "Dossier restitution / détail sans nom/email/tél C1.", "R4-01")
 t(P06, 3, "P0", "C1", "Email sink", "Ouvrir l’email « paire retrouvée »", "Lien public token + code restitution + magasin B. Pas de PII tiers.", "R4-02 · R6-03")
 t(P06, 4, "P0", "Visiteur", "/r/{token}", "Ouvrir le lien public sans session", "Page visible ; une seule paire ; infos magasin B.", "R1-09")
 t(P06, 5, "P0", "Visiteur", "/r/{token}", "Modifier le token (tamper) et recharger", "404. Pas de dump.", "R1-10")

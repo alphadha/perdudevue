@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import PdvRowActions, { type PdvRowAction } from "@/components/pdv/PdvRowActions";
 import { downloadAssignedCode } from "@/lib/pairUi";
 import type { ShopPair } from "@/lib/types";
 
@@ -23,109 +23,47 @@ export default function PairRowMenu({
   onDownloadLabel,
   onMarkShipped,
 }: Props) {
-  return (
-    <div className="dropdown">
-      <button
-        className="pdv-icon-btn"
-        type="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-        aria-label="Actions"
-      >
-        <img src="/icons/pdv/dots-vertical.svg" alt="" width={20} height={20} />
-      </button>
-      <ul className="dropdown-menu dropdown-menu-end">
-        <li>
-          <Link className="dropdown-item" href={`/opticien/lunettes/${pair.uuid}`}>
-            Voir la fiche
-          </Link>
-        </li>
-        {pair.status === "a_graver" ? (
-          <>
-            <li>
-              <button type="button" className="dropdown-item" onClick={() => downloadAssignedCode(pair)}>
-                Exporter le code assigné
-              </button>
-            </li>
-            <li>
-              <button type="button" className="dropdown-item" onClick={() => onEngrave(pair)}>
-                Indiquer comme gravée
-              </button>
-            </li>
-          </>
-        ) : null}
-        {pair.status === "active" ? (
-          <li>
-            <button type="button" className="dropdown-item" onClick={() => onInactivate(pair)}>
-              Déclarer comme inactive
-            </button>
-          </li>
-        ) : null}
-        {pair.actions.can_hand_over ? (
-          <>
-            <li>
-              <button type="button" className="dropdown-item" onClick={() => onHandOver?.()}>
-                Remettre au client
-              </button>
-            </li>
-            <li>
-              <button type="button" className="dropdown-item" onClick={() => onResend?.(pair)}>
-                Relancer le client
-              </button>
-            </li>
-          </>
-        ) : pair.status === "a_recuperer" ? (
-          <>
-            <li>
-              <button type="button" className="dropdown-item disabled" disabled>
-                Remettre au client
-              </button>
-            </li>
-            <li>
-              <button type="button" className="dropdown-item disabled" disabled>
-                Relancer le client
-              </button>
-            </li>
-          </>
-        ) : null}
-        {pair.actions.can_download_label || pair.actions.can_mark_shipped ? (
-          <>
-            <li>
-              <button
-                type="button"
-                className="dropdown-item"
-                disabled={!pair.actions.can_download_label}
-                onClick={() => onDownloadLabel?.(pair)}
-              >
-                Télécharger le bordereau
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className="dropdown-item"
-                disabled={!pair.actions.can_mark_shipped}
-                onClick={() => onMarkShipped?.(pair)}
-              >
-                Indiquer comme en livraison
-              </button>
-            </li>
-          </>
-        ) : pair.status === "livraison_demandee" ? (
-          <>
-            <li>
-              <button type="button" className="dropdown-item disabled" disabled>
-                Télécharger le bordereau
-              </button>
-            </li>
-            <li>
-              <button type="button" className="dropdown-item disabled" disabled>
-                Indiquer comme en livraison
-              </button>
-            </li>
-          </>
-        ) : null}
-      </ul>
-    </div>
-  );
+  const items: PdvRowAction[] = [{ label: "Voir la fiche", href: `/opticien/lunettes/${pair.uuid}` }];
+
+  if (pair.status === "a_graver") {
+    items.push(
+      { label: "Exporter le code assigné", onClick: () => downloadAssignedCode(pair) },
+      { label: "Indiquer comme gravée", onClick: () => onEngrave(pair) },
+    );
+  }
+
+  if (pair.status === "active") {
+    items.push({ label: "Déclarer comme inactive", onClick: () => onInactivate(pair) });
+  }
+
+  if (pair.actions.can_hand_over) {
+    items.push(
+      { label: "Remettre au client", onClick: () => onHandOver?.() },
+      { label: "Relancer le client", onClick: () => onResend?.(pair) },
+    );
+  } else if (pair.status === "a_recuperer") {
+    items.push({ label: "Remettre au client", disabled: true }, { label: "Relancer le client", disabled: true });
+  }
+
+  if (pair.actions.can_download_label || pair.actions.can_mark_shipped) {
+    items.push(
+      {
+        label: "Télécharger le bordereau",
+        disabled: !pair.actions.can_download_label,
+        onClick: () => onDownloadLabel?.(pair),
+      },
+      {
+        label: "Indiquer comme en livraison",
+        disabled: !pair.actions.can_mark_shipped,
+        onClick: () => onMarkShipped?.(pair),
+      },
+    );
+  } else if (pair.status === "livraison_demandee") {
+    items.push(
+      { label: "Télécharger le bordereau", disabled: true },
+      { label: "Indiquer comme en livraison", disabled: true },
+    );
+  }
+
+  return <PdvRowActions items={items} />;
 }

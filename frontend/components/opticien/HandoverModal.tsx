@@ -119,30 +119,30 @@ export default function HandoverModal({ onDone, onClose }: Props) {
             Vérifiez bien que la paire identifiée est la bonne. Cette action est définitive. La paire sera marquée
             comme restituée.
           </p>
-          <ul className="list-group">
+          <ul className="pdv-recap-list">
             {preview.client ? (
-              <li className="list-group-item d-flex justify-content-between">
-                <span>Client :</span>
-                <span>
+              <li>
+                <span>Client</span>
+                <strong>
                   {preview.client.first_name} {preview.client.last_name}
-                </span>
+                </strong>
               </li>
             ) : null}
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Paire :</span>
-              <span>{preview.type_label}</span>
+            <li>
+              <span>Type de lunettes</span>
+              <strong>{preview.type_label}</strong>
             </li>
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Marque :</span>
-              <span>{preview.brand}</span>
+            <li>
+              <span>Marque</span>
+              <strong>{preview.brand}</strong>
             </li>
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Couleur(s) :</span>
-              <span>{preview.colors.join(", ")}</span>
+            <li>
+              <span>Couleur(s)</span>
+              <strong>{preview.colors.join(", ")}</strong>
             </li>
-            <li className="list-group-item d-flex justify-content-between">
-              <span>Code assigné :</span>
-              <span>{preview.assigned_code}</span>
+            <li>
+              <span>Code assigné</span>
+              <strong>{preview.assigned_code}</strong>
             </li>
           </ul>
         </div>
@@ -166,8 +166,8 @@ export default function HandoverModal({ onDone, onClose }: Props) {
             <label className="form-label" htmlFor="handover-pickup-0">
               Code de restitution*
             </label>
-            <Link href="/opticien/restitution" className="small" onClick={() => onClose(false)}>
-              Renvoyer le code
+            <Link href="/opticien/restitution" className="pdv-modal-link" onClick={() => onClose(false)}>
+              Le client a oublié son code
             </Link>
           </div>
           <div className="d-flex justify-content-center gap-2">

@@ -17,10 +17,12 @@ export default function BootstrapModal({ title, subtitle, onClose, children }: P
           <div className="modal-content">
             <div className="modal-header">
               <div>
-                <h2 className="h5 modal-title mb-0">{title}</h2>
-                {subtitle ? <p className="small text-secondary mb-0">{subtitle}</p> : null}
+                <h2 className="modal-title mb-0">{title}</h2>
+                {subtitle ? <p className="pdv-field__hint mb-0">{subtitle}</p> : null}
               </div>
-              <button type="button" className="btn-close" aria-label="Fermer" onClick={onClose} />
+              <button type="button" className="pdv-modal-close" aria-label="Fermer" onClick={onClose}>
+                <img src="/icons/pdv/x-close.svg" alt="" width={24} height={24} />
+              </button>
             </div>
             {children}
           </div>

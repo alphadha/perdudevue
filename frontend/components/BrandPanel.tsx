@@ -1,32 +1,41 @@
 "use client";
 
-type Props = {
-  space: "client" | "opticien";
-};
-
-export default function BrandPanel({ space }: Props) {
-  if (space === "client") {
-    return null;
-  }
-
+/** Panneau marque desktop — Prod UI Connexion (Figma 145:20643). */
+export default function BrandPanel() {
   return (
-    <div className="col-lg-6 d-none d-lg-flex bg-light align-items-center">
-      <div className="p-5">
-        <p className="text-uppercase small text-muted mb-2">Logo</p>
-        <h1 className="h3 mb-4">Perdues de Vue, pour ne plus perdre le lien avec vos lunettes</h1>
-        <p>
-          Pour les clients, la plateforme permet de suivre leurs lunettes et de retrouver facilement les
-          informations nécessaires lorsqu’elles sont retrouvées chez un opticien partenaire.
-        </p>
-        <p>
-          Pour les opticiens, elle simplifie l’enregistrement des lunettes, le suivi des clients et la
-          gestion des restitutions.
-        </p>
-        <p className="mb-0">
-          De la perte jusqu’à la restitution, Perdues de Vue permet à chacun de garder le lien et de
-          faciliter le retour des lunettes à leur propriétaire.
-        </p>
+    <aside className="pdv-brand-panel" aria-hidden={false}>
+      <div className="pdv-brand-panel__pattern" aria-hidden>
+        {Array.from({ length: 5 }).map((_, row) => (
+          <div className="pdv-brand-panel__pattern-row" key={`row-${row}`}>
+            <img src="/brand/login-pattern-a.svg" alt="" />
+            <img src="/brand/login-pattern-b.svg" alt="" />
+            <img src="/brand/login-pattern-a.svg" alt="" />
+            <img src="/brand/login-pattern-b.svg" alt="" />
+            <img src="/brand/login-pattern-a.svg" alt="" />
+            <img src="/brand/login-pattern-b.svg" alt="" />
+            <img src="/brand/login-pattern-a.svg" alt="" />
+          </div>
+        ))}
       </div>
-    </div>
+      <div className="pdv-brand-panel__content">
+        <img className="pdv-brand-panel__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
+        <div className="pdv-brand-panel__copy">
+          <p className="pdv-brand-panel__tagline">Perdues aujourd&apos;hui, Retrouvées demain</p>
+          <p className="pdv-brand-panel__desc">
+            Perdues de Vue grave sur vos lunettes un identifiant unique et discret. Enregistré dans
+            notre application, il permet de les retrouver facilement en cas de perte. Un service
+            proposé par votre opticien.
+          </p>
+        </div>
+        <div className="pdv-brand-panel__card">
+          <p className="pdv-brand-panel__card-title">Vous avez trouvé une paire de lunettes&nbsp;?</p>
+          <p className="pdv-brand-panel__card-body">
+            Déposez-la chez un opticien partenaire.
+            <br />
+            On s&apos;occupe du reste, et son propriétaire vous remercie&nbsp;!
+          </p>
+        </div>
+      </div>
+    </aside>
   );
 }

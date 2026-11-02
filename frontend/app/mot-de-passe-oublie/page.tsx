@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
-import BrandPanel from "@/components/BrandPanel";
+import AuthFlowShell from "@/components/AuthFlowShell";
 import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 import type { Space } from "@/lib/types";
 
@@ -25,9 +25,9 @@ function ForgotForm() {
     try {
       await api("/auth/password/forgot", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: email.trim() }),
       });
-      sessionStorage.setItem("pdv_reset_email", email);
+      sessionStorage.setItem("pdv_reset_email", email.trim());
       router.push(`/mot-de-passe-oublie/code?space=${space}`);
     } catch (caught) {
       if (caught instanceof ApiRequestError) {
@@ -46,47 +46,34 @@ function ForgotForm() {
   }
 
   return (
-    <div className="container-fluid min-vh-100">
-      <div className="row min-vh-100">
-        <BrandPanel space={space} />
-        <div className={space === "client" ? "col-12" : "col-lg-6"}>
-          <div className="container py-5">
-            <div className="row justify-content-center">
-              <div className="col-12 col-sm-10 col-md-8 col-xl-8">
-                <Link href={`/login?space=${space}`} className="d-inline-block mb-3">
-                  Retour
-                </Link>
-                <div className="progress mb-4" role="progressbar" aria-valuenow={33} aria-valuemin={0} aria-valuemax={100}>
-                  <div className="progress-bar w-50" />
-                </div>
-                <h1 className="h4 mb-4">Mot de passe oublié</h1>
-                {error ? <div className="alert alert-danger">{error}</div> : null}
-                <form onSubmit={onSubmit}>
-                  <div className="mb-3">
-                    <label className="form-label" htmlFor="email">
-                      Adresse e-mail*
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      className={`form-control${fieldErrors.email ? " is-invalid" : ""}`}
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      required
-                    />
-                    <FieldError message={fieldErrors.email} />
-                  </div>
-                  <p className="text-muted">Un code à 6 chiffres vous sera envoyé par e-mail si un compte existe.</p>
-                  <button className="btn btn-primary w-100" type="submit" disabled={pending}>
-                    Continuer
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
+    <AuthFlowShell backHref={`/login?space=${space}`} title="Mot de passe oublié" progress={30.5}>
+      {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
+      <form className="pdv-login__form" onSubmit={onSubmit} noValidate>
+        <div className="pdv-field">
+          <label className="pdv-field__label" htmlFor="email">
+            Adresse e-mail*
+          </label>
+          <input
+            id="email"
+            type="email"
+            className={`pdv-field__control${fieldErrors.email ? " is-invalid" : ""}`}
+            placeholder="adresse@mail.fr"
+            autoComplete="username"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+          />
+          <FieldError message={fieldErrors.email} />
+          <p className="pdv-field__hint">
+            Renseignez votre adresse e-mail pour recevoir un code de validation. Il est nécessaire pour vérifier
+            votre identité. Vous pourrez par la suite réinitialiser votre mot de passe.
+          </p>
         </div>
-      </div>
-    </div>
+        <PdvButton variant="primary" size="l" block type="submit" disabled={pending}>
+          {pending ? "Envoi…" : "Recevoir le code par email"}
+        </PdvButton>
+      </form>
+    </AuthFlowShell>
   );
 }
 

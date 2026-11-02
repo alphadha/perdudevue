@@ -11,10 +11,12 @@ import PairStatusBadge from "@/components/opticien/PairStatusBadge";
 import RegisterPairModal from "@/components/opticien/RegisterPairModal";
 import { usePairStatusMutations } from "@/components/opticien/usePairStatusMutations";
 import PdvButton from "@/components/pdv/PdvButton";
-import PdvCheckbox from "@/components/pdv/PdvCheckbox";
 import PdvSearchBar from "@/components/pdv/PdvSearchBar";
-import PdvSortHeader from "@/components/pdv/PdvSortHeader";
+import PdvSelect from "@/components/pdv/PdvSelect";
+import PdvPagination from "@/components/pdv/PdvPagination";
+import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatSyncLabel } from "@/lib/formatSync";
 import { PAIR_CREATED_TOAST, clientDisplayName, downloadAssignedCode, downloadLabelFile } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
 import { formatFrDate, type ShopPair, type ShippingLabelFile } from "@/lib/types";
@@ -23,9 +25,10 @@ type ToastState = { title?: string; message: string };
 type SortKey = "brand" | "type" | "colors" | "client" | "assigned_code" | "status" | "registered_at";
 
 const PAIR_TYPES = ["Vue", "Soleil", "Solaire de Vue"] as const;
+const PAGE_SIZE = 10;
 
 function isCheckboxEnabled(pair: ShopPair): boolean {
-  return pair.actions.can_select_for_labels || pair.actions.can_export_code;
+  return pair.actions.can_select_for_labels;
 }
 
 function selectionLabel(count: number): string {
@@ -46,6 +49,7 @@ export default function LunettesPage() {
   const [toast, setToast] = useState<ToastState | null>(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
   const [pendingResend, setPendingResend] = useState(false);
 
   const showToast = useCallback((message: string, title?: string) => {
@@ -111,6 +115,10 @@ export default function LunettesPage() {
   }, [pairs, query, typeFilter, sort]);
 
   useEffect(() => {
+    setPage(1);
+  }, [query, typeFilter, status, sort]);
+
+  useEffect(() => {
     const visible = new Set(filtered.map((pair) => pair.uuid));
     setSelected((current) => {
       const next = current.filter((uuid) => visible.has(uuid));
@@ -118,28 +126,31 @@ export default function LunettesPage() {
     });
   }, [filtered]);
 
-  const checkboxable = filtered.filter(isCheckboxEnabled);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const checkboxable = pageRows.filter(isCheckboxEnabled);
   const selectedPairs = filtered.filter((pair) => selected.includes(pair.uuid));
   const selectedCount = selectedPairs.length;
   const selectedForLabels = selectedPairs.filter((pair) => pair.actions.can_select_for_labels);
   const selectedForEngrave = selectedPairs.filter((pair) => pair.actions.can_export_code);
-  const showLabelsBulk = selectedForLabels.length >= 2 && selectedForLabels.length === selectedPairs.length;
+  const showLabelsBulk = selectedForLabels.length >= 1;
   const showEngraveBulk = selectedForEngrave.length >= 1 && selectedForEngrave.length === selectedPairs.length;
-  const allCheckboxableChecked =
-    checkboxable.length > 0 && checkboxable.every((pair) => selected.includes(pair.uuid));
-  const someCheckboxableChecked =
-    checkboxable.some((pair) => selected.includes(pair.uuid)) && !allCheckboxableChecked;
   const hasSelection = selectedCount > 0;
 
-  function toggleHeaderSort(key: SortKey) {
-    setSort((current) => toggleSort(current, key));
-  }
-
-  function header(label: string, key: SortKey) {
-    return (
-      <PdvSortHeader label={label} active={sort?.key === key} onClick={() => toggleHeaderSort(key)} />
-    );
-  }
+  const pairColumns: PdvTableColumn<ShopPair, SortKey>[] = [
+    { key: "assigned_code", label: "Code assigné", width: 120, render: (pair) => pair.assigned_code },
+    { key: "client", label: "Client", width: 170, render: (pair) => clientDisplayName(pair) },
+    { key: "type", label: "Type", width: 130, render: (pair) => pair.type },
+    { key: "brand", label: "Marque", width: 120, render: (pair) => pair.brand },
+    { key: "colors", label: "Couleur(s)", width: 140, render: (pair) => pair.colors.join(", ") },
+    {
+      key: "status",
+      label: "Statut",
+      width: 160,
+      render: (pair) => <PairStatusBadge status={pair.status} label={pair.status_label} />,
+    },
+    { key: "registered_at", label: "Date enreg.", width: 110, render: (pair) => formatFrDate(pair.registered_at) },
+  ];
 
   async function downloadLabels(uuids: string[]) {
     try {
@@ -190,9 +201,7 @@ export default function LunettesPage() {
     }
   }
 
-  const syncLabel = syncedAt
-    ? `Dernière synchronisation à ${syncedAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} le ${syncedAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}.`
-    : "Chargement…";
+  const syncLabel = syncedAt ? formatSyncLabel(syncedAt) : "Chargement…";
 
   return (
     <>
@@ -221,139 +230,119 @@ export default function LunettesPage() {
         </PdvButton>
       </div>
 
-      <div className="pdv-panel">
-        <div className="pdv-toolbar">
-          <PdvSearchBar
-            value={query}
-            onChange={setQuery}
-            placeholder="Rechercher une paire, un code..."
-          />
-          <div className="pdv-toolbar__filters">
-            <label className="pdv-filter">
-              <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} aria-label="Filtrer par type">
-                <option value="">Tous les types</option>
-                {PAIR_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="pdv-filter">
-              <select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filtrer par statut">
-                <option value="">Tous les statuts</option>
-                <option value="a_graver">À graver</option>
-                <option value="active">Active</option>
-                <option value="perdue">Perdue</option>
-                <option value="inactive">Inactive</option>
-                <option value="a_recuperer">À récupérer</option>
-                <option value="livraison_demandee">Livraison demandée</option>
-                <option value="en_livraison">En livraison</option>
-              </select>
-            </label>
-          </div>
-        </div>
-
-        {hasSelection ? (
-          <>
-            <hr className="pdv-panel__divider" />
-            <div className="pdv-selection">
-              <p className="pdv-selection__count">{selectionLabel(selectedCount)}</p>
-              <div className="pdv-selection__actions">
-                {showLabelsBulk ? (
-                  <PdvButton
-                    variant="secondary"
-                    size="m"
-                    iconLeft="/icons/pdv/download-01.svg"
-                    onClick={() => void downloadLabels(selectedForLabels.map((pair) => pair.uuid))}
-                  >
-                    Télécharger les bordereaux
-                  </PdvButton>
-                ) : null}
-                {showEngraveBulk ? (
-                  <PdvButton variant="secondary" size="m" onClick={() => exportEngraveCodes(selectedForEngrave)}>
-                    Exporter les codes à graver
-                  </PdvButton>
-                ) : null}
-              </div>
-            </div>
-          </>
-        ) : null}
-      </div>
-
       {loading ? (
         <p>Chargement des paires…</p>
       ) : (
-        <div className="pdv-table-wrap table-responsive">
-          <table className="pdv-table">
-            <thead>
-              <tr>
-                <th>
-                  <PdvCheckbox
-                    checked={allCheckboxableChecked}
-                    indeterminate={someCheckboxableChecked}
-                    disabled={checkboxable.length === 0}
-                    aria-label="Sélectionner les paires exportables"
-                    onChange={(checked) => {
-                      setSelected(checked ? checkboxable.map((pair) => pair.uuid) : []);
-                    }}
+        <div className="pdv-table-block">
+          <div className="pdv-table-stack">
+            <div className="pdv-panel pdv-panel--search">
+              <div className="pdv-toolbar">
+                <PdvSearchBar
+                  value={query}
+                  onChange={setQuery}
+                  placeholder="Rechercher une paire, un code..."
+                />
+                <div className="pdv-toolbar__filters">
+                  <PdvSelect
+                    variant="filter"
+                    aria-label="Filtrer par type"
+                    value={typeFilter}
+                    onChange={(event) => setTypeFilter(event.target.value)}
+                  >
+                    <option value="">Tous les types</option>
+                    {PAIR_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </PdvSelect>
+                  <PdvSelect
+                    variant="filter"
+                    aria-label="Filtrer par statut"
+                    value={status}
+                    onChange={(event) => setStatus(event.target.value)}
+                  >
+                    <option value="">Tous les statuts</option>
+                    <option value="a_graver">À graver</option>
+                    <option value="active">Active</option>
+                    <option value="perdue">Perdue</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="a_recuperer">À récupérer</option>
+                    <option value="livraison_demandee">Livraison demandée</option>
+                    <option value="en_livraison">En livraison</option>
+                  </PdvSelect>
+                </div>
+              </div>
+              {hasSelection ? (
+                <>
+                  <hr className="pdv-panel__divider" />
+                  <div className="pdv-selection">
+                    <p className="pdv-selection__count">{selectionLabel(selectedCount)}</p>
+                    <div className="pdv-selection__actions">
+                      {showLabelsBulk ? (
+                        <PdvButton
+                          variant="secondary"
+                          size="m"
+                          iconLeft="/icons/pdv/download-01.svg"
+                          onClick={() => void downloadLabels(selectedForLabels.map((pair) => pair.uuid))}
+                        >
+                          {selectedForLabels.length <= 1
+                            ? "Télécharger le bordereau"
+                            : "Télécharger les bordereaux"}
+                        </PdvButton>
+                      ) : null}
+                      {showEngraveBulk ? (
+                        <PdvButton variant="secondary" size="m" onClick={() => exportEngraveCodes(selectedForEngrave)}>
+                          Exporter les codes à graver
+                        </PdvButton>
+                      ) : null}
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+            <div className="pdv-panel pdv-panel--table">
+              <PdvTable
+                columns={pairColumns}
+                rows={pageRows}
+                getRowId={(pair) => pair.uuid}
+                empty="Aucune paire pour le moment."
+                sort={sort}
+                onSort={(key) => setSort((current) => toggleSort(current, key))}
+                selection={{
+                  selected,
+                  isEnabled: isCheckboxEnabled,
+                  headerAriaLabel: "Sélectionner les paires exportables",
+                  rowAriaLabel: (pair) => `Sélectionner ${pair.assigned_code}`,
+                  onToggleAll: (checked) => {
+                    const pageIds = checkboxable.map((pair) => pair.uuid);
+                    setSelected((current) =>
+                      checked
+                        ? Array.from(new Set([...current, ...pageIds]))
+                        : current.filter((uuid) => !pageIds.includes(uuid)),
+                    );
+                  },
+                  onToggleRow: (id, checked) => {
+                    setSelected((current) =>
+                      checked ? [...current, id] : current.filter((uuid) => uuid !== id),
+                    );
+                  },
+                }}
+                actions={(pair) => (
+                  <PairRowMenu
+                    pair={pair}
+                    onEngrave={mutations.setEngravePair}
+                    onInactivate={mutations.setInactivePair}
+                    onHandOver={() => setHandoverOpen(true)}
+                    onResend={(item) => setResendTarget(item)}
+                    onDownloadLabel={(item) => void downloadOne(item)}
+                    onMarkShipped={(item) => setShipTarget(item)}
                   />
-                </th>
-                {header("Code assigné", "assigned_code")}
-                {header("Client", "client")}
-                {header("Type", "type")}
-                {header("Marque", "brand")}
-                {header("Couleur(s)", "colors")}
-                {header("Statut", "status")}
-                {header("Date enreg.", "registered_at")}
-                <th aria-label="Actions" />
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={9}>Aucune paire pour le moment.</td>
-                </tr>
-              ) : (
-                filtered.map((pair) => (
-                  <tr key={pair.uuid}>
-                    <td>
-                      <PdvCheckbox
-                        checked={selected.includes(pair.uuid)}
-                        disabled={!isCheckboxEnabled(pair)}
-                        aria-label={`Sélectionner ${pair.assigned_code}`}
-                        onChange={(checked) => {
-                          setSelected((current) =>
-                            checked ? [...current, pair.uuid] : current.filter((uuid) => uuid !== pair.uuid),
-                          );
-                        }}
-                      />
-                    </td>
-                    <td>{pair.assigned_code}</td>
-                    <td>{clientDisplayName(pair)}</td>
-                    <td>{pair.type}</td>
-                    <td>{pair.brand}</td>
-                    <td>{pair.colors.join(", ")}</td>
-                    <td>
-                      <PairStatusBadge status={pair.status} label={pair.status_label} />
-                    </td>
-                    <td>{formatFrDate(pair.registered_at)}</td>
-                    <td>
-                      <PairRowMenu
-                        pair={pair}
-                        onEngrave={mutations.setEngravePair}
-                        onInactivate={mutations.setInactivePair}
-                        onHandOver={() => setHandoverOpen(true)}
-                        onResend={(item) => setResendTarget(item)}
-                        onDownloadLabel={(item) => void downloadOne(item)}
-                        onMarkShipped={(item) => setShipTarget(item)}
-                      />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                )}
+              />
+            </div>
+          </div>
+          <PdvPagination page={page} pageCount={pageCount} onChange={setPage} />
         </div>
       )}
       {registerOpen ? (

@@ -1,22 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
+import CreateClientFlow from "@/components/opticien/CreateClientFlow";
 import FoundPairModal from "@/components/opticien/FoundPairModal";
 import HandoverModal from "@/components/opticien/HandoverModal";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
 import RegisterPairModal from "@/components/opticien/RegisterPairModal";
 import PdvButton from "@/components/pdv/PdvButton";
 import { api } from "@/lib/api";
+import { formatSyncLabel } from "@/lib/formatSync";
 import { PAIR_CREATED_TOAST } from "@/lib/pairUi";
 import type { OpticienDashboard, ShopRestitution } from "@/lib/types";
 
 type ToastState = { title?: string; message: string };
 
-function clientName(item: ShopRestitution): string {
+function clientName(item: ShopRestitution): string | null {
+  // Mémo UX / CDC : pas d’identité si le propriétaire n’est pas déjà client du magasin.
   if (!item.client) {
-    return "Client masqué";
+    return null;
   }
   return `${item.client.first_name} ${item.client.last_name}`;
 }
@@ -26,8 +30,10 @@ function pairMeta(item: ShopRestitution): string {
 }
 
 export default function OpticienHomePage() {
+  const router = useRouter();
   const [dashboard, setDashboard] = useState<OpticienDashboard | null>(null);
   const [syncedAt, setSyncedAt] = useState<Date | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [foundOpen, setFoundOpen] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
@@ -50,9 +56,7 @@ export default function OpticienHomePage() {
     void load().catch(() => setLoading(false));
   }, [load]);
 
-  const syncLabel = syncedAt
-    ? `Dernière synchronisation à ${syncedAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} le ${syncedAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })}.`
-    : "Chargement…";
+  const syncLabel = syncedAt ? formatSyncLabel(syncedAt) : "Chargement…";
 
   const waiting = dashboard?.waiting_pickup ?? [];
   const waitingRows: ShopRestitution[][] = [];
@@ -101,7 +105,7 @@ export default function OpticienHomePage() {
                   </div>
                   <div>
                     <p className="pdv-kpi__value">{dashboard.pairs_count}</p>
-                    <p className="pdv-kpi__label">Lunettes enregistrées</p>
+                    <p className="pdv-kpi__label">Lunettes ajoutées</p>
                   </div>
                 </div>
                 <div className="pdv-kpi">
@@ -144,7 +148,7 @@ export default function OpticienHomePage() {
                 size="m"
                 grow
                 iconLeft="/icons/pdv/user-plus-01.svg"
-                href="/opticien/clients"
+                onClick={() => setCreateOpen(true)}
               >
                 Créer un nouveau client
               </PdvButton>
@@ -156,9 +160,6 @@ export default function OpticienHomePage() {
                 onClick={() => setRegisterOpen(true)}
               >
                 Enregistrer une paire
-              </PdvButton>
-              <PdvButton variant="secondary" size="m" grow iconLeft="/icons/pdv/plus.svg" disabled>
-                Bouton supplémentaire
               </PdvButton>
               <PdvButton
                 variant="secondary"
@@ -185,9 +186,9 @@ export default function OpticienHomePage() {
               </PdvButton>
             </div>
             {waiting.length === 0 ? (
-              <p className="mb-0" style={{ color: "var(--pdv-legende)", fontSize: 14 }}>
-                Aucune lunette en attente de retrait.
-              </p>
+              <div className="pdv-waiting__empty">
+                <p>Aucune paire de lunettes en attente de retrait pour le moment</p>
+              </div>
             ) : (
               <div className="pdv-waiting__grid">
                 {waitingRows.map((row, rowIndex) => (
@@ -199,7 +200,9 @@ export default function OpticienHomePage() {
                         className={`pdv-waiting-card${rowIndex === 0 && colIndex === 0 ? " is-highlight" : ""}`}
                       >
                         <div>
-                          <p className="pdv-waiting-card__name">{clientName(item)}</p>
+                          {clientName(item) ? (
+                            <p className="pdv-waiting-card__name">{clientName(item)}</p>
+                          ) : null}
                           <p className="pdv-waiting-card__meta">{pairMeta(item)}</p>
                         </div>
                         <PairStatusBadge status={item.status} label={item.status_label} />
@@ -214,6 +217,21 @@ export default function OpticienHomePage() {
         </>
       )}
 
+      <CreateClientFlow
+        open={createOpen}
+        onCreated={(client, message) => {
+          setCreateOpen(false);
+          showToast(message);
+          router.push(`/opticien/clients/${client.uuid}`);
+        }}
+        onClose={(discarded) => {
+          setCreateOpen(false);
+          if (discarded) {
+            showToast("Modifications non prises en compte");
+          }
+        }}
+        onInfoToast={(message) => showToast(message)}
+      />
       {registerOpen ? (
         <RegisterPairModal
           onCreated={() => {

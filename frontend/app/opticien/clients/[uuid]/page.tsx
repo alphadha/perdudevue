@@ -6,7 +6,6 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import AppToast from "@/components/AppToast";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
 import ClientFormFields from "@/components/opticien/ClientFormFields";
-import FieldError from "@/components/FieldError";
 import HandoverModal from "@/components/opticien/HandoverModal";
 import { PairEngraveModal, PairInactiveModal } from "@/components/opticien/PairActionModals";
 import PairRowMenu from "@/components/opticien/PairRowMenu";
@@ -15,7 +14,8 @@ import RegisterPairModal from "@/components/opticien/RegisterPairModal";
 import { usePairStatusMutations } from "@/components/opticien/usePairStatusMutations";
 import { api, ApiRequestError } from "@/lib/api";
 import PdvButton from "@/components/pdv/PdvButton";
-import PdvSortHeader from "@/components/pdv/PdvSortHeader";
+import PdvRowActions from "@/components/pdv/PdvRowActions";
+import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
 import { PAIR_CREATED_TOAST } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
 import {
@@ -25,9 +25,11 @@ import {
   type IdentityChallenge,
   type ShopClient,
   type ShopPair,
+  type ShopRestitution,
 } from "@/lib/types";
 
-type PairSortKey = "brand" | "type" | "colors" | "assigned_code" | "status" | "registered_at";
+type PairSortKey = "assigned_code" | "type" | "brand" | "colors" | "status" | "registered_at";
+type RestitutionSortKey = "reference" | "type" | "brand" | "colors" | "status" | "found_at";
 
 function toPayload(client: ShopClient): ClientPayload {
   return {
@@ -40,6 +42,10 @@ function toPayload(client: ShopClient): ClientPayload {
   };
 }
 
+function initials(client: ShopClient): string {
+  return `${client.last_name.charAt(0)}${client.first_name.charAt(0)}`.toUpperCase();
+}
+
 type ToastState = { title?: string; message: string };
 
 export default function ClientFichePage() {
@@ -47,7 +53,10 @@ export default function ClientFichePage() {
   const router = useRouter();
   const [client, setClient] = useState<ShopClient | null>(null);
   const [pairs, setPairs] = useState<ShopPair[]>([]);
+  const [restitutions, setRestitutions] = useState<ShopRestitution[]>([]);
   const [pairSort, setPairSort] = useState<SortState<PairSortKey> | null>(null);
+  const [restSort, setRestSort] = useState<SortState<RestitutionSortKey> | null>(null);
+  const [selectedRest, setSelectedRest] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -71,12 +80,14 @@ export default function ClientFichePage() {
 
   const load = useCallback(async () => {
     try {
-      const [data, nextPairs] = await Promise.all([
+      const [data, nextPairs, nextRestitutions] = await Promise.all([
         api<ShopClient>(`/opticien/clients/${params.uuid}`),
         api<ShopPair[]>(`/opticien/pairs?client_uuid=${encodeURIComponent(params.uuid)}`),
+        api<ShopRestitution[]>("/opticien/restitutions"),
       ]);
       setClient(data);
       setPairs(nextPairs);
+      setRestitutions(nextRestitutions.filter((item) => item.client?.uuid === params.uuid));
       setForm(toPayload(data));
       setError(null);
     } catch (caught) {
@@ -99,8 +110,9 @@ export default function ClientFichePage() {
       if (updated.status === "inactive") {
         showToast("La paire a été déclarée inactive.");
       }
+      void load();
     },
-    [showToast],
+    [load, showToast],
   );
 
   const mutations = usePairStatusMutations(onPairUpdated, (message) => showToast(message));
@@ -108,25 +120,56 @@ export default function ClientFichePage() {
   const sortedPairs = useMemo(
     () =>
       sortRows(pairs, pairSort, {
-        brand: (pair) => pair.brand,
-        type: (pair) => pair.type,
-        colors: (pair) => pair.colors.join(", "),
         assigned_code: (pair) => pair.assigned_code,
+        type: (pair) => pair.type,
+        brand: (pair) => pair.brand,
+        colors: (pair) => pair.colors.join(", "),
         status: (pair) => pair.status_label,
         registered_at: (pair) => pair.registered_at,
       }),
     [pairs, pairSort],
   );
 
-  function pairHeader(label: string, key: PairSortKey) {
-    return (
-      <PdvSortHeader
-        label={label}
-        active={pairSort?.key === key}
-        onClick={() => setPairSort((current) => toggleSort(current, key))}
-      />
-    );
-  }
+  const sortedRestitutions = useMemo(
+    () =>
+      sortRows(restitutions, restSort, {
+        reference: (item) => item.reference,
+        type: (item) => item.type,
+        brand: (item) => item.brand,
+        colors: (item) => item.colors.join(", "),
+        status: (item) => item.status_label,
+        found_at: (item) => item.found_at,
+      }),
+    [restitutions, restSort],
+  );
+
+  const pairColumns: PdvTableColumn<ShopPair, PairSortKey>[] = [
+    { key: "assigned_code", label: "Code assigné", width: 120, render: (pair) => pair.assigned_code },
+    { key: "type", label: "Type", width: 130, render: (pair) => pair.type },
+    { key: "brand", label: "Marque", width: 120, render: (pair) => pair.brand },
+    { key: "colors", label: "Couleur(s)", width: 140, render: (pair) => pair.colors.join(", ") },
+    {
+      key: "status",
+      label: "Statut",
+      width: 160,
+      render: (pair) => <PairStatusBadge status={pair.status} label={pair.status_label} />,
+    },
+    { key: "registered_at", label: "Date enreg.", width: 110, render: (pair) => formatFrDate(pair.registered_at) },
+  ];
+
+  const restColumns: PdvTableColumn<ShopRestitution, RestitutionSortKey>[] = [
+    { key: "reference", label: "Ref dossier", width: 130, render: (item) => (item.reference ? `#${item.reference}` : "") },
+    { key: "type", label: "Type", width: 130, render: (item) => item.type_label || item.type },
+    { key: "brand", label: "Marque", width: 120, render: (item) => item.brand },
+    { key: "colors", label: "Couleur(s)", width: 140, render: (item) => item.colors.join(", ") },
+    {
+      key: "status",
+      label: "Statut",
+      width: 160,
+      render: (item) => <PairStatusBadge status={item.status} label={item.status_label} />,
+    },
+    { key: "found_at", label: "Date signalement", width: 140, render: (item) => formatFrDate(item.found_at) },
+  ];
 
   async function resend(channels: Array<"email" | "sms">) {
     if (!resendTarget) {
@@ -253,26 +296,35 @@ export default function ClientFichePage() {
     <>
       <AppToast title={toast?.title} message={toast?.message ?? null} />
       <p className="mb-3">
-        <PdvButton variant="tertiary" href="/opticien/clients">
+        <PdvButton variant="tertiary" href="/opticien/clients" iconLeft="/icons/pdv/arrow-narrow-left.svg">
           Revenir à mes clients
         </PdvButton>
       </p>
+
       <div className="pdv-page-head">
-        <div>
-          <h1>
-            {client.last_name} {client.first_name}
-          </h1>
-          <p className="text-secondary mb-0">
-            {client.phone} · {client.email}
-          </p>
-          {client.account_pending ? (
-            <p className="small mb-0">Le client n’a pas encore activé son espace.</p>
-          ) : null}
+        <div className="pdv-fiche-identity">
+          <span className="pdv-fiche-avatar" aria-hidden>
+            {initials(client)}
+          </span>
+          <div>
+            <h1>
+              {client.last_name} {client.first_name}
+            </h1>
+            <p className="pdv-fiche-meta">
+              {client.phone}
+              {client.phone && client.email ? " · " : null}
+              {client.email}
+            </p>
+            {client.account_pending ? (
+              <p className="pdv-fiche-meta">Le client n’a pas encore activé son espace.</p>
+            ) : null}
+          </div>
         </div>
         <div className="d-flex flex-wrap gap-2">
           <PdvButton
             variant="secondary"
             size="m"
+            iconLeft="/icons/pdv/restitution-bottom.svg"
             disabled={!pairs.some((pair) => pair.actions.can_hand_over)}
             onClick={() => setHandoverOpen(true)}
           >
@@ -281,80 +333,75 @@ export default function ClientFichePage() {
           <PdvButton variant="primary" size="m" iconLeft="/icons/pdv/glasses-01.svg" onClick={() => setRegisterOpen(true)}>
             Enregistrer une paire
           </PdvButton>
-          <div className="dropdown">
-            <button
-              className="pdv-icon-btn"
-              type="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-              aria-label="Autres actions"
-            >
-              <img src="/icons/pdv/dots-vertical.svg" alt="" width={20} height={20} />
-            </button>
-            <ul className="dropdown-menu dropdown-menu-end">
-              <li>
-                <button type="button" className="dropdown-item" onClick={() => setEditOpen(true)}>
-                  Modifier
-                </button>
-              </li>
-              <li>
-                <button type="button" className="dropdown-item text-danger" onClick={() => setToDelete(true)}>
-                  Supprimer
-                </button>
-              </li>
-            </ul>
-          </div>
+          <PdvRowActions
+            aria-label="Autres actions"
+            items={[
+              { label: "Modifier la fiche", onClick: () => setEditOpen(true) },
+              { label: "Supprimer le client", danger: true, onClick: () => setToDelete(true) },
+            ]}
+          />
         </div>
       </div>
 
-      <h2 className="h5">Paires enregistrées</h2>
-      <div className="pdv-table-wrap table-responsive mb-4">
-        <table className="pdv-table">
-          <thead>
-            <tr>
-              {pairHeader("Marque", "brand")}
-              {pairHeader("Type", "type")}
-              {pairHeader("Couleur(s)", "colors")}
-              {pairHeader("Code assigné", "assigned_code")}
-              {pairHeader("Statut", "status")}
-              {pairHeader("Date enreg.", "registered_at")}
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedPairs.length === 0 ? (
-              <tr>
-                <td colSpan={7}>Aucune paire enregistrée pour le moment.</td>
-              </tr>
-            ) : (
-              sortedPairs.map((pair) => (
-                <tr key={pair.uuid}>
-                  <td>{pair.brand}</td>
-                  <td>{pair.type}</td>
-                  <td>{pair.colors.join(", ")}</td>
-                  <td>{pair.assigned_code}</td>
-                  <td>
-                    <PairStatusBadge status={pair.status} label={pair.status_label} />
-                  </td>
-                  <td>{formatFrDate(pair.registered_at)}</td>
-                  <td>
-                    <PairRowMenu
-                      pair={pair}
-                      onEngrave={mutations.setEngravePair}
-                      onInactivate={mutations.setInactivePair}
-                      onHandOver={() => setHandoverOpen(true)}
-                      onResend={(item) => setResendTarget(item)}
-                    />
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <h2 className="pdv-section-title">Paires enregistrées</h2>
+      <div className="pdv-panel pdv-panel--table">
+        <PdvTable
+          columns={pairColumns}
+          rows={sortedPairs}
+          getRowId={(pair) => pair.uuid}
+          empty="Aucune paire de lunettes enregistrée pour le moment."
+          sort={pairSort}
+          onSort={(key) => setPairSort((current) => toggleSort(current, key))}
+          actions={(pair) => (
+            <PairRowMenu
+              pair={pair}
+              onEngrave={mutations.setEngravePair}
+              onInactivate={mutations.setInactivePair}
+              onHandOver={() => setHandoverOpen(true)}
+              onResend={(item) => setResendTarget(item)}
+            />
+          )}
+        />
       </div>
 
-      <h2 className="h5 mt-4">Historique des restitutions</h2>
-      <p className="text-secondary">Aucun dossier pour le moment.</p>
+      <h2 className="pdv-section-title">Historique des restitutions</h2>
+      <div className="pdv-panel pdv-panel--table">
+        <PdvTable
+          columns={restColumns}
+          rows={sortedRestitutions}
+          getRowId={(item) => item.uuid}
+          empty="Aucune paire de lunettes à récupérer pour le moment."
+          sort={restSort}
+          onSort={(key) => setRestSort((current) => toggleSort(current, key))}
+          selection={{
+            selected: selectedRest,
+            headerAriaLabel: "Sélectionner les dossiers",
+            rowAriaLabel: (item) => `Sélectionner ${item.reference ?? item.assigned_code}`,
+            onToggleAll: (checked) => {
+              setSelectedRest(checked ? sortedRestitutions.map((item) => item.uuid) : []);
+            },
+            onToggleRow: (id, checked) => {
+              setSelectedRest((current) =>
+                checked ? [...current, id] : current.filter((uuid) => uuid !== id),
+              );
+            },
+          }}
+          actions={(item) => {
+            const pairLike = pairs.find((pair) => pair.uuid === item.uuid) ?? null;
+            return pairLike ? (
+              <PairRowMenu
+                pair={pairLike}
+                onEngrave={mutations.setEngravePair}
+                onInactivate={mutations.setInactivePair}
+                onHandOver={() => setHandoverOpen(true)}
+                onResend={(pair) => setResendTarget(pair)}
+              />
+            ) : (
+              <PdvRowActions items={[{ label: "Voir restitution", href: "/opticien/restitution" }]} />
+            );
+          }}
+        />
+      </div>
 
       {registerOpen ? (
         <RegisterPairModal
@@ -443,7 +490,14 @@ export default function ClientFichePage() {
       ) : null}
 
       {editOpen ? (
-        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 1/3" onClose={() => setEditOpen(false)}>
+        <BootstrapModal
+          title="Modifier la fiche client"
+          subtitle="Étape 1/3"
+          onClose={() => {
+            setEditOpen(false);
+            showToast("Modifications non prises en compte");
+          }}
+        >
           <form onSubmit={(event) => void submitEdit(event)}>
             <div className="modal-body">
               {formError ? <div className="alert alert-danger">{formError}</div> : null}
@@ -451,7 +505,7 @@ export default function ClientFichePage() {
             </div>
             <div className="modal-footer flex-column">
               <button type="submit" className="btn btn-primary w-100" disabled={pending}>
-                Enregistrer
+                Enregistrer les modifications
               </button>
               <button
                 type="button"
@@ -479,38 +533,56 @@ export default function ClientFichePage() {
         >
           <form onSubmit={(event) => void submitOtp(event)}>
             <div className="modal-body">
-              <label className="form-label" htmlFor="fiche-otp">
-                Code de vérification*
-              </label>
-              <input
-                id="fiche-otp"
-                className={`form-control${otpError ? " is-invalid" : ""}`}
-                inputMode="numeric"
-                maxLength={6}
-                value={otpCode}
-                onChange={(event) => setOtpCode(event.target.value)}
-                required
-              />
-              <FieldError message={otpError ?? undefined} />
-              <p className="small mt-3 mb-0">
+              <div className="pdv-field">
+                <div className="d-flex justify-content-between align-items-center">
+                  <label className="pdv-field__label" htmlFor="fiche-otp">
+                    Code de vérification*
+                  </label>
+                  <PdvButton
+                    type="button"
+                    variant="tertiary"
+                    onClick={() => {
+                      void api<IdentityChallenge>(`/opticien/clients/identity/${otp.action_token}/resend`, {
+                        method: "POST",
+                      }).then((result) => {
+                        setOtp(result);
+                        showToast("Un nouveau code a été envoyé.");
+                      });
+                    }}
+                  >
+                    Renvoyer le code
+                  </PdvButton>
+                </div>
+                <input
+                  id="fiche-otp"
+                  className={`pdv-field__control${otpError ? " is-invalid" : ""}`}
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(event) => setOtpCode(event.target.value)}
+                  required
+                />
+                {otpError ? <p className="pdv-field__error">{otpError}</p> : null}
+              </div>
+              <p className="pdv-field__hint mb-0">
                 Le client a reçu un code par mail ou SMS pour valider la mise à jour de ses informations
                 personnelles.
               </p>
             </div>
             <div className="modal-footer flex-column">
-              <button type="submit" className="btn btn-primary w-100" disabled={pending}>
-                Valider
-              </button>
-              <button
+              <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
+                Vérifier le code
+              </PdvButton>
+              <PdvButton
                 type="button"
-                className="btn btn-link"
+                variant="tertiary"
                 onClick={() => {
                   setOtp(null);
                   showToast("Modifications non prises en compte");
                 }}
               >
                 Annuler
-              </button>
+              </PdvButton>
             </div>
           </form>
         </BootstrapModal>
@@ -526,7 +598,7 @@ export default function ClientFichePage() {
           </div>
           <div className="modal-footer flex-column">
             <button type="button" className="btn btn-danger w-100" disabled={pending} onClick={() => void confirmDelete()}>
-              Supprimer
+              Supprimer le client
             </button>
             <button type="button" className="btn btn-link" onClick={() => setToDelete(false)}>
               Annuler

@@ -7,7 +7,7 @@ import { LogoutModal } from "@/components/client/ClientModals";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
 import { api, ApiRequestError, clearSession } from "@/lib/api";
 
-const LEGAL = "mailto:support@perduesdevue.fr";
+const LEGAL = "mailto:support@perduesdevue.com";
 
 export default function OpticienSettingsPage() {
   const router = useRouter();
@@ -39,36 +39,48 @@ export default function OpticienSettingsPage() {
 
   return (
     <>
-      <h1 className="mb-4">Paramètres du compte</h1>
-      <div className="row g-4">
-        <div className="col-lg-6">
-          <h2 className="h5">Mon compte</h2>
-          <div className="list-group pdv-panel p-0 overflow-hidden">
-            <Link className="list-group-item list-group-item-action" href="/opticien/parametres/connexion">
-              Informations de connexion
+      <h1 className="pdv-settings-title">Paramètres du compte</h1>
+      <div className="pdv-settings-grid">
+        <section>
+          <h2 className="pdv-settings-section-title">Mon compte</h2>
+          <div className="pdv-settings-list">
+            <Link className="pdv-settings-item" href="/opticien/parametres/connexion">
+              <span className="pdv-settings-item__label">
+                <img src="/icons/pdv/passcode.svg" alt="" width={20} height={20} className="pdv-settings-item__icon" />
+                Informations de connexion
+              </span>
+              <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
             </Link>
-            <button type="button" className="list-group-item list-group-item-action" onClick={() => setLogoutOpen(true)}>
-              Se déconnecter
+            <button type="button" className="pdv-settings-item" onClick={() => setLogoutOpen(true)}>
+              <span className="pdv-settings-item__label">
+                <img src="/icons/pdv/log-out-01.svg" alt="" width={20} height={20} />
+                Se déconnecter
+              </span>
+              <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
             </button>
-            <button type="button" className="list-group-item list-group-item-action" onClick={() => setDeleteOpen(true)}>
-              Supprimer mon compte
+            <button type="button" className="pdv-settings-item" onClick={() => setDeleteOpen(true)}>
+              <span className="pdv-settings-item__label">Supprimer mon compte</span>
+              <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
             </button>
           </div>
-        </div>
-        <div className="col-lg-6">
-          <h2 className="h5">Documents légaux</h2>
-          <div className="list-group">
-            <a className="list-group-item list-group-item-action" href={LEGAL}>
-              Conditions générales d’utilisation
+        </section>
+        <section>
+          <h2 className="pdv-settings-section-title">Documents légaux</h2>
+          <div className="pdv-settings-list">
+            <a className="pdv-settings-item" href={LEGAL}>
+              <span className="pdv-settings-item__label">Conditions générales d’utilisation</span>
+              <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
             </a>
-            <a className="list-group-item list-group-item-action" href={LEGAL}>
-              Conditions générales de Vente
+            <a className="pdv-settings-item" href={LEGAL}>
+              <span className="pdv-settings-item__label">Conditions générales de Vente</span>
+              <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
             </a>
-            <a className="list-group-item list-group-item-action" href={LEGAL}>
-              Politique de confidentialité
+            <a className="pdv-settings-item" href={LEGAL}>
+              <span className="pdv-settings-item__label">Politique de confidentialité</span>
+              <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
             </a>
           </div>
-        </div>
+        </section>
       </div>
       {logoutOpen ? (
         <LogoutModal pending={pending} onConfirm={logout} onClose={() => setLogoutOpen(false)} />
@@ -78,16 +90,15 @@ export default function OpticienSettingsPage() {
           <div className="modal-body">
             {error ? <div className="alert alert-danger">{error}</div> : null}
             <p className="mb-0">
-              Cette action est définitive. Si vous êtes le dernier administrateur du magasin, contactez
-              support@perduesdevue.fr.
+              Cette action est définitive. Confirmez-vous la suppression de votre compte opticien ?
             </p>
           </div>
-          <div className="modal-footer flex-column">
-            <button type="button" className="btn btn-danger w-100" disabled={pending} onClick={() => void deleteAccount()}>
-              Supprimer mon compte
-            </button>
-            <button type="button" className="btn btn-link" onClick={() => setDeleteOpen(false)}>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-outline-secondary" onClick={() => setDeleteOpen(false)}>
               Annuler
+            </button>
+            <button type="button" className="btn btn-danger" disabled={pending} onClick={() => void deleteAccount()}>
+              {pending ? "Suppression…" : "Supprimer"}
             </button>
           </div>
         </BootstrapModal>
