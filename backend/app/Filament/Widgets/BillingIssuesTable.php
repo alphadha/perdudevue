@@ -11,9 +11,11 @@ use Illuminate\Support\Collection;
 
 class BillingIssuesTable extends TableWidget
 {
+    protected static bool $isDiscovered = false;
+
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 30;
 
     public function table(Table $table): Table
     {

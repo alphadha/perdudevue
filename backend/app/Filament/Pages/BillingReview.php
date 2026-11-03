@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\BillingAnomaliesStatWidget;
 use App\Filament\Widgets\BillingIssuesTable;
 use App\Filament\Widgets\BillingPreviewsTable;
 use BackedEnum;
@@ -29,12 +30,27 @@ class BillingReview extends Page
     public function getHeaderWidgets(): array
     {
         return [
-            BillingIssuesTable::class,
+            BillingAnomaliesStatWidget::class,
             BillingPreviewsTable::class,
         ];
     }
 
+    /**
+     * @return array<class-string>
+     */
+    public function getFooterWidgets(): array
+    {
+        return [
+            BillingIssuesTable::class,
+        ];
+    }
+
     public function getHeaderWidgetsColumns(): int|array
+    {
+        return 1;
+    }
+
+    public function getFooterWidgetsColumns(): int|array
     {
         return 1;
     }

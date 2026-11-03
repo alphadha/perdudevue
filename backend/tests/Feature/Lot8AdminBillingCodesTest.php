@@ -70,7 +70,10 @@ class Lot8AdminBillingCodesTest extends TestCase
         ])->save();
 
         $this->actingAs($admin)->get('/admin')->assertOk();
-        Livewire::test(\App\Filament\Widgets\PdvStatsWidget::class)->assertSee('Restitutions en cours');
+        Livewire::test(\App\Filament\Widgets\PdvStatsWidget::class)
+            ->assertSee('Anomalies')
+            ->assertSee('Restitutions en cours');
+        Livewire::test(\App\Filament\Widgets\BillingAnomaliesStatWidget::class)->assertSee('Anomalies');
         $this->actingAs($admin)->get('/admin/pairs')->assertOk()->assertSee('FR8802BB')->assertSee('FR8801AA');
         $this->actingAs($admin)->get('/admin/restitutions')->assertOk()->assertSee('FR8801AA')->assertDontSee('FR8802BB');
         $this->actingAs($admin)->get('/admin/clients')->assertOk()->assertSee('c.kpi@example.com');
