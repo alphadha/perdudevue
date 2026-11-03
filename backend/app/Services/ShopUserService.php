@@ -54,7 +54,7 @@ class ShopUserService
                 'user_uuid' => $user->uuid,
             ]);
 
-            return $user->fresh();
+            return $shop->users()->where('users.id', $user->id)->firstOrFail();
         });
     }
 

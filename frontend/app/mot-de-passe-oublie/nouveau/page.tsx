@@ -5,6 +5,7 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import AuthFlowShell from "@/components/AuthFlowShell";
 import FieldError from "@/components/FieldError";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvPasswordRules, { passwordMeetsRules } from "@/components/pdv/PdvPasswordRules";
 import { api, ApiRequestError } from "@/lib/api";
 import type { Space } from "@/lib/types";
 
@@ -21,19 +22,22 @@ function NewPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   useEffect(() => {
     setEmail(sessionStorage.getItem("pdv_reset_email") ?? "");
     setCode(sessionStorage.getItem("pdv_reset_code") ?? "");
   }, []);
 
-  const longEnough = password.length > 8;
-  const hasCase = /[A-Z]/.test(password) && /[a-z]/.test(password);
-  const hasDigitAndSpecial = /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
-  const canSubmit = longEnough && hasCase && hasDigitAndSpecial && password === confirmation && confirmation.length > 0;
+  const passwordInvalid = passwordTouched && !passwordMeetsRules(password);
+  const canAttempt = password.length > 0 && confirmation.length > 0;
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    setPasswordTouched(true);
+    if (!passwordMeetsRules(password) || password !== confirmation) {
+      return;
+    }
     setPending(true);
     setError(null);
     setFieldErrors({});
@@ -82,10 +86,15 @@ function NewPasswordForm() {
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              className={`pdv-field__control${fieldErrors.password ? " is-invalid" : ""}`}
+              className={`pdv-field__control${fieldErrors.password || passwordInvalid ? " is-invalid" : ""}`}
               placeholder="Saisissez votre mot de passe"
               autoComplete="new-password"
               value={password}
+              onBlur={() => {
+                if (password.length > 0) {
+                  setPasswordTouched(true);
+                }
+              }}
               onChange={(event) => setPassword(event.target.value)}
               required
             />
@@ -99,20 +108,7 @@ function NewPasswordForm() {
             </button>
           </div>
           <FieldError message={fieldErrors.password} />
-          <ul className="pdv-password-rules">
-            <li className={longEnough ? "is-ok" : undefined}>
-              <img src="/icons/pdv/info-circle.svg" alt="" width={16} height={16} />
-              <span>Plus de 8 caractères</span>
-            </li>
-            <li className={hasCase ? "is-ok" : undefined}>
-              <img src="/icons/pdv/info-circle.svg" alt="" width={16} height={16} />
-              <span>Une majuscule et une minuscule</span>
-            </li>
-            <li className={hasDigitAndSpecial ? "is-ok" : undefined}>
-              <img src="/icons/pdv/info-circle.svg" alt="" width={16} height={16} />
-              <span>Un chiffre et un caractère spécial</span>
-            </li>
-          </ul>
+          <PdvPasswordRules password={password} showError={passwordInvalid} />
         </div>
 
         <div className="pdv-field">
@@ -141,7 +137,7 @@ function NewPasswordForm() {
           </div>
         </div>
 
-        <PdvButton variant="primary" size="l" block type="submit" disabled={pending || !canSubmit}>
+        <PdvButton variant="primary" size="l" block type="submit" disabled={pending || !canAttempt}>
           {pending ? "Enregistrement…" : "Réinitialiser le mot de passe"}
         </PdvButton>
       </form>

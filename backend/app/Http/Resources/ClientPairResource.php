@@ -39,7 +39,7 @@ class ClientPairResource extends JsonResource
             'depositary_shop' => $depositary?->toClientShop(),
             'actions' => [
                 'can_declare_lost' => $this->status === PairStatus::Active,
-                'can_cancel_lost' => $this->status === PairStatus::Perdue,
+                'can_cancel_lost' => in_array($this->status, [PairStatus::Perdue, PairStatus::LivraisonDemandee], true),
                 'can_inactivate' => $this->status->canClientInactivate(),
                 'can_archive' => $this->status === PairStatus::Inactive,
                 'can_recover' => $this->status === PairStatus::ARecuperer,
@@ -60,7 +60,7 @@ class ClientPairResource extends JsonResource
                     'inactivated' => 'Paire déclarée comme inactive',
                     'archived' => 'Paire supprimée',
                     'delivery_requested' => 'Livraison demandée par le client.',
-                    'shipped' => 'Livraison prise en compte.',
+                    'shipped' => 'Colis déposé, livraison en cours.',
                     default => $event->type,
                 },
                 'at' => $event->created_at?->toIso8601String(),

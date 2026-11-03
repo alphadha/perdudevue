@@ -20,10 +20,12 @@ class PublicRestitutionResource extends JsonResource
         return [
             'title' => 'Vos lunettes ont été retrouvées !',
             'pair' => [
+                'description' => $this->description,
                 'type' => $this->type,
                 'brand' => $this->brand,
                 'colors' => $this->colors ?? [],
                 'assigned_code' => $this->assigned_code,
+                'optician_name' => $this->originOptician?->name,
                 'registered_at' => $this->registered_at?->format('d/m/Y'),
             ],
             'pickup_code' => $this->pickup_code,

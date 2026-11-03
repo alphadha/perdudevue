@@ -31,17 +31,35 @@ class InvitationService
         return $plain;
     }
 
-    public function findUsable(string $plain): ?Invitation
+    /**
+     * @return array{status: 'usable'|'used'|'expired'|'invalid', invitation: ?Invitation}
+     */
+    public function inspect(string $plain): array
     {
         $invitation = Invitation::query()
             ->where('token_hash', SecureToken::hash($plain))
             ->first();
 
-        if ($invitation === null || ! $invitation->isUsable()) {
-            return null;
+        if ($invitation === null) {
+            return ['status' => 'invalid', 'invitation' => null];
         }
 
-        return $invitation;
+        if ($invitation->used_at !== null) {
+            return ['status' => 'used', 'invitation' => $invitation];
+        }
+
+        if ($invitation->expires_at->isPast()) {
+            return ['status' => 'expired', 'invitation' => $invitation];
+        }
+
+        return ['status' => 'usable', 'invitation' => $invitation];
+    }
+
+    public function findUsable(string $plain): ?Invitation
+    {
+        $found = $this->inspect($plain);
+
+        return $found['status'] === 'usable' ? $found['invitation'] : null;
     }
 
     public function activate(Invitation $invitation, string $password): User

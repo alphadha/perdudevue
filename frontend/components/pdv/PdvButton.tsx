@@ -1,7 +1,17 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import Link from "next/link";
 
-type Variant = "primary" | "secondary" | "tertiary";
+function PdvBtnIcon({ src }: { src: string }) {
+  return (
+    <span
+      className="pdv-btn__icon"
+      aria-hidden
+      style={{ "--pdv-btn-icon": `url("${src}")` } as CSSProperties}
+    />
+  );
+}
+
+type Variant = "primary" | "secondary" | "tertiary" | "danger";
 type Size = "l" | "m";
 
 type CommonProps = {
@@ -30,7 +40,7 @@ function buildClassName(props: CommonProps): string {
   const size = props.size ?? "m";
   return [
     "pdv-btn",
-    props.variant === "tertiary" ? "pdv-btn--tertiary" : `pdv-btn--${size}`,
+    `pdv-btn--${size}`,
     `pdv-btn--${props.variant ?? "primary"}`,
     props.light ? "pdv-btn--tertiary-light" : "",
     props.grow ? "pdv-btn--grow" : "",
@@ -60,9 +70,9 @@ export default function PdvButton(props: ButtonProps | LinkProps) {
 
   const content = (
     <>
-      {iconLeft ? <img src={iconLeft} alt="" /> : null}
+      {iconLeft ? <PdvBtnIcon src={iconLeft} /> : null}
       <span>{children}</span>
-      {iconRight ? <img src={iconRight} alt="" /> : null}
+      {iconRight ? <PdvBtnIcon src={iconRight} /> : null}
     </>
   );
 

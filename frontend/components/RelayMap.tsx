@@ -70,7 +70,7 @@ function LeafletRelayMap({
       const points = withCoords(relays);
       const center = points[0] ?? DEFAULT_CENTER;
       const map = L.map(containerRef.current, {
-        zoomControl: true,
+        zoomControl: false,
         attributionControl: true,
       }).setView([center.lat, center.lng], points.length ? 12 : 11);
 
@@ -114,12 +114,13 @@ function LeafletRelayMap({
 
     points.forEach((relay) => {
       const selected = relay.id === selectedId;
-      const marker = L.circleMarker([relay.lat, relay.lng], {
-        radius: selected ? 10 : 8,
-        color: "#ffffff",
-        weight: 2,
-        fillColor: selected ? "#2699FB" : "#7FC4FD",
-        fillOpacity: 1,
+      const marker = L.marker([relay.lat, relay.lng], {
+        icon: L.divIcon({
+          className: `pdv-relay-pin${selected ? " pdv-relay-pin--on" : ""}`,
+          iconSize: selected ? [32, 32] : [28, 28],
+          iconAnchor: selected ? [16, 16] : [14, 14],
+          html: `<span class="pdv-relay-pin__dot"><img src="/icons/pdv/mondial-relay.svg" alt="" width="12" height="12"></span>`,
+        }),
       });
       marker.bindTooltip(relay.name, { direction: "top", offset: [0, -8] });
       marker.on("click", () => onSelectRef.current(relay.id));
@@ -149,17 +150,10 @@ function LeafletRelayMap({
   }
 
   return (
-    <div className="position-relative mb-3" style={{ zIndex: 1 }}>
-      <div className="ratio ratio-16x9 bg-body-secondary">
-        <div ref={containerRef} />
-      </div>
-      <button
-        type="button"
-        className="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 m-2 p-2"
-        aria-label="Recentrer la carte"
-        onClick={recenter}
-      >
-        <img src="/icons/focus-3-line.svg" alt="" width={17} height={17} />
+    <div className="pdv-relay-map">
+      <div className="pdv-relay-map__canvas" ref={containerRef} />
+      <button type="button" className="pdv-relay-map__locate" aria-label="Recentrer la carte" onClick={recenter}>
+        <img src="/icons/pdv/mark.svg" alt="" width={18} height={18} />
       </button>
     </div>
   );
@@ -258,28 +252,19 @@ function GoogleRelayMap({
 
   if (!apiKey) {
     return (
-      <div className="ratio ratio-16x9 bg-body-secondary mb-3">
-        <div className="d-flex align-items-center justify-content-center p-3">
-          <p className="small text-secondary mb-0 text-center">
-            Carte Google indisponible : clé API manquante dans les paramètres plateforme.
-          </p>
-        </div>
+      <div className="pdv-relay-map">
+        <p className="pdv-delivery__error pdv-relay-map__fallback">
+          Carte Google indisponible : clé API manquante dans les paramètres plateforme.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="position-relative mb-3" style={{ zIndex: 1 }}>
-      <div className="ratio ratio-16x9 bg-body-secondary">
-        <div ref={containerRef} />
-      </div>
-      <button
-        type="button"
-        className="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 m-2 p-2"
-        aria-label="Recentrer la carte"
-        onClick={recenter}
-      >
-        <img src="/icons/focus-3-line.svg" alt="" width={17} height={17} />
+    <div className="pdv-relay-map">
+      <div className="pdv-relay-map__canvas" ref={containerRef} />
+      <button type="button" className="pdv-relay-map__locate" aria-label="Recentrer la carte" onClick={recenter}>
+        <img src="/icons/pdv/mark.svg" alt="" width={18} height={18} />
       </button>
     </div>
   );

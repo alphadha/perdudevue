@@ -18,8 +18,16 @@ class PublicRestitutionController extends Controller
             ->with(['pair.originOptician', 'pair.depositaryOptician'])
             ->first();
 
-        if ($record === null || ! $record->isUsable() || $record->pair === null || ! $record->pair->status->isOpenRestitution()) {
-            return ApiResponse::message('Lien introuvable.', 404);
+        if ($record === null || $record->pair === null) {
+            return ApiResponse::message('Ce lien n’est plus valide.', 404, 'link_invalid');
+        }
+
+        if (! $record->isUsable()) {
+            return ApiResponse::message('Ce lien n’est plus valide.', 410, 'link_expired');
+        }
+
+        if (! $record->pair->status->isOpenRestitution()) {
+            return ApiResponse::message('Ces lunettes vous ont été remises.', 409, 'already_returned');
         }
 
         return ApiResponse::success(PublicRestitutionResource::make($record->pair)->resolve());

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import ClientBackLink from "@/components/client/ClientBackLink";
 import { api, ApiRequestError } from "@/lib/api";
 import type { ClientPair } from "@/lib/types";
 
@@ -25,59 +25,66 @@ export default function TrackDeliveryPage() {
 
   if (error) {
     return (
-      <>
-        <Link href={`/client/lunettes/${params.uuid}`}>Revenir à mes lunettes</Link>
-        <p className="mt-3">{error}</p>
-      </>
+      <div className="pdv-client-fiche">
+        <ClientBackLink href={`/client/lunettes/${params.uuid}`}>Revenir à mes lunettes</ClientBackLink>
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
     );
   }
 
   if (!pair) {
-    return <p>Chargement…</p>;
+    return <p className="pdv-client-page-sub">Chargement…</p>;
   }
 
+  const shipment = pair.shipment;
+
   return (
-    <>
-      <p>
-        <Link href={`/client/lunettes/${pair.uuid}`}>Revenir à mes lunettes</Link>
-      </p>
-      <h1 className="h4">Suivre ma livraison</h1>
-      <p>
-        <span className="badge text-bg-primary">{pair.status_label}</span>
-      </p>
-      {pair.shipment ? (
-        <div className="card">
-          <div className="card-body">
-            <p className="d-flex justify-content-between mb-2">
-              <span>Transporteur</span>
-              <span>{pair.shipment.carrier}</span>
-            </p>
-            <p className="d-flex justify-content-between mb-2">
-              <span>Destination</span>
-              <span className="text-end">{pair.shipment.destination}</span>
-            </p>
-            <p className="d-flex justify-content-between mb-2">
-              <span>Référence</span>
-              <span>{pair.shipment.label_ref}</span>
-            </p>
-            {pair.shipment.tracking_ref ? (
-              <p className="d-flex justify-content-between mb-0">
-                <span>Code de suivi</span>
-                <span>{pair.shipment.tracking_ref}</span>
-              </p>
-            ) : (
-              <p className="mb-0 small text-secondary">
-                Le code de suivi sera affiché dès que le colis aura été déposé.
-              </p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <p>Aucune expédition en cours.</p>
-      )}
-      <p className="small text-secondary mt-3">
-        La date de livraison estimée sera affichée dès que le contrat transporteur le permettra.
-      </p>
-    </>
+    <div className="pdv-client-fiche">
+      <ClientBackLink href={`/client/lunettes/${pair.uuid}`}>Revenir à mes lunettes</ClientBackLink>
+      <div className="pdv-client-fiche__main">
+        <h1 className="pdv-client-fiche__title">Suivre ma livraison</h1>
+        {shipment ? (
+          <section className="pdv-client-info-card">
+            <header className="pdv-client-info-card__head">
+              <h2 className="pdv-client-info-card__title">Expédition</h2>
+            </header>
+            <dl className="pdv-client-info-card__rows">
+              {shipment.carrier ? (
+                <div className="pdv-client-info-card__row">
+                  <dt>Transporteur</dt>
+                  <dd>{shipment.carrier}</dd>
+                </div>
+              ) : null}
+              <div className="pdv-client-info-card__row">
+                <dt>Destination</dt>
+                <dd>{shipment.destination}</dd>
+              </div>
+              {shipment.label_ref ? (
+                <div className="pdv-client-info-card__row">
+                  <dt>Référence</dt>
+                  <dd>{shipment.label_ref}</dd>
+                </div>
+              ) : null}
+              {shipment.tracking_ref ? (
+                <div className="pdv-client-info-card__row">
+                  <dt>Code de suivi</dt>
+                  <dd>{shipment.tracking_ref}</dd>
+                </div>
+              ) : (
+                <p className="pdv-client-history__help">
+                  Le code de suivi sera affiché dès que le colis aura été déposé.
+                </p>
+              )}
+            </dl>
+          </section>
+        ) : (
+          <p className="pdv-client-page-sub">Aucune expédition en cours.</p>
+        )}
+        <p className="pdv-client-history__help">
+          Si vous rencontrez un problème avec votre livraison, contactez le transporteur depuis la page de suivi de
+          votre colis.
+        </p>
+      </div>
+    </div>
   );
 }

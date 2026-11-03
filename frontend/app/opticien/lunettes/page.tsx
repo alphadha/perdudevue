@@ -222,8 +222,8 @@ export default function LunettesPage() {
         </div>
         <PdvButton
           variant="primary"
-          size="m"
-          iconLeft="/icons/pdv/glasses-01.svg"
+          size="l"
+          iconLeft="/icons/pdv/glasses-01-light.svg"
           onClick={() => setRegisterOpen(true)}
         >
           Enregistrer une paire

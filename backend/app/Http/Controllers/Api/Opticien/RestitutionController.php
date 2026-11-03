@@ -32,6 +32,18 @@ class RestitutionController extends Controller
         return ApiResponse::success(RestitutionResource::collection($items)->resolve());
     }
 
+    public function show(Request $request, string $uuid): JsonResponse
+    {
+        $pair = $this->restitutions->findDeposit($this->shop($request), $uuid);
+        if ($pair === null) {
+            return ApiResponse::message('Ressource introuvable.', 404);
+        }
+        $this->authorize('manageDeposit', $pair);
+        $pair->load(['events', 'client.opticians', 'shipments']);
+
+        return ApiResponse::success(RestitutionResource::make($pair)->resolve());
+    }
+
     public function identify(AssignedCodeRequest $request): JsonResponse
     {
         $pair = $this->restitutions->identifyByAssignedCode($request->string('assigned_code')->toString());

@@ -17,7 +17,7 @@ const links: Array<{
 }> = [
   { href: "/opticien", label: "Tableau de bord", icon: "/icons/pdv/speedometer-03.svg", iconClass: "pdv-icon-17" },
   { href: "/opticien/clients", label: "Clients", icon: "/icons/pdv/users-01.svg" },
-  { href: "/opticien/lunettes", label: "Lunettes", icon: "/icons/pdv/lunettes-nav.svg", iconClass: "pdv-icon-22" },
+  { href: "/opticien/lunettes", label: "Lunettes", icon: "/icons/pdv/lunettes-nav.svg" },
   { href: "/opticien/restitution", label: "Restitution", restitution: true },
   { href: "/opticien/notifications", label: "Notifications", icon: "/icons/pdv/bell-02.svg" },
   { href: "/opticien/parametres", label: "Paramètres du compte", icon: "/icons/pdv/settings-01.svg" },

@@ -4,7 +4,6 @@ namespace App\Http\Resources;
 
 use App\Models\Client;
 use App\Models\Optician;
-use App\Models\Pair;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -31,8 +30,24 @@ class RestitutionResource extends JsonResource
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
             'found_at' => $this->found_at?->toIso8601String(),
+            'registered_at' => $this->registered_at?->toIso8601String(),
             'client' => $this->visibleClient($shop),
             'shipment' => $this->visibleShipment($shop),
+            'events' => $this->whenLoaded('events', fn () => $this->events->map(fn ($event) => [
+                'type' => $event->type,
+                'label' => match ($event->type) {
+                    'registered' => 'Paire enregistrée',
+                    'engraved' => 'Paire indiquée comme gravée',
+                    'inactivated' => 'Paire déclarée comme inactive',
+                    'lost' => 'Paire signalée comme perdue',
+                    'found' => 'Paire retrouvée, le client a été notifié',
+                    'returned' => 'Paire restituée au client',
+                    'delivery_requested' => 'Livraison demandée par le client',
+                    'shipped' => 'Colis déposé, le client a été notifié',
+                    default => $event->type,
+                },
+                'at' => $event->created_at?->toIso8601String(),
+            ])->values()),
             'actions' => [
                 'can_hand_over' => $this->status === \App\Enums\PairStatus::ARecuperer,
                 'can_resend' => $this->status === \App\Enums\PairStatus::ARecuperer,
@@ -45,7 +60,7 @@ class RestitutionResource extends JsonResource
     }
 
     /**
-     * @return array{uuid: string, first_name: string, last_name: string}|null
+     * @return array{uuid: string, first_name: string, last_name: string, email?: string, phone?: string|null}|null
      */
     private function visibleClient(?Optician $shop): ?array
     {
@@ -54,11 +69,17 @@ class RestitutionResource extends JsonResource
             return null;
         }
 
-        return [
+        $payload = [
             'uuid' => $client->uuid,
             'first_name' => $client->first_name,
             'last_name' => $client->last_name,
         ];
+        if ($this->relationLoaded('events')) {
+            $payload['email'] = $client->email;
+            $payload['phone'] = $client->phone;
+        }
+
+        return $payload;
     }
 
     private function clientBelongsToShop(Client $client, Optician $shop): bool

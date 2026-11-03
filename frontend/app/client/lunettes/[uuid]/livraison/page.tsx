@@ -5,7 +5,10 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import AddressAutocomplete, { type AddressSuggestion } from "@/components/AddressAutocomplete";
 import AppToast from "@/components/AppToast";
-import FieldError from "@/components/FieldError";
+import ClientBackLink from "@/components/client/ClientBackLink";
+import PdvButton from "@/components/pdv/PdvButton";
+import PdvCheckbox from "@/components/pdv/PdvCheckbox";
+import PdvField from "@/components/pdv/PdvField";
 import RelayMap from "@/components/RelayMap";
 import { api, ApiRequestError } from "@/lib/api";
 import type { ClientPair, ClientProfile, MapsConfig, ShippingQuote } from "@/lib/types";
@@ -25,6 +28,7 @@ type Draft = {
     recipient_first_name: string;
     recipient_last_name: string;
     address_line: string;
+    address_complement: string;
     postal_code: string;
     city: string;
   };
@@ -39,6 +43,16 @@ const fallbackMaps: MapsConfig = {
   google_maps_key: null,
   maplibre_style_url: null,
 };
+
+function formatPrice(cents: number) {
+  return `${(cents / 100).toFixed(2).replace(".", ",")}€`;
+}
+
+function homeAddress(form: Draft["form"]) {
+  return [form.address_line, form.address_complement, `${form.postal_code} ${form.city}`.trim()]
+    .filter((part) => part.trim() !== "")
+    .join(", ");
+}
 
 export default function DeliveryRequestPage() {
   const params = useParams<{ uuid: string }>();
@@ -62,6 +76,7 @@ export default function DeliveryRequestPage() {
     recipient_first_name: "",
     recipient_last_name: "",
     address_line: "",
+    address_complement: "",
     postal_code: "",
     city: "",
   });
@@ -161,6 +176,18 @@ export default function DeliveryRequestPage() {
     );
   }
 
+  function selectMode(next: "home" | "relay") {
+    setMode(next);
+    setRelaySearchError(null);
+    if (next === "relay" && addressQuery.trim() === "") {
+      const fromHome = [form.address_line, form.postal_code, form.city].filter(Boolean).join(" ");
+      if (fromHome) {
+        setAddressQuery(fromHome);
+        void searchRelays(fromHome, form.postal_code, form.city);
+      }
+    }
+  }
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -183,7 +210,10 @@ export default function DeliveryRequestPage() {
         setRelayId(draft.relayId);
         setAddressQuery(draft.addressQuery ?? "");
         setConsent(draft.consent);
-        setForm(draft.form);
+        setForm({
+          address_complement: "",
+          ...draft.form,
+        });
         setStep("recap");
       }
     } catch {
@@ -202,9 +232,32 @@ export default function DeliveryRequestPage() {
 
   function continueToRecap(event: FormEvent) {
     event.preventDefault();
-    setFieldErrors({});
+    const nextErrors: Record<string, string> = {};
+    if (mode === "home") {
+      if (!form.recipient_last_name.trim()) {
+        nextErrors.recipient_last_name = "Indiquez le nom.";
+      }
+      if (!form.recipient_first_name.trim()) {
+        nextErrors.recipient_first_name = "Indiquez le prénom.";
+      }
+      if (!form.address_line.trim()) {
+        nextErrors.address_line = "Indiquez l’adresse.";
+      }
+      if (!form.postal_code.trim()) {
+        nextErrors.postal_code = "Indiquez le code postal.";
+      }
+      if (!form.city.trim()) {
+        nextErrors.city = "Indiquez la ville.";
+      }
+    }
     if (mode === "relay" && !relayId) {
       setRelaySearchError("Sélectionnez un point relais sur la carte.");
+    }
+    if (!consent) {
+      nextErrors.consent_address = "Le consentement à l’usage de l’adresse pour l’expédition est obligatoire.";
+    }
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0 || (mode === "relay" && !relayId)) {
       return;
     }
     persistDraft({ mode, relayId, addressQuery, consent, form });
@@ -219,6 +272,7 @@ export default function DeliveryRequestPage() {
     setPayError(null);
     setFieldErrors({});
     persistDraft({ mode, relayId, addressQuery, consent, form });
+    const addressLine = [form.address_line, form.address_complement].filter((part) => part.trim() !== "").join(", ");
     try {
       const shipment = await api<CheckoutShipment>(`/client/pairs/${pair.uuid}/shipments`, {
         method: "POST",
@@ -226,7 +280,11 @@ export default function DeliveryRequestPage() {
           mode,
           consent_address: consent,
           relay_id: mode === "relay" ? relayId : undefined,
-          ...form,
+          recipient_first_name: form.recipient_first_name,
+          recipient_last_name: form.recipient_last_name,
+          address_line: addressLine,
+          postal_code: form.postal_code,
+          city: form.city,
         }),
       });
       if (!shipment.checkout_url) {
@@ -253,186 +311,188 @@ export default function DeliveryRequestPage() {
     }
   }
 
+  const recupererHref = `/client/lunettes/${params.uuid}/recuperer`;
+
   if (error) {
     return (
-      <>
-        <Link href={`/client/lunettes/${params.uuid}/recuperer`}>Revenir à mes lunettes</Link>
-        <p className="mt-3">{error}</p>
-      </>
+      <div className="pdv-delivery">
+        <ClientBackLink href={recupererHref}>Revenir à mes lunettes</ClientBackLink>
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
     );
   }
 
   if (!pair || !profile) {
-    return <p>Chargement…</p>;
+    return <p className="pdv-client-page-sub">Chargement…</p>;
   }
 
   if (!pair.actions.can_request_delivery) {
     return (
-      <>
-        <p>
-          <Link href={`/client/lunettes/${pair.uuid}/recuperer`}>Revenir à mes lunettes</Link>
-        </p>
-        <p>
+      <div className="pdv-delivery">
+        <ClientBackLink href={recupererHref}>Revenir à mes lunettes</ClientBackLink>
+        <p className="pdv-client-page-sub">
           {pair.actions.can_track_delivery ? (
             <Link href={`/client/lunettes/${pair.uuid}/suivi`}>Suivre ma livraison</Link>
           ) : (
             "La demande d’expédition n’est pas disponible pour cette paire."
           )}
         </p>
-      </>
+      </div>
     );
   }
 
   if (!quote) {
-    return <p>Chargement…</p>;
+    return <p className="pdv-client-page-sub">Chargement…</p>;
   }
 
   const maps = quote.maps ?? fallbackMaps;
-  const price = (quote.price_cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+  const homeCents = quote.prices?.home ?? quote.price_cents;
+  const relayCents = quote.prices?.relay ?? quote.price_cents;
   const selectedRelay = quote.relays.find((relay) => relay.id === relayId) ?? null;
   const homeCarrier = quote.carriers?.home ?? quote.carrier ?? "Colissimo";
-  const relayCarrier = quote.carriers?.relay ?? "Mondial Relay";
-  const activeCarrier = mode === "relay" ? relayCarrier : homeCarrier;
+  const activeCents = mode === "relay" ? relayCents : homeCents;
   const destination =
     mode === "relay" && selectedRelay
-      ? `${selectedRelay.name} — ${selectedRelay.address}, ${selectedRelay.postal_code} ${selectedRelay.city}`
-      : `${form.address_line}, ${form.postal_code} ${form.city}`;
+      ? `${selectedRelay.address}, ${selectedRelay.postal_code} ${selectedRelay.city}`
+      : homeAddress(form);
 
   return (
-    <>
+    <div className="pdv-delivery">
       <AppToast
         title={toast?.title}
         message={toast?.message ?? null}
         onDismiss={() => setToast(null)}
       />
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <div className="pdv-delivery__bar">
         {step === "recap" ? (
-          <button type="button" className="btn btn-link p-0" onClick={() => setStep("mode")}>
-            Retour
+          <button type="button" className="pdv-delivery__icon-btn" aria-label="Retour" onClick={() => setStep("mode")}>
+            <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
           </button>
         ) : (
-          <Link href={`/client/lunettes/${pair.uuid}/recuperer`}>Revenir à mes lunettes</Link>
+          <Link href={recupererHref} className="pdv-delivery__icon-btn" aria-label="Retour">
+            <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
+          </Link>
         )}
-        <Link href={`/client/lunettes/${pair.uuid}/recuperer`} className="btn-close" aria-label="Fermer" />
+        <p className="pdv-delivery__bar-title">Me faire livrer mes lunettes</p>
+        <Link href={recupererHref} className="pdv-delivery__icon-btn" aria-label="Fermer">
+          <img src="/icons/pdv/x-close.svg" alt="" width={24} height={24} />
+        </Link>
       </div>
-      <p className="text-center text-primary fw-medium">Me faire livrer mes lunettes</p>
 
-      {payError ? <p className="text-danger">{payError}</p> : null}
+      {payError ? <p className="pdv-delivery__error">{payError}</p> : null}
 
       {step === "mode" ? (
-        <form onSubmit={continueToRecap}>
-          <h1 className="h4 text-primary">Mode de livraison</h1>
+        <form className="pdv-delivery__stack" onSubmit={continueToRecap}>
+          <h1 className="pdv-delivery__title">Mode de livraison</h1>
 
-          <div className={`p-3 mb-3 ${mode === "home" ? "bg-info-subtle" : "bg-primary-subtle"}`}>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="mode"
-                id="mode-home"
-                checked={mode === "home"}
-                onChange={() => setMode("home")}
-              />
-              <label className="form-check-label fw-medium text-primary" htmlFor="mode-home">
-                Livraison à domicile — {homeCarrier}
-              </label>
+          <div className={`pdv-ship-card pdv-ship-card--home${mode === "home" ? " is-open" : ""}`}>
+            <div className="pdv-ship-card__head" onClick={() => selectMode("home")}>
+              <span className="pdv-ship-card__choice">
+                <span className="pdv-ship-radio">
+                  <input
+                    type="radio"
+                    name="mode"
+                    id="mode-home"
+                    checked={mode === "home"}
+                    onChange={() => selectMode("home")}
+                  />
+                  <span className="pdv-ship-radio__mark" />
+                </span>
+                <label className="pdv-ship-card__label" htmlFor="mode-home">
+                  {homeCarrier} à domicile
+                </label>
+              </span>
+              <span className="pdv-ship-card__price">{formatPrice(homeCents)}</span>
             </div>
-            <p className="small text-info-emphasis mb-1">Recevez vos lunettes directement chez vous.</p>
-            <p className="small text-info-emphasis mb-0">
-              Votre adresse est uniquement utilisée pour la livraison et ne sera pas utilisée à des fins commerciales.
-            </p>
             {mode === "home" ? (
               <>
-                <div className="row g-2 mt-3">
-                  <div className="col-6">
-                    <label className="form-label" htmlFor="last">
-                      Nom
-                    </label>
-                    <input
+                <div className="pdv-ship-card__copy">
+                  <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
+                  <p className="pdv-ship-card__hint">
+                    Votre adresse est utilisée uniquement pour la livraison et non à des fins commerciales.
+                  </p>
+                </div>
+                <div className="pdv-ship-card__fields">
+                  <div className="pdv-ship-card__row">
+                    <PdvField
                       id="last"
-                      className="form-control"
+                      label="Nom*"
                       value={form.recipient_last_name}
+                      error={fieldErrors.recipient_last_name}
+                      required
                       onChange={(event) => setForm({ ...form, recipient_last_name: event.target.value })}
-                      required
                     />
-                    <FieldError message={fieldErrors.recipient_last_name} />
-                  </div>
-                  <div className="col-6">
-                    <label className="form-label" htmlFor="first">
-                      Prénom
-                    </label>
-                    <input
+                    <PdvField
                       id="first"
-                      className="form-control"
+                      label="Prénom*"
                       value={form.recipient_first_name}
+                      error={fieldErrors.recipient_first_name}
+                      required
                       onChange={(event) => setForm({ ...form, recipient_first_name: event.target.value })}
-                      required
                     />
-                    <FieldError message={fieldErrors.recipient_first_name} />
                   </div>
-                </div>
-                <div className="mt-2">
-                  <label className="form-label" htmlFor="address">
-                    N° et nom de la rue
-                  </label>
-                  <input
+                  <PdvField
                     id="address"
-                    className="form-control"
+                    label="N° et nom de la rue*"
                     value={form.address_line}
-                    onChange={(event) => setForm({ ...form, address_line: event.target.value })}
+                    error={fieldErrors.address_line}
                     required
+                    onChange={(event) => setForm({ ...form, address_line: event.target.value })}
                   />
-                  <FieldError message={fieldErrors.address_line} />
-                </div>
-                <div className="row g-2 mt-0">
-                  <div className="col-6">
-                    <label className="form-label" htmlFor="postal">
-                      Code Postal
-                    </label>
-                    <input
+                  <div className="pdv-ship-card__row">
+                    <PdvField
                       id="postal"
-                      className="form-control"
+                      label="Code Postal*"
                       value={form.postal_code}
+                      error={fieldErrors.postal_code}
+                      required
                       onChange={(event) => setForm({ ...form, postal_code: event.target.value })}
-                      required
                     />
-                    <FieldError message={fieldErrors.postal_code} />
-                  </div>
-                  <div className="col-6">
-                    <label className="form-label" htmlFor="city">
-                      Ville
-                    </label>
-                    <input
+                    <PdvField
                       id="city"
-                      className="form-control"
+                      label="Ville*"
                       value={form.city}
-                      onChange={(event) => setForm({ ...form, city: event.target.value })}
+                      error={fieldErrors.city}
                       required
+                      onChange={(event) => setForm({ ...form, city: event.target.value })}
                     />
-                    <FieldError message={fieldErrors.city} />
                   </div>
+                  <PdvField
+                    id="complement"
+                    label="Complément d’adresse"
+                    placeholder="N° immeuble/bâtiment..."
+                    value={form.address_complement}
+                    onChange={(event) => setForm({ ...form, address_complement: event.target.value })}
+                  />
                 </div>
               </>
-            ) : null}
+            ) : (
+              <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
+            )}
           </div>
 
-          <div className={`p-3 mb-3 ${mode === "relay" ? "bg-info-subtle" : "bg-primary-subtle"}`}>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="mode"
-                id="mode-relay"
-                checked={mode === "relay"}
-                onChange={() => setMode("relay")}
-              />
-              <label className="form-check-label fw-medium text-primary" htmlFor="mode-relay">
-                Livraison en point relais — {relayCarrier}
-              </label>
+          <div className={`pdv-ship-card${mode === "relay" ? " is-open" : ""}`}>
+            <div className="pdv-ship-card__head" onClick={() => selectMode("relay")}>
+              <span className="pdv-ship-card__choice">
+                <span className="pdv-ship-radio">
+                  <input
+                    type="radio"
+                    name="mode"
+                    id="mode-relay"
+                    checked={mode === "relay"}
+                    onChange={() => selectMode("relay")}
+                  />
+                  <span className="pdv-ship-radio__mark" />
+                </span>
+                <label className="pdv-ship-card__label" htmlFor="mode-relay">
+                  En point relais
+                </label>
+              </span>
+              <span className="pdv-ship-card__price">{formatPrice(relayCents)}</span>
             </div>
             {mode === "relay" ? (
               <>
-                <p className="small text-primary mb-3">Sélectionnez un commerce proche de chez vous</p>
+                <p className="pdv-ship-card__lead">Un commerce proche de chez vous</p>
                 <label className="visually-hidden" htmlFor="relay-address">
                   Adresse
                 </label>
@@ -444,87 +504,83 @@ export default function DeliveryRequestPage() {
                   onSelect={onAddressPicked}
                   onSearch={(query) => void searchRelays(query)}
                   pending={relaySearchPending}
-                  placeholder="17 av. parmentier 75017 Paris"
+                  placeholder="17 av. Parmentier, 75011 Paris"
                 />
-                {relaySearchError ? <p className="small text-danger">{relaySearchError}</p> : null}
-                <FieldError message={fieldErrors.relay_id} />
-
-                {quote.relays.length > 0 ? (
-                  <>
-                    <RelayMap
-                      maps={maps}
-                      relays={quote.relays}
-                      selectedId={relayId}
-                      onSelect={setRelayId}
-                    />
-                    {selectedRelay ? (
-                      <div className="bg-white rounded-3 px-2 py-3">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <p className="fw-medium text-primary mb-0 small">{relayCarrier}</p>
-                          <p className="fw-medium text-primary mb-0 small">{price}</p>
-                        </div>
-                        <div className="d-flex align-items-center gap-1 mb-1">
-                          <img src="/icons/building-4-line.svg" alt="" width={16} height={16} />
-                          <span className="small text-info-emphasis">{selectedRelay.name}</span>
-                        </div>
-                        <div className="d-flex align-items-center gap-1">
-                          <img src="/icons/map-pin-2-line.svg" alt="" width={16} height={16} />
-                          <span className="small text-info-emphasis">
-                            {selectedRelay.address}, {selectedRelay.postal_code} {selectedRelay.city}
-                          </span>
-                        </div>
-                      </div>
-                    ) : null}
-                  </>
+                {relaySearchError ? <p className="pdv-delivery__error">{relaySearchError}</p> : null}
+                {fieldErrors.relay_id ? <p className="pdv-field__error">{fieldErrors.relay_id}</p> : null}
+                <RelayMap maps={maps} relays={quote.relays} selectedId={relayId} onSelect={setRelayId} />
+                {selectedRelay ? (
+                  <div className="pdv-relay-pick">
+                    <p className="pdv-relay-pick__name">{selectedRelay.name}</p>
+                    <div className="pdv-relay-pick__meta">
+                      <p className="pdv-relay-pick__row">
+                        <img src="/icons/pdv/marker-pin-01.svg" alt="" width={16} height={16} />
+                        {selectedRelay.address} {selectedRelay.postal_code} {selectedRelay.city}
+                      </p>
+                    </div>
+                  </div>
                 ) : null}
               </>
-            ) : null}
+            ) : (
+              <p className="pdv-ship-card__lead">Un commerce proche de chez vous</p>
+            )}
           </div>
 
-          <div className="form-check mb-3">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="consent"
+          <div className="pdv-delivery__consent">
+            <PdvCheckbox
               checked={consent}
-              required
-              onChange={(event) => setConsent(event.target.checked)}
+              aria-label="J’autorise l’usage de cette adresse uniquement pour l’expédition de mes lunettes, sans usage commercial."
+              onChange={setConsent}
             />
-            <label className="form-check-label" htmlFor="consent">
+            <p className="pdv-delivery__consent-label">
               J’autorise l’usage de cette adresse uniquement pour l’expédition de mes lunettes, sans usage commercial.
-            </label>
-            <FieldError message={fieldErrors.consent_address} />
+            </p>
           </div>
+          {fieldErrors.consent_address ? <p className="pdv-field__error">{fieldErrors.consent_address}</p> : null}
 
-          <button type="submit" className="btn btn-primary w-100">
+          <PdvButton type="submit" variant="primary" size="l" block>
             Continuer
-          </button>
+          </PdvButton>
         </form>
       ) : (
-        <>
-          <h1 className="h4">Récapitulatif de livraison</h1>
-          <div className="bg-body-secondary p-3 mb-3">
-            <p className="small fw-medium mb-1">Paire de lunette</p>
-            <p className="mb-1">{pair.title}</p>
-            <p className="small text-secondary mb-0">Type de lunette : {pair.type}</p>
-            <p className="small text-secondary mb-0">Marque : {pair.brand}</p>
-            <p className="small text-secondary mb-0">Couleurs : {pair.colors.join(", ")}</p>
-          </div>
-          <div className="bg-body-secondary p-3 mb-3">
-            <p className="small fw-medium mb-1">Mode de livraison</p>
-            <p className="d-flex justify-content-between mb-1">
-              <span>
-                {mode === "relay" ? "Livraison en point relais" : "Livraison à domicile"} — {activeCarrier}
-              </span>
-              <span>{price}</span>
-            </p>
-            <p className="small text-secondary mb-0">{destination}</p>
-          </div>
-          <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={() => void pay()}>
+        <div className="pdv-delivery__stack">
+          <h1 className="pdv-delivery__title">Récapitulatif de livraison</h1>
+          <section className="pdv-recap-card">
+            <p className="pdv-recap-card__label">Paire de lunette</p>
+            <div>
+              <p className="pdv-recap-card__title">{pair.title}</p>
+              <div className="pdv-recap-card__rows">
+                <p>Type de lunette : {pair.type}</p>
+                <p>Marque : {pair.brand}</p>
+                <p>Couleurs : {pair.colors.join(", ")}</p>
+              </div>
+            </div>
+          </section>
+          <section className="pdv-recap-card pdv-recap-card--mode">
+            <p className="pdv-recap-card__label">Mode de livraison</p>
+            <div className="pdv-recap-card__head">
+              <div className="pdv-recap-card__shop">
+                {mode === "relay" ? (
+                  <img src="/icons/pdv/mondial-relay.svg" alt="" width={22} height={22} />
+                ) : null}
+                <p className="pdv-recap-card__title">
+                  {mode === "relay" && selectedRelay ? selectedRelay.name : `${homeCarrier} à domicile`}
+                </p>
+              </div>
+              <p className="pdv-recap-card__price">{formatPrice(activeCents)}</p>
+            </div>
+            <div className="pdv-recap-card__meta">
+              <p>
+                <img src="/icons/pdv/marker-pin-01.svg" alt="" width={18} height={18} />
+                {destination}
+              </p>
+            </div>
+          </section>
+          <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void pay()}>
             Procéder au paiement
-          </button>
-        </>
+          </PdvButton>
+        </div>
       )}
-    </>
+    </div>
   );
 }

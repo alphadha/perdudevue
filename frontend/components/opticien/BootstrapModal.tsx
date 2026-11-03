@@ -2,18 +2,28 @@
 
 import { FormEvent, ReactNode } from "react";
 
+type ModalSize = "sm" | "md" | "lg";
+
 type Props = {
   title: string;
   subtitle?: string;
+  size?: ModalSize;
   onClose: () => void;
   children: ReactNode;
 };
 
-export default function BootstrapModal({ title, subtitle, onClose, children }: Props) {
+export default function BootstrapModal({ title, subtitle, size = "sm", onClose, children }: Props) {
+  const dialogClass =
+    size === "lg"
+      ? "modal-dialog modal-dialog-centered modal-dialog--lg"
+      : size === "md"
+        ? "modal-dialog modal-dialog-centered modal-dialog--md"
+        : "modal-dialog modal-dialog-centered";
+
   return (
     <>
       <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
-        <div className="modal-dialog">
+        <div className={dialogClass}>
           <div className="modal-content">
             <div className="modal-header">
               <div>

@@ -268,7 +268,7 @@ export default function OpticienClientsPage() {
         </div>
         <PdvButton
           variant="primary"
-          size="m"
+          size="l"
           iconLeft="/icons/pdv/user-plus-01.svg"
           onClick={openCreate}
         >
@@ -369,6 +369,7 @@ export default function OpticienClientsPage() {
         <BootstrapModal
           title="Modifier la fiche client"
           subtitle="Étape 1/3"
+          size="md"
           onClose={() => {
             setEditOpen(false);
             showToast("Modifications non prises en compte");
@@ -402,6 +403,7 @@ export default function OpticienClientsPage() {
         <BootstrapModal
           title="Modifier la fiche client"
           subtitle="Étape 2/3"
+          size="md"
           onClose={() => {
             setOtp(null);
             showToast("Modifications non prises en compte");
@@ -462,9 +464,9 @@ export default function OpticienClientsPage() {
             </p>
           </div>
           <div className="modal-footer flex-column">
-            <button type="button" className="btn btn-danger w-100" disabled={pending} onClick={() => void confirmDelete()}>
+            <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={() => void confirmDelete()}>
               Supprimer le client
-            </button>
+            </PdvButton>
             <button type="button" className="btn btn-link" onClick={() => setToDelete(null)}>
               Annuler
             </button>

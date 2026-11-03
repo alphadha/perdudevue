@@ -128,8 +128,11 @@ export default function PdvSelect({
   }
 
   function isChecked(optionValue: string) {
+    if (empty) {
+      return true;
+    }
     if (optionValue === "") {
-      return empty;
+      return false;
     }
     return selected.includes(optionValue);
   }

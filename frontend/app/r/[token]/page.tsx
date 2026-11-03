@@ -1,22 +1,59 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import ShopCard from "@/components/client/ShopCard";
+import ShopMapModal from "@/components/client/ShopMapModal";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
-import type { PublicRestitution } from "@/lib/types";
+import type { ClientShop, PublicRestitution } from "@/lib/types";
+
+const PICKUP_HELP =
+  "Ce code est votre preuve de propriété. Présentez-le à l'opticien de retrait pour récupérer vos lunettes. Il sera vérifié lors de la remise.";
+
+function PublicBlocked({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="pdv-public pdv-public--blocked">
+      <header className="pdv-login__hero pdv-login__hero--mobile">
+        <div className="pdv-login__pattern" aria-hidden>
+          <img src="/brand/login-pattern-a.svg" alt="" />
+          <img src="/brand/login-pattern-b.svg" alt="" />
+          <img src="/brand/login-pattern-a.svg" alt="" />
+          <img src="/brand/login-pattern-b.svg" alt="" />
+          <img src="/brand/login-pattern-a.svg" alt="" />
+        </div>
+        <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
+      </header>
+      <section className="pdv-public__blocked-card">
+        <p className="pdv-public__blocked-title">{title}</p>
+        <p className="pdv-public__blocked-body">{body}</p>
+        <PdvButton href="/login?space=client" variant="tertiary" size="l">
+          Me connecter
+        </PdvButton>
+      </section>
+    </div>
+  );
+}
 
 export default function PublicRestitutionPage() {
   const params = useParams<{ token: string }>();
   const [data, setData] = useState<PublicRestitution | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
     api<PublicRestitution>(`/public/restitutions/${params.token}`)
       .then(setData)
       .catch((caught) => {
-        setError(caught instanceof ApiRequestError ? caught.message : "Lien introuvable.");
+        const code = caught instanceof ApiRequestError ? caught.errors[0]?.code : undefined;
+        setErrorCode(code ?? "link_invalid");
       });
   }, [params.token]);
 
@@ -28,88 +65,88 @@ export default function PublicRestitutionPage() {
     setCopied(true);
   }
 
-  if (error) {
+  if (errorCode === "already_returned") {
     return (
-      <div className="container py-5">
-        <div className="alert alert-danger">{error}</div>
-        <Link href="/login">Se reconnecter à mon compte</Link>
-      </div>
+      <PublicBlocked
+        title="Ces lunettes vous ont été remises"
+        body="Connectez-vous à votre espace pour retrouver toutes les informations."
+      />
+    );
+  }
+
+  if (errorCode) {
+    return (
+      <PublicBlocked
+        title="Ce lien n’est plus valide"
+        body="Connectez-vous à votre espace pour retrouver toutes les informations."
+      />
     );
   }
 
   if (!data) {
     return (
-      <div className="container py-5">
-        <p>Chargement…</p>
+      <div className="pdv-public">
+        <p className="pdv-client-page-sub">Chargement…</p>
       </div>
     );
   }
 
-  const address = [data.optician?.address, data.optician?.postal_code, data.optician?.city]
-    .filter(Boolean)
-    .join(", ");
+  const shop: ClientShop | null = data.optician
+    ? {
+        name: data.optician.name,
+        address: data.optician.address,
+        city: data.optician.city,
+        postal_code: data.optician.postal_code,
+        phone: data.optician.phone,
+        maps_url: data.optician.maps_url,
+        waze_url: data.optician.waze_url,
+      }
+    : null;
+
+  const rows = [
+    { label: "Description", value: data.pair.description },
+    { label: "Type de lunettes", value: data.pair.type },
+    { label: "Marque", value: data.pair.brand },
+    { label: "Couleurs", value: data.pair.colors.join(", ") },
+    { label: "Code assigné", value: data.pair.assigned_code },
+    { label: "Opticien", value: data.pair.optician_name },
+    { label: "Date d'enregistrement", value: data.pair.registered_at },
+  ].filter((row) => Boolean(row.value));
 
   return (
-    <div className="container py-4">
-      <div className="row justify-content-center">
-        <div className="col-12 col-md-8 col-lg-6">
-          <h1 className="h4 mb-4">{data.title}</h1>
-          <h2 className="h6">Détails de la paire</h2>
-          <dl className="row">
-            <dt className="col-6">Type de lunettes</dt>
-            <dd className="col-6 text-end">{data.pair.type}</dd>
-            <dt className="col-6">Marque</dt>
-            <dd className="col-6 text-end">{data.pair.brand}</dd>
-            <dt className="col-6">Couleurs</dt>
-            <dd className="col-6 text-end">{data.pair.colors.join(", ")}</dd>
-            <dt className="col-6">Code assigné</dt>
-            <dd className="col-6 text-end">{data.pair.assigned_code}</dd>
-            <dt className="col-6">Date d&apos;enregistrement</dt>
-            <dd className="col-6 text-end">{data.pair.registered_at}</dd>
+    <div className="pdv-public">
+      <div className="pdv-public__inner">
+        <h1 className="pdv-public__title">{data.title}</h1>
+        <section className="pdv-client-info-card">
+          <header className="pdv-client-info-card__head">
+            <h2 className="pdv-client-info-card__title">Détails de la paire</h2>
+          </header>
+          <dl className="pdv-client-info-card__rows">
+            {rows.map((row) => (
+              <div className="pdv-client-info-card__row" key={row.label}>
+                <dt>{row.label}</dt>
+                <dd>{row.value}</dd>
+              </div>
+            ))}
           </dl>
-          <hr />
-          <div className="card mb-4">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <p className="mb-1">Code de restitution</p>
-                  <p className="h4 mb-0">{data.pickup_code}</p>
-                </div>
-                <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => void copyCode()}>
-                  {copied ? "Copié" : "Copier"}
-                </button>
+        </section>
+        {data.pickup_code ? (
+          <section className="pdv-pickup-card">
+            <div className="pdv-pickup-card__top">
+              <div>
+                <p className="pdv-pickup-card__label">Code de restitution</p>
+                <p className="pdv-pickup-card__code">{data.pickup_code}</p>
               </div>
-              <p className="small mt-3 mb-0">{data.pickup_help}</p>
+              <PdvButton type="button" variant="secondary" size="m" iconLeft="/icons/pdv/copy-06.svg" onClick={() => void copyCode()}>
+                {copied ? "Copié" : "Copier"}
+              </PdvButton>
             </div>
-          </div>
-          {data.optician ? (
-            <>
-              <h2 className="h6">Opticien de retrait</h2>
-              <div className="card">
-                <div className="card-body">
-                  <p className="fw-semibold mb-1">{data.optician.name}</p>
-                  <p className="mb-1">{address}</p>
-                  {data.optician.phone ? <p className="mb-3">Tél : {data.optician.phone}</p> : null}
-                  <div className="d-flex flex-wrap gap-3">
-                    {data.optician.phone ? <a href={`tel:${data.optician.phone}`}>Appeler</a> : null}
-                    <a href={data.optician.maps_url} target="_blank" rel="noreferrer">
-                      Ouvrir dans Maps
-                    </a>
-                    {data.optician.waze_url ? (
-                      <a href={data.optician.waze_url} target="_blank" rel="noreferrer">
-                        Ouvrir dans Waze
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </>
-          ) : null}
-          <p className="mt-4 mb-0">
-            <Link href="/login?space=client">Se reconnecter à mon compte</Link>
-          </p>
-        </div>
+            <p className="pdv-pickup-card__help">{data.pickup_help || PICKUP_HELP}</p>
+          </section>
+        ) : null}
+        {shop ? <ShopCard shop={shop} title="Où les récupérer ?" onMap={() => setMapOpen(true)} /> : null}
       </div>
+      {mapOpen && shop ? <ShopMapModal shop={shop} onClose={() => setMapOpen(false)} /> : null}
     </div>
   );
 }

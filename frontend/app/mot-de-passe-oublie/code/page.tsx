@@ -96,7 +96,7 @@ function OtpForm() {
               ref={(node) => {
                 inputsRef.current[index] = node;
               }}
-              className="pdv-otp-form__digit"
+              className={`pdv-otp-form__digit${error ? " is-invalid" : ""}`}
               inputMode="numeric"
               autoComplete={index === 0 ? "one-time-code" : "off"}
               maxLength={1}

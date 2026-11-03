@@ -2,6 +2,8 @@
 
 return [
     'price_cents' => (int) env('SHIPPING_PRICE_CENTS', 299),
+    'price_home_cents' => (int) env('SHIPPING_PRICE_HOME_CENTS', 990),
+    'price_relay_cents' => (int) env('SHIPPING_PRICE_RELAY_CENTS', 490),
     'currency' => 'eur',
     /** @deprecated Utiliser carrier_home / carrier_relay */
     'carrier' => env('SHIPPING_CARRIER', 'Colissimo'),

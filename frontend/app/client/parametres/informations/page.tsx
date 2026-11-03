@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
+import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError } from "@/lib/api";
@@ -72,12 +72,10 @@ export default function ClientInformationsPage() {
   }
 
   return (
-    <>
+    <div className="pdv-client-fiche">
       <AppToast message={toast} />
-      <p>
-        <Link href="/client/parametres">Revenir aux paramètres</Link>
-      </p>
-      <h1 className="h4 mb-4">Informations personnelles</h1>
+      <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
+      <h1 className="pdv-client-fiche__title">Informations personnelles</h1>
       <form className="d-flex flex-column gap-3" onSubmit={(event) => void save(event)}>
         <PdvField
           id="last-name"
@@ -108,6 +106,6 @@ export default function ClientInformationsPage() {
           Enregistrer
         </PdvButton>
       </form>
-    </>
+    </div>
   );
 }

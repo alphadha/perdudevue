@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Opticien\NotificationController as OpticienNotifica
 use App\Http\Controllers\Api\Opticien\PairController;
 use App\Http\Controllers\Api\Opticien\RestitutionController;
 use App\Http\Controllers\Api\Opticien\AccountController;
+use App\Http\Controllers\Api\Opticien\ShopUserController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\PublicRestitutionController;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/profile/consents', [ClientProfileController::class, 'updateConsents']);
         Route::patch('/account/password', [AccountController::class, 'password']);
         Route::patch('/account/email', [AccountController::class, 'email']);
+        Route::post('/account/email/otp', [AccountController::class, 'verifyEmail'])
+            ->middleware('throttle:identity-otp');
+        Route::post('/account/email/resend', [AccountController::class, 'resendEmail'])
+            ->middleware('throttle:identity-otp');
         Route::delete('/account', [AccountController::class, 'destroy']);
         Route::get('/pairs', [ClientPairController::class, 'index']);
         Route::get('/pairs/{uuid}', [ClientPairController::class, 'show']);
@@ -71,7 +76,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/clients/{uuid}', [ClientController::class, 'destroy']);
         Route::patch('/account/password', [AccountController::class, 'password']);
         Route::patch('/account/email', [AccountController::class, 'email']);
+        Route::post('/account/email/otp', [AccountController::class, 'verifyEmail'])
+            ->middleware('throttle:identity-otp');
+        Route::post('/account/email/resend', [AccountController::class, 'resendEmail'])
+            ->middleware('throttle:identity-otp');
         Route::delete('/account', [AccountController::class, 'destroy']);
+        Route::get('/users', [ShopUserController::class, 'index']);
+        Route::post('/users', [ShopUserController::class, 'store']);
+        Route::post('/users/{uuid}/resend', [ShopUserController::class, 'resend']);
+        Route::delete('/users/{uuid}', [ShopUserController::class, 'destroy']);
         Route::get('/dashboard', [DashboardController::class, 'show']);
         Route::get('/catalogs/pairs', [PairController::class, 'catalog']);
         Route::get('/pairs', [PairController::class, 'index']);
@@ -81,6 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/pairs/{uuid}/inactivate', [PairController::class, 'inactivate']);
         Route::delete('/pairs/{uuid}', [PairController::class, 'destroy']);
         Route::get('/restitutions', [RestitutionController::class, 'index']);
+        Route::get('/restitutions/{uuid}', [RestitutionController::class, 'show']);
         Route::post('/restitutions/identify', [RestitutionController::class, 'identify']);
         Route::post('/restitutions', [RestitutionController::class, 'store']);
         Route::post('/restitutions/lookup', [RestitutionController::class, 'lookup']);

@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
+import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvToggle from "@/components/pdv/PdvToggle";
 import { api, ApiRequestError } from "@/lib/api";
@@ -59,12 +59,10 @@ export default function ClientNotificationsPage() {
   const dirty = consentEmail !== profile.consent_email || consentSms !== profile.consent_sms;
 
   return (
-    <>
+    <div className="pdv-client-fiche">
       <AppToast message={toast} />
-      <p>
-        <Link href="/client/parametres">Revenir aux paramètres</Link>
-      </p>
-      <h1 className="h4 mb-4">Notifications</h1>
+      <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
+      <h1 className="pdv-client-fiche__title">Notifications</h1>
       <form className="d-flex flex-column gap-3" onSubmit={(event) => void onSubmit(event)}>
         <PdvToggle
           checked={consentEmail}
@@ -80,6 +78,6 @@ export default function ClientNotificationsPage() {
           Enregistrer les modifications
         </PdvButton>
       </form>
-    </>
+    </div>
   );
 }

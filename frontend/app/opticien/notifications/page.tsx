@@ -104,10 +104,10 @@ export default function OpticienNotificationsPage() {
 
   const emptyLabel =
     filter === "unread"
-      ? "Aucune notification non lue."
+      ? "Aucune notification non lue"
       : filter === "read"
-        ? "Aucune notification lue."
-        : "Aucune notification pour le moment.";
+        ? "Aucune notification lue"
+        : "Aucune notification pour le moment";
 
   return (
     <>
@@ -119,10 +119,10 @@ export default function OpticienNotificationsPage() {
             Retrouvez ici les notifications liées aux restitutions de lunettes.
           </p>
         </div>
-        <div className="d-flex flex-wrap gap-2">
+        <div className="pdv-page-head__actions">
           <PdvButton
             variant="secondary"
-            size="m"
+            size="l"
             disabled={pending || items.length === 0}
             onClick={() => void deleteAll()}
           >
@@ -130,8 +130,8 @@ export default function OpticienNotificationsPage() {
           </PdvButton>
           <PdvButton
             variant="secondary"
-            size="m"
-            disabled={pending || items.every((item) => item.read)}
+            size="l"
+            disabled={pending || items.length === 0 || items.every((item) => item.read)}
             onClick={() => void markAllRead()}
           >
             Tout marquer comme lu
@@ -139,63 +139,83 @@ export default function OpticienNotificationsPage() {
         </div>
       </div>
 
-      <div className="pdv-filter-tabs" role="group" aria-label="Filtrer les notifications">
-        <button
-          type="button"
-          className={`pdv-filter-tabs__btn${filter === "all" ? " is-active" : ""}`}
-          onClick={() => setFilter("all")}
-        >
-          Toutes
-        </button>
-        <button
-          type="button"
-          className={`pdv-filter-tabs__btn${filter === "unread" ? " is-active" : ""}`}
-          onClick={() => setFilter("unread")}
-        >
-          Non lues
-        </button>
-        <button
-          type="button"
-          className={`pdv-filter-tabs__btn${filter === "read" ? " is-active" : ""}`}
-          onClick={() => setFilter("read")}
-        >
-          Lues
-        </button>
-      </div>
+      <div className="pdv-notif-stack">
+        <div className="pdv-filter-tabs" role="group" aria-label="Filtrer les notifications">
+          <button
+            type="button"
+            className={`pdv-filter-tabs__btn${filter === "all" ? " is-active" : ""}`}
+            onClick={() => setFilter("all")}
+          >
+            Toutes
+          </button>
+          <button
+            type="button"
+            className={`pdv-filter-tabs__btn${filter === "unread" ? " is-active" : ""}`}
+            onClick={() => setFilter("unread")}
+          >
+            Non lues
+          </button>
+          <button
+            type="button"
+            className={`pdv-filter-tabs__btn${filter === "read" ? " is-active" : ""}`}
+            onClick={() => setFilter("read")}
+          >
+            Lues
+          </button>
+        </div>
 
-      {loading ? <p>Chargement…</p> : null}
-      {!loading && visible.length === 0 ? <p className="pdv-client-empty">{emptyLabel}</p> : null}
+        {loading ? <p>Chargement…</p> : null}
+        {!loading && visible.length === 0 ? <p className="pdv-notif-empty">{emptyLabel}</p> : null}
 
-      <div className="pdv-notif-list">
-        {visible.map((item) => (
-          <article className={`pdv-notif-card${!item.read ? " is-unread" : ""}`} key={item.uuid}>
-            <div className="pdv-notif-card__head">
-              <h2 className="pdv-notif-card__title">{item.title}</h2>
-              <div className="pdv-notif-card__meta">
-                {!item.read ? <span className="pdv-notif-card__dot" aria-label="Non lue" /> : null}
-                <time>{formatWhen(item.created_at)}</time>
-              </div>
-            </div>
-            <p className="pdv-notif-card__body">{item.body}</p>
-            <div className="pdv-notif-card__actions">
-              {item.actions.can_open_dossier && item.href ? (
-                <Link className="pdv-notif-card__link" href={item.href}>
-                  Voir le dossier
-                </Link>
-              ) : null}
-              {item.actions.can_mark_read ? (
-                <button
-                  type="button"
-                  className="pdv-notif-card__link"
-                  disabled={pending}
-                  onClick={() => void markRead(item.uuid)}
-                >
-                  Marquer comme lue
-                </button>
-              ) : null}
-            </div>
-          </article>
-        ))}
+        <div className="pdv-notif-list">
+          {visible.map((item) => {
+            const canOpen = Boolean(item.actions.can_open_dossier && item.href);
+            const canMark = item.actions.can_mark_read;
+
+            return (
+              <article className={`pdv-notif-card${item.read ? " is-read" : ""}`} key={item.uuid}>
+                <div>
+                  <div className="pdv-notif-card__head">
+                    {canOpen && item.href ? (
+                      <Link className="pdv-notif-card__title-link" href={item.href}>
+                        {item.title}
+                      </Link>
+                    ) : (
+                      <h2 className="pdv-notif-card__title">{item.title}</h2>
+                    )}
+                    <div className="pdv-notif-card__meta">
+                      {!item.read ? <span className="pdv-notif-card__dot" aria-label="Non lue" /> : null}
+                      <time>{formatWhen(item.created_at)}</time>
+                    </div>
+                  </div>
+                  <p className="pdv-notif-card__body">{item.body}</p>
+                </div>
+                {canOpen || canMark ? (
+                  <div className="pdv-notif-card__actions">
+                    {canOpen && item.href ? (
+                      <Link className="pdv-notif-card__link" href={item.href}>
+                        <img src="/icons/pdv/folder.svg" alt="" width={18} height={18} />
+                        Voir le dossier
+                      </Link>
+                    ) : null}
+                    {canOpen && canMark ? <span className="pdv-notif-card__sep">I</span> : null}
+                    {canMark ? (
+                      <button
+                        type="button"
+                        className="pdv-notif-card__link"
+                        disabled={pending}
+                        onClick={() => void markRead(item.uuid)}
+                      >
+                        <img src="/icons/pdv/annotation-check.svg" alt="" width={18} height={18} />
+                        Marquer comme lue
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
       </div>
     </>
   );

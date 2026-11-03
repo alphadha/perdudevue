@@ -330,7 +330,7 @@ export default function ClientFichePage() {
           >
             Remettre des lunettes
           </PdvButton>
-          <PdvButton variant="primary" size="m" iconLeft="/icons/pdv/glasses-01.svg" onClick={() => setRegisterOpen(true)}>
+          <PdvButton variant="primary" size="l" iconLeft="/icons/pdv/glasses-01-light.svg" onClick={() => setRegisterOpen(true)}>
             Enregistrer une paire
           </PdvButton>
           <PdvRowActions
@@ -397,7 +397,7 @@ export default function ClientFichePage() {
                 onResend={(pair) => setResendTarget(pair)}
               />
             ) : (
-              <PdvRowActions items={[{ label: "Voir restitution", href: "/opticien/restitution" }]} />
+              <PdvRowActions items={[{ label: "Voir restitution", href: `/opticien/restitution/${item.uuid}` }]} />
             );
           }}
         />
@@ -493,6 +493,7 @@ export default function ClientFichePage() {
         <BootstrapModal
           title="Modifier la fiche client"
           subtitle="Étape 1/3"
+          size="md"
           onClose={() => {
             setEditOpen(false);
             showToast("Modifications non prises en compte");
@@ -526,6 +527,7 @@ export default function ClientFichePage() {
         <BootstrapModal
           title="Modifier la fiche client"
           subtitle="Étape 2/3"
+          size="md"
           onClose={() => {
             setOtp(null);
             showToast("Modifications non prises en compte");
@@ -597,9 +599,9 @@ export default function ClientFichePage() {
             </p>
           </div>
           <div className="modal-footer flex-column">
-            <button type="button" className="btn btn-danger w-100" disabled={pending} onClick={() => void confirmDelete()}>
+            <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={() => void confirmDelete()}>
               Supprimer le client
-            </button>
+            </PdvButton>
             <button type="button" className="btn btn-link" onClick={() => setToDelete(false)}>
               Annuler
             </button>

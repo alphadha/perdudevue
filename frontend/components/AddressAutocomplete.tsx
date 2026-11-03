@@ -30,7 +30,7 @@ export default function AddressAutocomplete({
   onSelect,
   onSearch,
   pending = false,
-  placeholder = "17 av. parmentier 75017 Paris",
+  placeholder = "17 av. Parmentier, 75011 Paris",
   id,
 }: Props) {
   const listId = useId();
@@ -38,7 +38,6 @@ export default function AddressAutocomplete({
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const canToggleSuggestions = suggestions.length > 0;
 
   useEffect(() => {
     const query = value.trim();
@@ -80,33 +79,13 @@ export default function AddressAutocomplete({
     onSearch(value.trim());
   }
 
-  function toggleList() {
-    if (open) {
-      setOpen(false);
-      return;
-    }
-    if (suggestions.length > 0) {
-      setOpen(true);
-      return;
-    }
-    if (value.trim().length >= 3) {
-      void fetchSuggestions(maps, value.trim()).then((items) => {
-        setSuggestions(items);
-        setOpen(items.length > 0);
-      });
-    }
-  }
-
   return (
-    <div className="position-relative mb-3" ref={rootRef} style={{ zIndex: 1100 }}>
-      <div className="input-group border border-primary rounded bg-white">
-        <span className="input-group-text bg-white border-0 pe-0">
-          <img src="/icons/search-line.svg" alt="" width={18} height={18} />
-        </span>
+    <div className="pdv-search" ref={rootRef}>
+      <div className="pdv-search__field">
         <input
           id={id}
-          type="search"
-          className="form-control border-0 shadow-none text-primary"
+          type="text"
+          className="pdv-search__input"
           role="combobox"
           aria-expanded={open}
           aria-controls={listId}
@@ -148,32 +127,18 @@ export default function AddressAutocomplete({
             }
           }}
         />
-        {canToggleSuggestions ? (
-          <button
-            type="button"
-            className="btn btn-link border-0 text-decoration-none px-3"
-            aria-label={open ? "Fermer les suggestions" : "Ouvrir les suggestions"}
-            aria-expanded={open}
-            aria-controls={listId}
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={toggleList}
-          >
-            <img src="/icons/arrow-down-s-line.svg" alt="" width={18} height={18} />
-          </button>
-        ) : null}
+        <button type="button" className="pdv-search__submit" aria-label="Rechercher" onClick={runSearch}>
+          <img src="/icons/pdv/search-md.svg" alt="" width={20} height={20} />
+        </button>
       </div>
 
       {open && suggestions.length > 0 ? (
-        <ul
-          id={listId}
-          className="dropdown-menu show position-absolute top-100 start-0 w-100 mt-1 border border-primary shadow"
-          role="listbox"
-        >
+        <ul id={listId} className="pdv-search__list" role="listbox">
           {suggestions.map((item, index) => (
             <li key={`${item.label}-${index}`} role="option" aria-selected={index === activeIndex}>
               <button
                 type="button"
-                className={`dropdown-item text-primary ${index === activeIndex ? "active" : ""}`}
+                className={`pdv-search__option${index === activeIndex ? " is-active" : ""}`}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(item)}
               >

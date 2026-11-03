@@ -30,6 +30,7 @@ class ShipmentService
      *     currency: string,
      *     carrier: string,
      *     carriers: array{home: string, relay: string},
+     *     prices: array{home: int, relay: int},
      *     eta_label: string,
      *     query: string|null,
      *     postal_code: string|null,
@@ -52,12 +53,14 @@ class ShipmentService
         }
 
         $carriers = $this->carriers();
+        $prices = $this->prices();
 
         return [
-            'price_cents' => (int) config('shipping.price_cents'),
+            'price_cents' => $prices['home'],
             'currency' => (string) config('shipping.currency'),
             'carrier' => $carriers['home'],
             'carriers' => $carriers,
+            'prices' => $prices,
             'eta_label' => (string) config('shipping.eta_label'),
             'query' => $query,
             'postal_code' => $postalCode,
@@ -78,6 +81,26 @@ class ShipmentService
             'home' => (string) config('shipping.carrier_home', 'Colissimo'),
             'relay' => (string) config('shipping.carrier_relay', 'Mondial Relay'),
         ];
+    }
+
+    /**
+     * @return array{home: int, relay: int}
+     */
+    public function prices(): array
+    {
+        $fallback = (int) config('shipping.price_cents');
+
+        return [
+            'home' => (int) config('shipping.price_home_cents', $fallback),
+            'relay' => (int) config('shipping.price_relay_cents', $fallback),
+        ];
+    }
+
+    public function priceCents(string $mode): int
+    {
+        $prices = $this->prices();
+
+        return $mode === 'relay' ? $prices['relay'] : $prices['home'];
     }
 
     /**
@@ -164,7 +187,7 @@ class ShipmentService
             'status' => 'pending_payment',
             'mode' => $mode,
             'carrier' => $mode === 'relay' ? $carriers['relay'] : $carriers['home'],
-            'price_cents' => (int) config('shipping.price_cents'),
+            'price_cents' => $this->priceCents($mode),
             'recipient_first_name' => $input['recipient_first_name'],
             'recipient_last_name' => $input['recipient_last_name'],
             'address_line' => $relay['address'] ?? $input['address_line'],

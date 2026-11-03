@@ -17,6 +17,11 @@ export default function OpticienConnexionPage() {
   }
 
   return (
-    <ConnexionSettings backHref="/opticien/parametres" accountPrefix="/opticien/account" email={user.email} />
+    <ConnexionSettings
+      variant="card"
+      backHref="/opticien/parametres"
+      accountPrefix="/opticien/account"
+      email={user.email}
+    />
   );
 }

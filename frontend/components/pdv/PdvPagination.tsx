@@ -6,7 +6,7 @@ type Props = {
   onChange: (page: number) => void;
 };
 
-/** Pagination Figma tables opticien (cercle navy page active). */
+/** Pagination kit Tableaux — page active 32×32 #FCFCFC, inactives légende. */
 export default function PdvPagination({ page, pageCount, onChange }: Props) {
   if (pageCount <= 1) {
     return null;
@@ -23,19 +23,21 @@ export default function PdvPagination({ page, pageCount, onChange }: Props) {
         disabled={page <= 1}
         onClick={() => onChange(page - 1)}
       >
-        <img src="/icons/pdv/chevron-right.svg" alt="" width={18} height={18} className="pdv-pagination__chevron--prev" />
+        <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} className="pdv-pagination__chevron--prev" />
       </button>
-      {pages.map((item) => (
-        <button
-          key={item}
-          type="button"
-          className={`pdv-pagination__page${item === page ? " is-active" : ""}`}
-          aria-current={item === page ? "page" : undefined}
-          onClick={() => onChange(item)}
-        >
-          {item}
-        </button>
-      ))}
+      <div className="pdv-pagination__pages">
+        {pages.map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={`pdv-pagination__page${item === page ? " is-active" : ""}`}
+            aria-current={item === page ? "page" : undefined}
+            onClick={() => onChange(item)}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
       <button
         type="button"
         className="pdv-pagination__arrow"
@@ -43,7 +45,7 @@ export default function PdvPagination({ page, pageCount, onChange }: Props) {
         disabled={page >= pageCount}
         onClick={() => onChange(page + 1)}
       >
-        <img src="/icons/pdv/chevron-right.svg" alt="" width={18} height={18} />
+        <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
       </button>
     </nav>
   );

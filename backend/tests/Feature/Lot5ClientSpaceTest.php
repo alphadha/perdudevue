@@ -8,7 +8,9 @@ use App\Models\Client;
 use App\Models\Optician;
 use App\Models\Pair;
 use App\Models\User;
+use App\Mail\IdentityOtpMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -178,9 +180,25 @@ class Lot5ClientSpaceTest extends TestCase
         $this->assertSame('Étienne', $client->fresh()->first_name);
         $this->assertSame('Étienne', $user->fresh()->first_name);
 
-        $this->patchJson('/api/v1/client/account/email', [
+        Mail::fake();
+        $challenge = $this->patchJson('/api/v1/client/account/email', [
             'email' => 'etienne.morel@example.com',
-            'current_password' => 'Password1',
+        ])
+            ->assertStatus(202)
+            ->assertJsonPath('data.otp_required', true);
+
+        $this->assertSame($user->email, $client->fresh()->email);
+
+        $code = null;
+        Mail::assertSent(IdentityOtpMail::class, function (IdentityOtpMail $mail) use (&$code): bool {
+            $code = $mail->code;
+
+            return $mail->channel === 'email';
+        });
+
+        $this->postJson('/api/v1/client/account/email/otp', [
+            'action_token' => $challenge->json('data.action_token'),
+            'code' => $code,
         ])->assertOk()->assertJsonPath('data.email', 'etienne.morel@example.com');
         $this->assertSame('etienne.morel@example.com', $client->fresh()->email);
 

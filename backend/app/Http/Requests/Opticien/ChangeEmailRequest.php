@@ -17,7 +17,6 @@ class ChangeEmailRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => ['required', 'string'],
             'email' => ['required', 'email', 'max:255'],
         ];
     }

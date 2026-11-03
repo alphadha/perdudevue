@@ -33,7 +33,7 @@ class ShopInboxService
             'type' => self::TYPE_WAITING_PICKUP,
             'title' => $title,
             'body' => $body,
-            'href' => '/opticien/restitution',
+            'href' => '/opticien/restitution/'.$pair->uuid,
         ]);
     }
 
@@ -46,8 +46,8 @@ class ShopInboxService
             'pair_id' => $pair->id,
             'type' => self::TYPE_REMOTE_DELIVERY,
             'title' => 'Nouvel envoi à distance demandé',
-            'body' => 'Les lunettes '.$pair->type.' de '.$name.' ont été retrouvées. Le client a demandé leur restitution à distance via « '.$shipment->carrier.' ».',
-            'href' => '/opticien/restitution',
+            'body' => 'Les '.$pair->narrativeType().' '.$this->ofName($name).' ont été retrouvées. Le client a demandé leur restitution à distance via « '.$shipment->carrier.' ».',
+            'href' => '/opticien/restitution/'.$pair->uuid,
         ]);
     }
 
@@ -58,8 +58,8 @@ class ShopInboxService
             'pair_id' => $pair->id,
             'type' => self::TYPE_SHIPPING_LABEL,
             'title' => 'Nouvelle étiquette d’expédition disponible',
-            'body' => 'L’étiquette d’expédition pour le retour à distance des lunettes '.$pair->type.' de '.$shipment->recipientName().' a été générée.',
-            'href' => '/opticien/restitution',
+            'body' => 'L’étiquette d’expédition pour le retour à distance des '.$pair->narrativeType().' '.$this->ofName($shipment->recipientName()).' a été générée.',
+            'href' => '/opticien/restitution/'.$pair->uuid,
         ]);
     }
 
@@ -67,6 +67,7 @@ class ShopInboxService
     {
         $query = ShopNotification::query()
             ->where('optician_id', $shop->id)
+            ->with('pair')
             ->orderByDesc('id');
 
         if ($filter === 'unread') {
@@ -92,6 +93,7 @@ class ShopInboxService
         return ShopNotification::query()
             ->where('optician_id', $shop->id)
             ->where('uuid', $uuid)
+            ->with('pair')
             ->first();
     }
 
@@ -102,7 +104,7 @@ class ShopInboxService
             $notification->save();
         }
 
-        return $notification->fresh();
+        return $notification->fresh(['pair']);
     }
 
     public function markAllRead(Optician $shop): void
@@ -118,5 +120,13 @@ class ShopInboxService
         ShopNotification::query()
             ->where('optician_id', $shop->id)
             ->delete();
+    }
+
+    private function ofName(string $name): string
+    {
+        $initial = mb_strtolower(mb_substr($name, 0, 1));
+        $elide = in_array($initial, ['a', 'à', 'â', 'ä', 'e', 'é', 'è', 'ê', 'ë', 'i', 'î', 'ï', 'o', 'ô', 'ö', 'u', 'ù', 'û', 'ü', 'y', 'h'], true);
+
+        return ($elide ? 'd’' : 'de ').$name;
     }
 }

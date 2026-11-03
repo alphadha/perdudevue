@@ -16,6 +16,7 @@ class ShopUserResource extends JsonResource
     public function toArray(Request $request): array
     {
         $pending = ! $this->hasPassword();
+        $self = $request->user()?->is($this->resource) === true;
 
         return [
             'uuid' => $this->uuid,
@@ -26,9 +27,11 @@ class ShopUserResource extends JsonResource
             'role_label' => $this->role === Role::OpticienAdmin ? 'Administrateur magasin' : 'Utilisateur magasin',
             'status' => $pending ? 'invited' : 'active',
             'status_label' => $pending ? 'Invitation envoyée' : 'Actif',
+            'is_self' => $self,
+            'added_at' => $this->pivot?->created_at?->toIso8601String(),
             'actions' => [
-                'can_resend' => $pending && $this->role === Role::OpticienUser,
-                'can_remove' => $this->role === Role::OpticienUser,
+                'can_resend' => $pending && $this->role === Role::OpticienUser && ! $self,
+                'can_remove' => $this->role === Role::OpticienUser && ! $self,
             ],
         ];
     }

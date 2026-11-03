@@ -4,12 +4,14 @@ type Props = {
   id: string;
   label: string;
   error?: string;
+  invalid?: boolean;
   hint?: string;
   trailing?: ReactNode;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "className">;
 
 /** Input UI kit Figma 161:8617 — Label 16 SemiBold, champ 40px #ebeff4. */
-export default function PdvField({ id, label, error, hint, trailing, ...input }: Props) {
+export default function PdvField({ id, label, error, invalid, hint, trailing, ...input }: Props) {
+  const hasError = Boolean(error) || invalid;
   return (
     <div className="pdv-field">
       <label className="pdv-field__label" htmlFor={id}>
@@ -18,7 +20,7 @@ export default function PdvField({ id, label, error, hint, trailing, ...input }:
       <div className={trailing ? "pdv-field__password" : undefined}>
         <input
           id={id}
-          className={`pdv-field__control${error ? " is-invalid" : ""}`}
+          className={`pdv-field__control${hasError ? " is-invalid" : ""}`}
           {...input}
         />
         {trailing}

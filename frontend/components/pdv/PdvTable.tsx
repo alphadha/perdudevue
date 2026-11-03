@@ -50,10 +50,6 @@ export default function PdvTable<T, K extends string>({
   selection,
   actions,
 }: Props<T, K>) {
-  if (rows.length === 0) {
-    return <p className="pdv-table-empty">{empty}</p>;
-  }
-
   const [lead, ...rest] = columns;
   const gridCols = [
     track(lead.width, selection ? LEAD_GUTTER : 0),
@@ -125,6 +121,14 @@ export default function PdvTable<T, K extends string>({
               </div>
             ) : null}
           </div>
+
+          {rows.length === 0 ? (
+            <div className="pdv-table__empty-row" role="row">
+              <p className="pdv-table-empty" role="cell">
+                {empty}
+              </p>
+            </div>
+          ) : null}
 
           {rows.map((row) => {
             const id = getRowId(row);

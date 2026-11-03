@@ -106,7 +106,7 @@ export default function RegisterPairModal({ lockedClient, onCreated, onClose }: 
   }
 
   return (
-    <BootstrapModal title="Enregistrer une paire de lunettes" onClose={() => onClose(true)}>
+    <BootstrapModal title="Enregistrer une paire de lunettes" size="lg" onClose={() => onClose(true)}>
       <form onSubmit={(event) => void onSubmit(event)}>
         <div className="modal-body">
           {formError ? <div className="alert alert-danger">{formError}</div> : null}

@@ -60,7 +60,7 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
 
   if (step === 3) {
     return (
-      <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 3/3" onClose={() => onDone()}>
+      <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 3/3" size="md" onClose={() => onDone()}>
         <div className="modal-body text-center">
           <ModalSuccessMark />
           <p className="h5">Signalement confirmé !</p>
@@ -77,7 +77,7 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
 
   if (step === 2 && preview) {
     return (
-      <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 2/3" onClose={() => onClose(true)}>
+      <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 2/3" size="md" onClose={() => onClose(true)}>
         <div className="modal-body">
           {error ? <div className="alert alert-danger">{error}</div> : null}
           <p>
@@ -116,7 +116,7 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
   }
 
   return (
-    <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 1/3" onClose={() => onClose(true)}>
+    <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 1/3" size="md" onClose={() => onClose(true)}>
       <form onSubmit={(event) => void identify(event)}>
         <div className="modal-body">
           <PdvField

@@ -1,7 +1,8 @@
 "use client";
 
 import BootstrapModal from "@/components/opticien/BootstrapModal";
-import type { ClientPair, ClientShop } from "@/lib/types";
+import PdvButton from "@/components/pdv/PdvButton";
+import type { ClientPair } from "@/lib/types";
 
 type LostProps = {
   pair: ClientPair;
@@ -95,40 +96,9 @@ export function ArchivePairModal({ pending, onConfirm, onClose }: Omit<LostProps
         </p>
       </div>
       <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-danger w-100" disabled={pending} onClick={onConfirm}>
+        <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={onConfirm}>
           Supprimer définitivement la paire
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
-          Annuler
-        </button>
-      </div>
-    </BootstrapModal>
-  );
-}
-
-type MapProps = {
-  shop: ClientShop;
-  onClose: () => void;
-};
-
-export function MapModal({ shop, onClose }: MapProps) {
-  const address = [shop.address, shop.postal_code, shop.city].filter(Boolean).join(", ");
-
-  return (
-    <BootstrapModal title="Localisation" onClose={onClose}>
-      <div className="modal-body">
-        <p className="fw-semibold mb-1">{shop.name}</p>
-        <p className="mb-0">{address}</p>
-      </div>
-      <div className="modal-footer flex-column gap-2">
-        <a className="btn btn-primary w-100" href={shop.maps_url} target="_blank" rel="noreferrer">
-          Ouvrir dans Maps
-        </a>
-        {shop.waze_url ? (
-          <a className="btn btn-outline-primary w-100" href={shop.waze_url} target="_blank" rel="noreferrer">
-            Ouvrir dans Waze
-          </a>
-        ) : null}
+        </PdvButton>
         <button type="button" className="btn btn-link" onClick={onClose}>
           Annuler
         </button>
@@ -154,9 +124,9 @@ export function DeleteAccountModal({ pending, onConfirm, onClose, error }: Logou
         </p>
       </div>
       <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-danger w-100" disabled={pending} onClick={onConfirm}>
+        <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={onConfirm}>
           Supprimer mon compte
-        </button>
+        </PdvButton>
         <button type="button" className="btn btn-link" onClick={onClose}>
           Annuler
         </button>

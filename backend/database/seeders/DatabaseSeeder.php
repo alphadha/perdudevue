@@ -9,7 +9,9 @@ use App\Models\Invitation;
 use App\Models\NotificationLog;
 use App\Models\Optician;
 use App\Models\Pair;
+use App\Models\PairEvent;
 use App\Models\PublicRestitutionToken;
+use App\Models\Shipment;
 use App\Models\ShopNotification;
 use App\Models\User;
 use App\Services\ShopInboxService;
@@ -22,6 +24,8 @@ class DatabaseSeeder extends Seeder
 
     public const INVITATION_C1 = 'recette-invitation-c1';
 
+    public const INVITATION_USED = 'recette-invitation-used';
+
     public const PUBLIC_TOKEN_P1 = 'recette-public-p1';
 
     public function run(): void
@@ -33,9 +37,10 @@ class DatabaseSeeder extends Seeder
 
         $optAAdmin = $this->user('Alice', 'Martin', 'opticien.a@example.com', Role::OpticienAdmin);
         $optAUser = $this->user('Alex', 'Durand', 'opticien.a.user@example.com', Role::OpticienUser);
+        $optAPending = $this->user('Thomas', 'Roux', 'thomas.roux@example.com', Role::OpticienUser, pending: true);
         $optBAdmin = $this->user('Hugo', 'Bonnet', 'opticien.b@example.com', Role::OpticienAdmin);
 
-        $optA->users()->attach([$optAAdmin->id, $optAUser->id]);
+        $optA->users()->attach([$optAAdmin->id, $optAUser->id, $optAPending->id]);
         $optB->users()->attach($optBAdmin->id);
 
         $c1User = $this->user('Camille', 'Leroy', 'client.c1@example.com', Role::Client, pending: true);
@@ -52,6 +57,12 @@ class DatabaseSeeder extends Seeder
             'user_id' => $c1User->id,
             'token_hash' => SecureToken::hash(self::INVITATION_C1),
             'expires_at' => now()->addDays(7),
+        ]);
+        Invitation::query()->create([
+            'user_id' => $c2User->id,
+            'token_hash' => SecureToken::hash(self::INVITATION_USED),
+            'expires_at' => now()->addDays(7),
+            'used_at' => now()->subDays(2),
         ]);
         NotificationLog::query()->create([
             'channel' => 'email',
@@ -78,6 +89,11 @@ class DatabaseSeeder extends Seeder
         ])->save();
         $pairAtB->pickup_code = 'KSKKYK';
         $pairAtB->save();
+        $this->timeline($pairAtB, [
+            ['registered', now()->subYear()],
+            ['lost', now()->subDays(10)],
+            ['found', now()->subDay()],
+        ]);
 
         PublicRestitutionToken::query()->create([
             'pair_id' => $pairAtB->id,
@@ -90,7 +106,7 @@ class DatabaseSeeder extends Seeder
             'type' => ShopInboxService::TYPE_WAITING_PICKUP,
             'title' => 'Lunettes en attente de retrait',
             'body' => 'Une paire de lunettes est en attente de retrait dans votre magasin.',
-            'href' => '/opticien/restitution',
+            'href' => '/opticien/restitution/'.$pairAtB->uuid,
         ]);
 
         // Dépôt chez OptA — visible home OptA (« À récupérer »)
@@ -111,42 +127,128 @@ class DatabaseSeeder extends Seeder
         ])->save();
         $pairAtA->pickup_code = 'ABCDEF';
         $pairAtA->save();
+        $this->timeline($pairAtA, [
+            ['registered', now()->subMonths(3)],
+            ['lost', now()->subDays(8)],
+            ['found', now()->subHours(2)],
+        ]);
         ShopNotification::query()->create([
             'optician_id' => $optA->id,
             'pair_id' => $pairAtA->id,
             'type' => ShopInboxService::TYPE_WAITING_PICKUP,
             'title' => 'Lunettes en attente de retrait',
             'body' => 'Une paire de lunettes est en attente de retrait dans votre magasin.',
-            'href' => '/opticien/restitution',
+            'href' => '/opticien/restitution/'.$pairAtA->uuid,
         ]);
 
-        foreach ([
-            ['FR6001AA', PairStatus::Active],
-            ['FR6002BB', PairStatus::Perdue],
-            ['FR6003CC', PairStatus::Inactive],
-        ] as [$code, $status]) {
-            $extra = new Pair;
-            $extra->forceFill([
-                'client_id' => $c2->id,
-                'origin_optician_id' => $optA->id,
-                'assigned_code' => $code,
-                'status' => $status,
-                'type' => 'Vue',
-                'brand' => 'Gucci',
-                'colors' => ['Noir'],
-                'description' => 'Monture en titane',
-                'registered_at' => now()->subMonths(2),
-            ])->save();
-        }
+        $active = $this->clientPair($c2, $optA, 'FR6001AA', PairStatus::Active);
+        $this->timeline($active, [
+            ['registered', now()->subMonths(2)],
+        ]);
+
+        $lost = $this->clientPair($c2, $optA, 'FR6002BB', PairStatus::Perdue);
+        $this->timeline($lost, [
+            ['registered', now()->subMonths(2)],
+            ['lost', now()->subDays(4)],
+        ]);
+
+        $inactive = $this->clientPair($c2, $optA, 'FR6003CC', PairStatus::Inactive);
+        $this->timeline($inactive, [
+            ['registered', now()->subMonths(2)],
+            ['lost', now()->subDays(20)],
+            ['inactivated', now()->subDays(3)],
+        ]);
+
+        $deliveryRequested = $this->clientPair($c2, $optA, 'FR6102LD', PairStatus::LivraisonDemandee);
+        $this->timeline($deliveryRequested, [
+            ['registered', now()->subMonths(4)],
+            ['lost', now()->subDays(18)],
+            ['found', now()->subDays(12)],
+            ['delivery_requested', now()->subDays(6)],
+        ]);
+        $this->shipment($deliveryRequested, $c2, 'paid', shipped: false);
+
+        $inTransit = $this->clientPair($c2, $optA, 'FR6101EL', PairStatus::EnLivraison, 'Soleil');
+        $this->timeline($inTransit, [
+            ['registered', now()->subMonths(5)],
+            ['lost', now()->subDays(25)],
+            ['found', now()->subDays(16)],
+            ['delivery_requested', now()->subDays(9)],
+            ['shipped', now()->subDays(2)],
+        ]);
+        $this->shipment($inTransit, $c2, 'in_transit', shipped: true);
 
         $this->command?->info('Jeu recette prêt (mot de passe commun : '.self::PASSWORD.')');
         $this->command?->info('ADM        admin@perduesdevue.fr');
         $this->command?->info('OPT-A      opticien.a@example.com');
         $this->command?->info('OPT-B      opticien.b@example.com');
         $this->command?->info('C1 (à activer) client.c1@example.com  token='.self::INVITATION_C1);
-        $this->command?->info('C2         client.c2@example.com  (paires Active / Perdue / Inactive)');
+        $this->command?->info('C2         client.c2@example.com  (6 statuts + historiques / livraisons)');
+        $this->command?->info('Invitation déjà utilisée /invitation/'.self::INVITATION_USED);
         $this->command?->info('Page publique /r/'.self::PUBLIC_TOKEN_P1);
         $this->command?->info('Admin uuid seed : '.$admin->uuid);
+    }
+
+    /**
+     * @param  list<array{0: string, 1: \DateTimeInterface}>  $items
+     */
+    private function timeline(Pair $pair, array $items): void
+    {
+        foreach ($items as [$type, $at]) {
+            $event = new PairEvent;
+            $event->pair_id = $pair->id;
+            $event->type = $type;
+            $event->created_at = $at;
+            $event->updated_at = $at;
+            $event->save();
+        }
+    }
+
+    private function clientPair(
+        Client $client,
+        Optician $origin,
+        string $code,
+        PairStatus $status,
+        string $type = 'Vue',
+    ): Pair {
+        $pair = new Pair;
+        $pair->forceFill([
+            'client_id' => $client->id,
+            'origin_optician_id' => $origin->id,
+            'assigned_code' => $code,
+            'status' => $status,
+            'type' => $type,
+            'brand' => 'Gucci',
+            'colors' => ['Noir'],
+            'description' => 'Monture en titane',
+            'registered_at' => now()->subMonths(2),
+        ])->save();
+
+        return $pair;
+    }
+
+    private function shipment(Pair $pair, Client $client, string $status, bool $shipped): void
+    {
+        Shipment::query()->create([
+            'pair_id' => $pair->id,
+            'status' => $status,
+            'mode' => 'relay',
+            'carrier' => 'Mondial Relay',
+            'price_cents' => 690,
+            'recipient_first_name' => $client->first_name,
+            'recipient_last_name' => $client->last_name,
+            'address_line' => '31 rue Léon Dehuz',
+            'postal_code' => '08000',
+            'city' => 'Charleville-Mézières',
+            'relay_id' => 'FR-SEED-'.$pair->assigned_code,
+            'relay_name' => 'LOCKER NETTO CHARLEVILLE MEZIER',
+            'consent_address_at' => now()->subDays(8),
+            'payment_ref' => 'pay-seed-'.$pair->assigned_code,
+            'label_ref' => 'BL-SEED-'.$pair->assigned_code,
+            'tracking_ref' => $shipped ? 'MR-SEED-'.$pair->assigned_code : null,
+            'paid_at' => now()->subDays(6),
+            'shipped_at' => $shipped ? now()->subDays(2) : null,
+        ]);
     }
 
     private function user(string $first, string $last, string $email, Role $role, bool $pending = false): User

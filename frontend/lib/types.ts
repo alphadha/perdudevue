@@ -49,6 +49,24 @@ export type IdentityChallenge = {
   otp_required: true;
   action_token: string;
   otp_channel: "email" | "sms";
+  masked_email?: string | null;
+};
+
+export type ShopMember = {
+  uuid: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: AuthUser["role"];
+  role_label: string;
+  status: "invited" | "active";
+  status_label: string;
+  is_self: boolean;
+  added_at: string | null;
+  actions: {
+    can_resend: boolean;
+    can_remove: boolean;
+  };
 };
 
 export type DuplicatePayload = {
@@ -136,11 +154,15 @@ export type ShopRestitution = {
   status: PairStatus;
   status_label: string;
   found_at: string | null;
+  registered_at?: string | null;
   client: {
     uuid: string;
     first_name: string;
     last_name: string;
+    email?: string;
+    phone?: string | null;
   } | null;
+  events?: PairEvent[];
   actions: {
     can_hand_over: boolean;
     can_resend: boolean;
@@ -303,6 +325,10 @@ export type ShippingQuote = {
     home: string;
     relay: string;
   };
+  prices?: {
+    home: number;
+    relay: number;
+  };
   eta_label?: string;
   query?: string | null;
   postal_code?: string | null;
@@ -321,10 +347,12 @@ export type ShippingLabelFile = {
 export type PublicRestitution = {
   title: string;
   pair: {
+    description: string | null;
     type: string | null;
     brand: string | null;
     colors: string[];
     assigned_code: string;
+    optician_name: string | null;
     registered_at: string | null;
   };
   pickup_code: string | null;

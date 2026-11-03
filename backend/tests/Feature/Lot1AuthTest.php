@@ -120,6 +120,11 @@ class Lot1AuthTest extends TestCase
             'cgu_accepted' => false,
         ])->assertStatus(422);
 
+        $this->getJson('/api/v1/auth/invitation/'.$token)
+            ->assertOk()
+            ->assertJsonPath('data.email', 'client.c1@example.com')
+            ->assertJsonPath('data.cgu_required', true);
+
         $this->postJson('/api/v1/auth/invitation/'.$token, [
             'password' => 'Password1',
             'password_confirmation' => 'Password1',
@@ -149,7 +154,9 @@ class Lot1AuthTest extends TestCase
             'cgu_accepted' => true,
         ];
         $this->postJson('/api/v1/auth/invitation/'.$token, $payload)->assertOk();
-        $this->postJson('/api/v1/auth/invitation/'.$token, $payload)->assertNotFound();
+        $this->postJson('/api/v1/auth/invitation/'.$token, $payload)
+            ->assertStatus(409)
+            ->assertJsonPath('errors.0.code', 'already_used');
     }
 
     public function test_r1_06_reset_password_otp(): void

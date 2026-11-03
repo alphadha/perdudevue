@@ -38,10 +38,10 @@ enum PairStatus: string
         return $this === self::Active;
     }
 
-    /** Figma client : inactive depuis Active ou Perdue. */
+    /** Figma client : inactive depuis Active, Perdue ou Livraison demandée. */
     public function canClientInactivate(): bool
     {
-        return in_array($this, [self::Active, self::Perdue], true);
+        return in_array($this, [self::Active, self::Perdue, self::LivraisonDemandee], true);
     }
 
     public function isOpenRestitution(): bool

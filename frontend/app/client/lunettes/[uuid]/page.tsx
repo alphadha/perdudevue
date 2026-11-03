@@ -1,18 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
+import ClientBackLink from "@/components/client/ClientBackLink";
 import {
   ArchivePairModal,
   CancelLostModal,
   ClientInactiveModal,
   DeclareLostModal,
-  MapModal,
 } from "@/components/client/ClientModals";
 import ShopCard from "@/components/client/ShopCard";
+import ShopMapModal from "@/components/client/ShopMapModal";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatFrDate, type ClientPair } from "@/lib/types";
 
@@ -117,102 +118,142 @@ export default function ClientPairPage() {
 
   if (error) {
     return (
-      <>
-        <Link href="/client">Revenir à mes lunettes</Link>
-        <p className="mt-3">{error}</p>
-      </>
+      <div className="pdv-client-fiche">
+        <ClientBackLink href="/client">Revenir à mes lunettes</ClientBackLink>
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
     );
   }
 
   if (!pair) {
-    return <p>Chargement…</p>;
+    return <p className="pdv-client-page-sub">Chargement…</p>;
   }
 
   const shop = pair.depositary_shop ?? pair.origin_shop;
+  const rows = [
+    { label: "Type de lunettes", value: pair.type },
+    { label: "Marque", value: pair.brand },
+    { label: "Couleurs", value: pair.colors.join(", ") },
+    { label: "Description", value: pair.description },
+    { label: "Code assigné", value: pair.assigned_code },
+    { label: "Date d'enregistrement", value: formatFrDate(pair.registered_at) },
+  ].filter((row) => Boolean(row.value));
 
   return (
-    <>
+    <div className="pdv-client-fiche">
       <AppToast
         title={toast?.title}
         message={toast?.message ?? null}
         onDismiss={() => setToast(null)}
       />
-      <p>
-        <Link href="/client">Revenir à mes lunettes</Link>
-      </p>
-      <h1 className="h4">{pair.title}</h1>
-      <p>
-        <PairStatusBadge status={pair.status} label={pair.status_label} />
-      </p>
-      <dl className="row">
-        {pair.description ? (
-          <>
-            <dt className="col-6">Description</dt>
-            <dd className="col-6 text-end">{pair.description}</dd>
-          </>
+      <ClientBackLink href="/client">Revenir à mes lunettes</ClientBackLink>
+      <div className="pdv-client-fiche__main">
+        <h1 className="pdv-client-fiche__title">{pair.title}</h1>
+        <div className="pdv-client-fiche__cards">
+          <section className="pdv-client-info-card">
+            <header className="pdv-client-info-card__head">
+              <h2 className="pdv-client-info-card__title">Informations</h2>
+              <PairStatusBadge status={pair.status} label={pair.status_label} />
+            </header>
+            <dl className="pdv-client-info-card__rows">
+              {rows.map((row) => (
+                <div className="pdv-client-info-card__row" key={row.label}>
+                  <dt>{row.label}</dt>
+                  <dd>{row.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+          {shop ? <ShopCard shop={shop} onMap={() => setMapOpen(true)} /> : null}
+        </div>
+
+        <div className="pdv-client-fiche__actions">
+          {pair.status === "a_recuperer" ? (
+            <PdvButton href={`/client/lunettes/${pair.uuid}/recuperer`} variant="primary" size="l" block>
+              Récupérer mes lunettes
+            </PdvButton>
+          ) : null}
+          {pair.status === "en_livraison" ? (
+            <PdvButton
+              href={`/client/lunettes/${pair.uuid}/suivi`}
+              variant="primary"
+              size="l"
+              block
+              iconLeft="/icons/pdv/share-03.svg"
+            >
+              Suivre ma livraison
+            </PdvButton>
+          ) : null}
+          {pair.status === "livraison_demandee" ? (
+            <>
+              <PdvButton type="button" variant="primary" size="l" block onClick={() => setCancelOpen(true)}>
+                J’ai retrouvé mes lunettes
+              </PdvButton>
+              <PdvButton type="button" variant="tertiary" size="l" block onClick={() => setInactiveOpen(true)}>
+                Déclarer comme inactive
+              </PdvButton>
+            </>
+          ) : null}
+          {pair.status === "active" ? (
+            <>
+              <PdvButton type="button" variant="primary" size="l" block onClick={() => setLostOpen(true)}>
+                Déclarer comme perdue
+              </PdvButton>
+              <PdvButton type="button" variant="secondary" size="l" block onClick={() => setInactiveOpen(true)}>
+                Déclarer comme inactive
+              </PdvButton>
+            </>
+          ) : null}
+          {pair.status === "perdue" ? (
+            <>
+              <PdvButton type="button" variant="primary" size="l" block onClick={() => setCancelOpen(true)}>
+                J’ai retrouvé mes lunettes
+              </PdvButton>
+              <PdvButton type="button" variant="tertiary" size="l" block onClick={() => setInactiveOpen(true)}>
+                Déclarer comme inactive
+              </PdvButton>
+            </>
+          ) : null}
+          {pair.status === "inactive" ? (
+            <>
+              <PdvButton type="button" variant="danger" size="l" block onClick={() => setArchiveOpen(true)}>
+                Supprimer définitivement la paire
+              </PdvButton>
+              <PdvButton type="button" variant="tertiary" size="l" block disabled>
+                Réactiver la paire
+              </PdvButton>
+            </>
+          ) : null}
+        </div>
+
+        {pair.events && pair.events.length > 0 ? (
+          <section className="pdv-client-history">
+            <h2 className="pdv-client-history__title">Historique des événements</h2>
+            <ol className="pdv-client-history__list">
+              {pair.events.map((event, index) => {
+                const showCarrierHelp = event.type === "shipped";
+                return (
+                  <li className="pdv-client-history__item" key={`${event.type}-${event.at}-${index}`}>
+                    <span className="pdv-client-history__rail" aria-hidden>
+                      <img src="/icons/pdv/history-rail.svg" alt="" width={12} height={45} />
+                    </span>
+                    <div className="pdv-client-history__copy">
+                      <p className="pdv-client-history__date">{formatFrDate(event.at)}</p>
+                      <p className="pdv-client-history__label">{event.label}</p>
+                      {showCarrierHelp ? (
+                        <p className="pdv-client-history__help">
+                          *Si vous rencontrez un problème avec votre livraison, contactez le transporteur depuis la
+                          page de suivi de votre colis.
+                        </p>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
         ) : null}
-        <dt className="col-6">Type de lunettes</dt>
-        <dd className="col-6 text-end">{pair.type}</dd>
-        <dt className="col-6">Marque</dt>
-        <dd className="col-6 text-end">{pair.brand}</dd>
-        <dt className="col-6">Couleurs</dt>
-        <dd className="col-6 text-end">{pair.colors.join(", ")}</dd>
-        <dt className="col-6">Code assigné</dt>
-        <dd className="col-6 text-end">{pair.assigned_code}</dd>
-        <dt className="col-6">Date d&apos;enregistrement</dt>
-        <dd className="col-6 text-end">{formatFrDate(pair.registered_at)}</dd>
-      </dl>
-      {shop ? <ShopCard shop={shop} onMap={() => setMapOpen(true)} /> : null}
-
-      {pair.actions.can_recover ? (
-        <Link href={`/client/lunettes/${pair.uuid}/recuperer`} className="btn btn-primary w-100 mb-2">
-          Récupérer mes lunettes
-        </Link>
-      ) : null}
-      {pair.actions.can_track_delivery ? (
-        <Link href={`/client/lunettes/${pair.uuid}/suivi`} className="btn btn-primary w-100 mb-2">
-          Suivre ma livraison
-        </Link>
-      ) : null}
-      {pair.actions.can_declare_lost ? (
-        <button type="button" className="btn btn-primary w-100 mb-2" onClick={() => setLostOpen(true)}>
-          Déclarer comme perdue
-        </button>
-      ) : null}
-      {pair.actions.can_cancel_lost ? (
-        <button type="button" className="btn btn-primary w-100 mb-2" onClick={() => setCancelOpen(true)}>
-          J’ai retrouvé mes lunettes
-        </button>
-      ) : null}
-      {pair.actions.can_inactivate ? (
-        <button type="button" className="btn btn-outline-primary w-100 mb-2" onClick={() => setInactiveOpen(true)}>
-          Déclarer comme inactive
-        </button>
-      ) : null}
-      {pair.actions.can_archive ? (
-        <>
-          <button type="button" className="btn btn-danger w-100 mb-2" onClick={() => setArchiveOpen(true)}>
-            Supprimer définitivement la paire
-          </button>
-          <button type="button" className="btn btn-link w-100 mb-2" disabled>
-            Réactiver la paire
-          </button>
-        </>
-      ) : null}
-
-      {pair.events && pair.events.length > 0 ? (
-        <>
-          <h2 className="h6 mt-4">Historique des événements</h2>
-          <ul className="list-unstyled">
-            {pair.events.map((event) => (
-              <li key={`${event.type}-${event.at}`} className="mb-3">
-                <p className="small text-secondary mb-0">{formatFrDate(event.at)}</p>
-                <p className="mb-0">{event.label}</p>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
+      </div>
 
       {lostOpen ? (
         <DeclareLostModal
@@ -250,7 +291,7 @@ export default function ClientPairPage() {
       {archiveOpen ? (
         <ArchivePairModal pending={pending} onConfirm={() => void archive()} onClose={() => setArchiveOpen(false)} />
       ) : null}
-      {mapOpen && shop ? <MapModal shop={shop} onClose={() => setMapOpen(false)} /> : null}
-    </>
+      {mapOpen && shop ? <ShopMapModal shop={shop} onClose={() => setMapOpen(false)} /> : null}
+    </div>
   );
 }

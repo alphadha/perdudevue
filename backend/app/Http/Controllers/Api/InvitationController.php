@@ -15,12 +15,12 @@ class InvitationController extends Controller
 
     public function show(string $token): JsonResponse
     {
-        $invitation = $this->invitations->findUsable($token);
-        if ($invitation === null) {
-            return ApiResponse::message('Lien d’invitation invalide ou déjà utilisé.', 404);
+        $found = $this->invitations->inspect($token);
+        if ($found['status'] !== 'usable' || $found['invitation'] === null) {
+            return $this->unusable($found['status']);
         }
 
-        $user = $invitation->user;
+        $user = $found['invitation']->user;
 
         return ApiResponse::success([
             'email' => $user->email,
@@ -32,17 +32,26 @@ class InvitationController extends Controller
 
     public function activate(ActivateInvitationRequest $request, string $token): JsonResponse
     {
-        $invitation = $this->invitations->findUsable($token);
-        if ($invitation === null) {
-            return ApiResponse::message('Lien d’invitation invalide ou déjà utilisé.', 404);
+        $found = $this->invitations->inspect($token);
+        if ($found['status'] !== 'usable' || $found['invitation'] === null) {
+            return $this->unusable($found['status']);
         }
 
-        $user = $this->invitations->activate($invitation, $request->string('password')->toString());
+        $user = $this->invitations->activate($found['invitation'], $request->string('password')->toString());
         $access = $user->createToken('web')->plainTextToken;
 
         return ApiResponse::success([
             'token' => $access,
             'user' => UserResource::make($user)->resolve(),
         ]);
+    }
+
+    private function unusable(string $status): JsonResponse
+    {
+        return match ($status) {
+            'used' => ApiResponse::message('Ce compte a déjà été activé.', 409, 'already_used'),
+            'expired' => ApiResponse::message('Lien d’invitation invalide ou déjà utilisé.', 410, 'link_expired'),
+            default => ApiResponse::message('Lien d’invitation invalide ou déjà utilisé.', 404, 'link_invalid'),
+        };
     }
 }

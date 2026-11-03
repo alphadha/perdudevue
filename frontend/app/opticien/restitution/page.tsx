@@ -2,26 +2,32 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppToast from "@/components/AppToast";
-import BootstrapModal from "@/components/opticien/BootstrapModal";
 import FoundPairModal from "@/components/opticien/FoundPairModal";
 import HandoverModal from "@/components/opticien/HandoverModal";
 import MarkShippedModal from "@/components/opticien/MarkShippedModal";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
+import ResendPickupModal from "@/components/opticien/ResendPickupModal";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvPagination from "@/components/pdv/PdvPagination";
 import PdvRowActions, { type PdvRowAction } from "@/components/pdv/PdvRowActions";
 import PdvSearchBar from "@/components/pdv/PdvSearchBar";
 import PdvSelect from "@/components/pdv/PdvSelect";
 import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
-import { api, ApiRequestError } from "@/lib/api";
+import { api } from "@/lib/api";
 import { formatSyncLabel } from "@/lib/formatSync";
 import { downloadLabelFile } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
+import { DISCARD_TOAST, type ToastState } from "@/lib/toasts";
 import { formatFrDate, type ShopRestitution, type ShippingLabelFile } from "@/lib/types";
 
-type ToastState = { title?: string; message: string };
 type SortKey = "reference" | "type" | "brand" | "colors" | "status" | "found_at";
 
 const PAIR_TYPES = ["Vue", "Soleil", "Solaire de Vue"] as const;
+const PAGE_SIZE = 10;
+
+function selectionLabel(count: number): string {
+  return count <= 1 ? `${count} paire sélectionnée` : `${count} paires sélectionnées`;
+}
 
 export default function RestitutionPage() {
   const [items, setItems] = useState<ShopRestitution[]>([]);
@@ -35,9 +41,9 @@ export default function RestitutionPage() {
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [resendTarget, setResendTarget] = useState<ShopRestitution | null>(null);
   const [shipTarget, setShipTarget] = useState<ShopRestitution | null>(null);
-  const [pending, setPending] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
 
   const showToast = useCallback((message: string, title?: string) => {
     setToast({ title, message });
@@ -90,8 +96,20 @@ export default function RestitutionPage() {
     });
   }, [items, query, typeFilter, sort]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [query, typeFilter, status, sort]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageRows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const canHandOver = items.some((item) => item.actions.can_hand_over);
-  const selectable = filtered.filter((item) => item.actions.can_select_for_labels);
+  const selectedForLabels = items.filter(
+    (item) => selected.includes(item.uuid) && item.actions.can_select_for_labels,
+  );
+  const checkboxable = pageRows.filter((item) => item.actions.can_select_for_labels);
+  const selectedCount = selected.length;
+  const hasSelection = selectedCount > 0;
+  const showLabelsBulk = selectedForLabels.length >= 2;
 
   const restitutionColumns: PdvTableColumn<ShopRestitution, SortKey>[] = [
     { key: "reference", label: "Ref dossier", width: 130, render: (item) => (item.reference ? `#${item.reference}` : "") },
@@ -108,17 +126,19 @@ export default function RestitutionPage() {
   ];
 
   function restitutionActions(item: ShopRestitution): PdvRowAction[] {
-    const items: PdvRowAction[] = [];
+    const actions: PdvRowAction[] = [
+      { label: "Voir la fiche", href: `/opticien/restitution/${item.uuid}` },
+    ];
     if (item.actions.can_hand_over) {
-      items.push({ label: "Remettre au client", onClick: () => setHandoverOpen(true) });
+      actions.push({ label: "Remettre au client", onClick: () => setHandoverOpen(true) });
     }
     if (item.actions.can_resend) {
-      items.push({ label: "Relancer le client", onClick: () => setResendTarget(item) });
+      actions.push({ label: "Relancer le client", onClick: () => setResendTarget(item) });
     }
     if (item.actions.can_download_label || item.actions.can_mark_shipped) {
-      items.push(
+      actions.push(
         {
-          label: "Télécharger le bordereau",
+          label: "Télécharger le bordereau d’envoi",
           disabled: !item.actions.can_download_label,
           onClick: () => void downloadOne(item),
         },
@@ -128,13 +148,8 @@ export default function RestitutionPage() {
           onClick: () => setShipTarget(item),
         },
       );
-    } else if (item.status === "livraison_demandee") {
-      items.push(
-        { label: "Télécharger le bordereau", disabled: true },
-        { label: "Indiquer comme en livraison", disabled: true },
-      );
     }
-    return items;
+    return actions;
   }
 
   async function downloadLabels(uuids: string[]) {
@@ -159,32 +174,11 @@ export default function RestitutionPage() {
     }
   }
 
-  async function resend(channels: Array<"email" | "sms">) {
-    if (!resendTarget) {
-      return;
-    }
-    setPending(true);
-    try {
-      await api(`/opticien/restitutions/${resendTarget.uuid}/resend`, {
-        method: "POST",
-        body: JSON.stringify({ channels }),
-      });
-      setResendTarget(null);
-      showToast("Le code de restitution a été renvoyé au client.");
-    } catch (caught) {
-      if (caught instanceof ApiRequestError) {
-        showToast(caught.message);
-      }
-    } finally {
-      setPending(false);
-    }
-  }
-
   const syncLabel = syncedAt ? formatSyncLabel(syncedAt) : "Chargement…";
 
   return (
     <>
-      <AppToast title={toast?.title} message={toast?.message ?? null} />
+      <AppToast title={toast?.title} message={toast?.message ?? null} variant={toast?.variant} onDismiss={() => setToast(null)} />
       <div className="pdv-page-head">
         <div>
           <h1>Restitution</h1>
@@ -200,14 +194,9 @@ export default function RestitutionPage() {
           </div>
         </div>
         <div className="d-flex flex-wrap gap-2">
-          {selected.length >= 2 ? (
-            <PdvButton variant="secondary" size="m" onClick={() => void downloadLabels(selected)}>
-              Télécharger les bordereaux ({selected.length})
-            </PdvButton>
-          ) : null}
           <PdvButton
             variant="secondary"
-            size="m"
+            size="l"
             iconLeft="/icons/pdv/announcement-01-dark.svg"
             onClick={() => setFoundOpen(true)}
           >
@@ -215,7 +204,8 @@ export default function RestitutionPage() {
           </PdvButton>
           <PdvButton
             variant="primary"
-            size="m"
+            size="l"
+            iconLeft="/icons/pdv/restitution-bottom.svg"
             disabled={!canHandOver}
             onClick={() => setHandoverOpen(true)}
           >
@@ -223,64 +213,95 @@ export default function RestitutionPage() {
           </PdvButton>
         </div>
       </div>
-      <div className="pdv-panel">
-        <div className="pdv-toolbar">
-          <PdvSearchBar value={query} onChange={setQuery} placeholder="Rechercher un dossier..." />
-          <div className="pdv-toolbar__filters">
-            <PdvSelect
-              variant="filter"
-              aria-label="Filtrer par type"
-              value={typeFilter}
-              onChange={(event) => setTypeFilter(event.target.value)}
-            >
-              <option value="">Tous les types</option>
-              {PAIR_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </PdvSelect>
-            <PdvSelect
-              variant="filter"
-              aria-label="Filtrer par statut"
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-            >
-              <option value="">Tous les statuts</option>
-              <option value="a_recuperer">À récupérer</option>
-              <option value="livraison_demandee">Livraison demandée</option>
-              <option value="en_livraison">En livraison</option>
-            </PdvSelect>
-          </div>
-        </div>
-      </div>
+
       {loading ? (
         <p>Chargement des dossiers…</p>
       ) : (
-        <div className="pdv-panel pdv-panel--table">
-          <PdvTable
-            columns={restitutionColumns}
-            rows={filtered}
-            getRowId={(item) => item.uuid}
-            empty="Aucun dossier de restitution en cours."
-            sort={sort}
-            onSort={(key) => setSort((current) => toggleSort(current, key))}
-            selection={{
-              selected,
-              isEnabled: (item) => item.actions.can_select_for_labels,
-              headerAriaLabel: "Sélectionner les dossiers en livraison demandée",
-              rowAriaLabel: (item) => `Sélectionner ${item.assigned_code}`,
-              onToggleAll: (checked) => {
-                setSelected(checked ? selectable.map((item) => item.uuid) : []);
-              },
-              onToggleRow: (id, checked) => {
-                setSelected((current) =>
-                  checked ? [...current, id] : current.filter((uuid) => uuid !== id),
-                );
-              },
-            }}
-            actions={(item) => <PdvRowActions items={restitutionActions(item)} />}
-          />
+        <div className="pdv-table-block">
+          <div className="pdv-table-stack">
+            <div className="pdv-panel pdv-panel--search">
+              <div className="pdv-toolbar">
+                <PdvSearchBar value={query} onChange={setQuery} placeholder="Rechercher un dossier..." />
+                <div className="pdv-toolbar__filters">
+                  <PdvSelect
+                    variant="filter"
+                    aria-label="Filtrer par type"
+                    value={typeFilter}
+                    onChange={(event) => setTypeFilter(event.target.value)}
+                  >
+                    <option value="">Tous les types</option>
+                    {PAIR_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </PdvSelect>
+                  <PdvSelect
+                    variant="filter"
+                    aria-label="Filtrer par statut"
+                    value={status}
+                    onChange={(event) => setStatus(event.target.value)}
+                  >
+                    <option value="">Tous les statuts</option>
+                    <option value="a_recuperer">À récupérer</option>
+                    <option value="livraison_demandee">Livraison demandée</option>
+                    <option value="en_livraison">En livraison</option>
+                  </PdvSelect>
+                </div>
+              </div>
+              {hasSelection ? (
+                <>
+                  <hr className="pdv-panel__divider" />
+                  <div className="pdv-selection">
+                    <p className="pdv-selection__count">{selectionLabel(selectedCount)}</p>
+                    <div className="pdv-selection__actions">
+                      {showLabelsBulk ? (
+                        <PdvButton
+                          variant="secondary"
+                          size="m"
+                          iconLeft="/icons/pdv/download-01.svg"
+                          onClick={() => void downloadLabels(selectedForLabels.map((item) => item.uuid))}
+                        >
+                          {`Télécharger les bordereaux (${selectedForLabels.length})`}
+                        </PdvButton>
+                      ) : null}
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
+            <div className="pdv-panel pdv-panel--table">
+              <PdvTable
+                columns={restitutionColumns}
+                rows={pageRows}
+                getRowId={(item) => item.uuid}
+                empty="Aucune paire de lunette en attente de restitution pour le moment"
+                sort={sort}
+                onSort={(key) => setSort((current) => toggleSort(current, key))}
+                selection={{
+                  selected,
+                  isEnabled: (item) => item.actions.can_select_for_labels,
+                  headerAriaLabel: "Sélectionner les dossiers en livraison demandée",
+                  rowAriaLabel: (item) => `Sélectionner ${item.assigned_code}`,
+                  onToggleAll: (checked) => {
+                    const pageIds = checkboxable.map((item) => item.uuid);
+                    setSelected((current) =>
+                      checked
+                        ? Array.from(new Set([...current, ...pageIds]))
+                        : current.filter((uuid) => !pageIds.includes(uuid)),
+                    );
+                  },
+                  onToggleRow: (id, checked) => {
+                    setSelected((current) =>
+                      checked ? [...current, id] : current.filter((uuid) => uuid !== id),
+                    );
+                  },
+                }}
+                actions={(item) => <PdvRowActions items={restitutionActions(item)} />}
+              />
+            </div>
+          </div>
+          <PdvPagination page={page} pageCount={pageCount} onChange={setPage} />
         </div>
       )}
 
@@ -293,7 +314,8 @@ export default function RestitutionPage() {
           onClose={(discarded) => {
             setFoundOpen(false);
             if (discarded) {
-              showToast("Modifications non prises en compte");
+              setToast(DISCARD_TOAST);
+              window.setTimeout(() => setToast(null), 4000);
             }
           }}
         />
@@ -307,7 +329,8 @@ export default function RestitutionPage() {
           onClose={(discarded) => {
             setHandoverOpen(false);
             if (discarded) {
-              showToast("Modifications non prises en compte");
+              setToast(DISCARD_TOAST);
+              window.setTimeout(() => setToast(null), 4000);
             }
           }}
         />
@@ -323,46 +346,28 @@ export default function RestitutionPage() {
           onClose={(discarded) => {
             setShipTarget(null);
             if (discarded) {
-              showToast("Modifications non prises en compte");
+              setToast(DISCARD_TOAST);
+              window.setTimeout(() => setToast(null), 4000);
             }
           }}
         />
       ) : null}
       {resendTarget ? (
-        <BootstrapModal title="Relancer le client" onClose={() => setResendTarget(null)}>
-          <div className="modal-body">
-            <p className="mb-0">Choisissez le canal de renvoi du code de restitution (selon les consentements).</p>
-          </div>
-          <div className="modal-footer flex-column gap-2">
-            <button
-              type="button"
-              className="btn btn-primary w-100"
-              disabled={pending}
-              onClick={() => void resend(["email"])}
-            >
-              Renvoyer par e-mail
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline-primary w-100"
-              disabled={pending}
-              onClick={() => void resend(["sms"])}
-            >
-              Renvoyer par SMS
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline-primary w-100"
-              disabled={pending}
-              onClick={() => void resend(["email", "sms"])}
-            >
-              Renvoyer par e-mail et SMS
-            </button>
-            <button type="button" className="btn btn-link" onClick={() => setResendTarget(null)}>
-              Annuler
-            </button>
-          </div>
-        </BootstrapModal>
+        <ResendPickupModal
+          uuid={resendTarget.uuid}
+          onDone={(next) => {
+            setResendTarget(null);
+            setToast(next);
+            window.setTimeout(() => setToast(null), 4000);
+          }}
+          onClose={(discarded) => {
+            setResendTarget(null);
+            if (discarded) {
+              setToast(DISCARD_TOAST);
+              window.setTimeout(() => setToast(null), 4000);
+            }
+          }}
+        />
       ) : null}
     </>
   );

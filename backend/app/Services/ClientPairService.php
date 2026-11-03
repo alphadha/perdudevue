@@ -63,9 +63,9 @@ class ClientPairService
 
     public function cancelLost(User $actor, Pair $pair, Request $request): Pair
     {
-        if ($pair->status !== PairStatus::Perdue) {
+        if (! in_array($pair->status, [PairStatus::Perdue, PairStatus::LivraisonDemandee], true)) {
             throw ValidationException::withMessages([
-                'status' => 'Seule une paire perdue peut revenir à Active.',
+                'status' => 'Cette paire ne peut pas revenir à Active.',
             ]);
         }
 

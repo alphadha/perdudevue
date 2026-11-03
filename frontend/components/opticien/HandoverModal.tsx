@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ClipboardEvent, FormEvent, KeyboardEvent, useRef, useState } from "react";
 import BootstrapModal, { ModalSuccessMark } from "@/components/opticien/BootstrapModal";
 import FieldError from "@/components/FieldError";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 import type { ShopRestitution } from "@/lib/types";
 
@@ -95,16 +96,16 @@ export default function HandoverModal({ onDone, onClose }: Props) {
 
   if (step === 3) {
     return (
-      <BootstrapModal title="Remettre des lunettes" subtitle="Étape 3/3" onClose={() => onDone()}>
+      <BootstrapModal title="Remettre des lunettes" subtitle="Étape 3/3" size="md" onClose={() => onDone()}>
         <div className="modal-body text-center">
           <ModalSuccessMark />
           <p className="h5">Restitution terminée !</p>
           <p className="mb-0">La paire a été restituée au client. Le dossier est clôturé.</p>
         </div>
         <div className="modal-footer flex-column">
-          <button type="button" className="btn btn-primary w-100" onClick={() => onDone()}>
+          <PdvButton type="button" variant="primary" size="l" block onClick={() => onDone()}>
             Fermer
-          </button>
+          </PdvButton>
         </div>
       </BootstrapModal>
     );
@@ -112,7 +113,7 @@ export default function HandoverModal({ onDone, onClose }: Props) {
 
   if (step === 2 && preview) {
     return (
-      <BootstrapModal title="Remettre des lunettes" subtitle="Étape 2/3" onClose={() => onClose(true)}>
+      <BootstrapModal title="Remettre des lunettes" subtitle="Étape 2/3" size="md" onClose={() => onClose(true)}>
         <div className="modal-body">
           {error ? <div className="alert alert-danger">{error}</div> : null}
           <p>
@@ -147,19 +148,19 @@ export default function HandoverModal({ onDone, onClose }: Props) {
           </ul>
         </div>
         <div className="modal-footer flex-column">
-          <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={() => void confirm()}>
+          <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirm()}>
             Confirmer la remise
-          </button>
-          <button type="button" className="btn btn-link" onClick={() => onClose(true)}>
+          </PdvButton>
+          <PdvButton type="button" variant="tertiary" onClick={() => onClose(true)}>
             Annuler
-          </button>
+          </PdvButton>
         </div>
       </BootstrapModal>
     );
   }
 
   return (
-    <BootstrapModal title="Remettre des lunettes" subtitle="Étape 1/3" onClose={() => onClose(true)}>
+    <BootstrapModal title="Remettre des lunettes" subtitle="Étape 1/3" size="md" onClose={() => onClose(true)}>
       <form onSubmit={(event) => void lookup(event)}>
         <div className="modal-body">
           <div className="d-flex justify-content-between align-items-start">
@@ -197,12 +198,12 @@ export default function HandoverModal({ onDone, onClose }: Props) {
           </p>
         </div>
         <div className="modal-footer flex-column">
-          <button type="submit" className="btn btn-primary w-100" disabled={pending || pickupCode.length !== BOXES}>
+          <PdvButton type="submit" variant="primary" size="l" block disabled={pending || pickupCode.length !== BOXES}>
             Valider le code
-          </button>
-          <button type="button" className="btn btn-link" onClick={() => onClose(true)}>
+          </PdvButton>
+          <PdvButton type="button" variant="tertiary" onClick={() => onClose(true)}>
             Annuler
-          </button>
+          </PdvButton>
         </div>
       </form>
     </BootstrapModal>

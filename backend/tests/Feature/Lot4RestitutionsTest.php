@@ -280,6 +280,35 @@ class Lot4RestitutionsTest extends TestCase
             ->assertStatus(422);
         $this->postJson('/api/v1/opticien/restitutions/handover', ['pickup_code' => $pickup])
             ->assertStatus(422);
+        $uuid = Pair::query()->where('assigned_code', 'FR3007HH')->value('uuid');
+        $this->getJson('/api/v1/opticien/restitutions/'.$uuid)->assertNotFound();
+    }
+
+    public function test_restitution_fiche_shows_owner_pii_only_if_already_a_shop_client(): void
+    {
+        Mail::fake();
+        [$adminA, $shopA] = $this->shopWithAdmin();
+        [$adminB, $shopB] = $this->shopWithAdmin('Optique B', 'opticien.b@example.com');
+        $foreign = $this->seedClient($shopA);
+        $this->activePair($shopA, $foreign, 'FR3008II');
+        $own = $this->seedClient($shopB, 'client.b@example.com', 'Amelie', 'Guillaume');
+        $this->activePair($shopB, $own, 'FR3009JJ');
+
+        Sanctum::actingAs($adminB);
+        $foreignUuid = $this->postJson('/api/v1/opticien/restitutions', ['assigned_code' => 'FR3008II'])
+            ->json('data.uuid');
+        $this->getJson('/api/v1/opticien/restitutions/'.$foreignUuid)
+            ->assertOk()
+            ->assertJsonPath('data.client', null)
+            ->assertJsonMissing(['email' => 'client.c1@example.com']);
+
+        $ownUuid = $this->postJson('/api/v1/opticien/restitutions', ['assigned_code' => 'FR3009JJ'])
+            ->json('data.uuid');
+        $this->getJson('/api/v1/opticien/restitutions/'.$ownUuid)
+            ->assertOk()
+            ->assertJsonPath('data.client.email', 'client.b@example.com')
+            ->assertJsonPath('data.client.first_name', 'Amelie')
+            ->assertJsonPath('data.client.last_name', 'Guillaume');
     }
 
     /**

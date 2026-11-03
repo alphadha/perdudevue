@@ -153,6 +153,8 @@ class Lot6NotificationsTest extends TestCase
         $list = $this->getJson('/api/v1/opticien/notifications')->assertOk();
         $list->assertJsonPath('data.0.title', 'Lunettes en attente de retrait');
         $list->assertJsonPath('data.0.type', ShopInboxService::TYPE_WAITING_PICKUP);
+        $this->assertStringStartsWith('/opticien/restitution/', (string) $list->json('data.0.href'));
+        $this->assertNotSame('/opticien/restitution', $list->json('data.0.href'));
         $list->assertJsonPath('data.0.read', false);
         $list->assertJsonPath('meta.unread_count', 1);
         $list->assertJsonMissing(['email' => 'client.c1@example.com']);

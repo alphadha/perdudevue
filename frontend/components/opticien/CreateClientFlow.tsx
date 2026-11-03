@@ -246,7 +246,7 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
   return (
     <>
       {createOpen ? (
-        <BootstrapModal title="Nouveau client" onClose={discard}>
+        <BootstrapModal title="Nouveau client" size="md" onClose={discard}>
           <form onSubmit={(event) => void submitCreate(event)}>
             <div className="modal-body">
               {formError ? <div className="alert alert-danger">{formError}</div> : null}
@@ -265,7 +265,7 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
       ) : null}
 
       {duplicate ? (
-        <BootstrapModal title="Compte client déjà existant" onClose={discard}>
+        <BootstrapModal title="Compte client déjà existant" size="md" onClose={discard}>
           <div className="modal-body">
             <p>Un compte client avec les informations personnelles que vous avez saisies existe déjà :</p>
             <p>
@@ -301,7 +301,7 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
       ) : null}
 
       {editOpen ? (
-        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 1/3" onClose={discard}>
+        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 1/3" size="md" onClose={discard}>
           <form onSubmit={(event) => void submitEdit(event)}>
             <div className="modal-body">
               {formError ? <div className="alert alert-danger">{formError}</div> : null}
@@ -320,7 +320,7 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
       ) : null}
 
       {otp ? (
-        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 2/3" onClose={discard}>
+        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 2/3" size="md" onClose={discard}>
           <form onSubmit={(event) => void submitOtp(event)}>
             <div className="modal-body">
               <div className="pdv-field">

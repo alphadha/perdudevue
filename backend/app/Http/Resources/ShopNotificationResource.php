@@ -19,14 +19,24 @@ class ShopNotificationResource extends JsonResource
             'type' => $this->type,
             'title' => $this->title,
             'body' => $this->body,
-            'href' => $this->href,
+            'href' => $this->resolvedHref(),
             'read' => $this->read_at !== null,
             'read_at' => $this->read_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'actions' => [
-                'can_open_dossier' => filled($this->href),
+                'can_open_dossier' => filled($this->resolvedHref()),
                 'can_mark_read' => $this->read_at === null,
             ],
         ];
+    }
+
+    private function resolvedHref(): ?string
+    {
+        $pairUuid = $this->pair?->uuid;
+        if (is_string($pairUuid) && $pairUuid !== '') {
+            return '/opticien/restitution/'.$pairUuid;
+        }
+
+        return $this->href;
     }
 }

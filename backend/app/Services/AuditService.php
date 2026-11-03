@@ -104,6 +104,8 @@ class AuditService
             'client.identity_otp_resend' => sprintf('%s a renvoyé un code de vérification d’identité.', $actorLabel),
             'client.profile_updated' => sprintf('%s a mis à jour son profil client.', $actorLabel),
             'client.consents_updated' => sprintf('%s a modifié ses préférences de notification.', $actorLabel),
+            'account.email_otp' => sprintf('%s a demandé un code de vérification pour changer d’adresse e-mail.', $actorLabel),
+            'account.email_otp_resend' => sprintf('%s a renvoyé un code de vérification d’adresse e-mail.', $actorLabel),
             'account.password_changed' => sprintf('%s a changé son mot de passe.', $actorLabel),
             'account.email_changed' => sprintf('%s a changé son adresse e-mail.', $actorLabel),
             'account.deleted' => sprintf('%s a supprimé son compte.', $actorLabel),

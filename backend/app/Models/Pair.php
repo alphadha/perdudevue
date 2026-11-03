@@ -100,4 +100,14 @@ class Pair extends Model
     {
         return 'Lunettes '.$this->type;
     }
+
+    public function narrativeType(): string
+    {
+        return match ($this->type) {
+            'Vue' => 'lunettes de vue',
+            'Soleil' => 'lunettes de soleil',
+            'Solaire de Vue' => 'lunettes solaires de vue',
+            default => 'lunettes '.mb_strtolower((string) $this->type),
+        };
+    }
 }

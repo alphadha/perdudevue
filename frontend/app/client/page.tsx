@@ -27,24 +27,34 @@ export default function ClientHomePage() {
   }
 
   return (
-    <>
-      <h1 className="pdv-client-page-title">Mes lunettes</h1>
-      <p className="pdv-client-page-sub">Retrouvez ici toutes vos paires enregistrées.</p>
+    <div className="pdv-client-home">
+      <header className="pdv-client-page-head">
+        <h1 className="pdv-client-page-title">Mes lunettes</h1>
+        <p className="pdv-client-page-sub">Retrouvez ici toutes vos paires enregistrées.</p>
+      </header>
       {pairs.length === 0 ? (
-        <p className="pdv-client-empty">Aucune paire de lunette enregistrée pour le moment</p>
+        <p className="pdv-client-empty">
+          Aucune paire de lunette
+          <br />
+          enregistrée pour le moment
+        </p>
       ) : (
-        <div className="pdv-client-pairs d-grid">
+        <div className="pdv-client-pairs">
           {pairs.map((pair) => (
             <article className="pdv-client-pair-card" key={pair.uuid}>
-              <h2 className="pdv-client-pair-card__title">{pair.title}</h2>
-              <p className="pdv-client-pair-card__code">Code assigné : {pair.assigned_code}</p>
-              <div className="d-flex flex-wrap gap-2 mb-0">
-                <PairStatusBadge status={pair.status} label={pair.status_label} />
-                {pair.pickup_code ? (
-                  <span className="pdv-tag pdv-tag--a_recuperer">
-                    Code de restitution : <strong>{pair.pickup_code}</strong>
-                  </span>
-                ) : null}
+              <div className="pdv-client-pair-card__meta">
+                <div className="pdv-client-pair-card__identity">
+                  <h2 className="pdv-client-pair-card__title">{pair.title}</h2>
+                  <p className="pdv-client-pair-card__code">Code assigné : {pair.assigned_code}</p>
+                </div>
+                <div className="pdv-client-pair-card__tags">
+                  <PairStatusBadge status={pair.status} label={pair.status_label} />
+                  {pair.pickup_code ? (
+                    <span className="pdv-pickup-chip">
+                      Code de restitution : <strong>{pair.pickup_code}</strong>
+                    </span>
+                  ) : null}
+                </div>
               </div>
               <Link className="pdv-client-pair-card__link" href={`/client/lunettes/${pair.uuid}`}>
                 <span>Voir la fiche</span>
@@ -54,6 +64,6 @@ export default function ClientHomePage() {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }
