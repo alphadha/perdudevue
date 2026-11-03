@@ -78,6 +78,7 @@ class AccountController extends Controller
             'action_token' => $challenge->actionToken,
             'otp_channel' => $challenge->otpChannel,
             'masked_email' => $challenge->maskedEmail,
+            'masked_phone' => $challenge->maskedPhone,
         ], null, 202);
     }
 }

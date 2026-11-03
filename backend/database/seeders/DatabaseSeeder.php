@@ -34,14 +34,17 @@ class DatabaseSeeder extends Seeder
 
         $optA = $this->optician('Optique A', '10 rue de la Paix', 'Paris', '75002', '0142000001');
         $optB = $this->optician('L’Œil Moderne', '15 rue du Taur', 'Toulouse', '31000', '0561000002');
+        $optC = $this->optician('Optique C', '1 place Vide', 'Lille', '59000', '0320000003');
 
         $optAAdmin = $this->user('Alice', 'Martin', 'opticien.a@example.com', Role::OpticienAdmin);
         $optAUser = $this->user('Alex', 'Durand', 'opticien.a.user@example.com', Role::OpticienUser);
         $optAPending = $this->user('Thomas', 'Roux', 'thomas.roux@example.com', Role::OpticienUser, pending: true);
         $optBAdmin = $this->user('Hugo', 'Bonnet', 'opticien.b@example.com', Role::OpticienAdmin);
+        $optCAdmin = $this->user('Inès', 'Petit', 'opticien.c@example.com', Role::OpticienAdmin);
 
         $optA->users()->attach([$optAAdmin->id, $optAUser->id, $optAPending->id]);
         $optB->users()->attach($optBAdmin->id);
+        $optC->users()->attach($optCAdmin->id);
 
         $c1User = $this->user('Camille', 'Leroy', 'client.c1@example.com', Role::Client, pending: true);
         $c2User = $this->user('Chloé', 'Bernard', 'client.c2@example.com', Role::Client);
@@ -168,6 +171,15 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->shipment($deliveryRequested, $c2, 'paid', shipped: false);
 
+        $deliveryRequestedBis = $this->clientPair($c2, $optA, 'FR6103LD', PairStatus::LivraisonDemandee, 'Soleil');
+        $this->timeline($deliveryRequestedBis, [
+            ['registered', now()->subMonths(3)],
+            ['lost', now()->subDays(14)],
+            ['found', now()->subDays(10)],
+            ['delivery_requested', now()->subDays(4)],
+        ]);
+        $this->shipment($deliveryRequestedBis, $c2, 'paid', shipped: false);
+
         $inTransit = $this->clientPair($c2, $optA, 'FR6101EL', PairStatus::EnLivraison, 'Soleil');
         $this->timeline($inTransit, [
             ['registered', now()->subMonths(5)],
@@ -182,6 +194,7 @@ class DatabaseSeeder extends Seeder
         $this->command?->info('ADM        admin@perduesdevue.fr');
         $this->command?->info('OPT-A      opticien.a@example.com');
         $this->command?->info('OPT-B      opticien.b@example.com');
+        $this->command?->info('OPT-C vide opticien.c@example.com');
         $this->command?->info('C1 (à activer) client.c1@example.com  token='.self::INVITATION_C1);
         $this->command?->info('C2         client.c2@example.com  (6 statuts + historiques / livraisons)');
         $this->command?->info('Invitation déjà utilisée /invitation/'.self::INVITATION_USED);
@@ -211,10 +224,17 @@ class DatabaseSeeder extends Seeder
         PairStatus $status,
         string $type = 'Vue',
     ): Pair {
+        $inRestitution = in_array($status, [
+            PairStatus::ARecuperer,
+            PairStatus::LivraisonDemandee,
+            PairStatus::EnLivraison,
+        ], true);
+
         $pair = new Pair;
         $pair->forceFill([
             'client_id' => $client->id,
             'origin_optician_id' => $origin->id,
+            'depositary_optician_id' => $inRestitution ? $origin->id : null,
             'assigned_code' => $code,
             'status' => $status,
             'type' => $type,
@@ -222,6 +242,8 @@ class DatabaseSeeder extends Seeder
             'colors' => ['Noir'],
             'description' => 'Monture en titane',
             'registered_at' => now()->subMonths(2),
+            'found_at' => $inRestitution ? now()->subDays(12) : null,
+            'restitution_ref' => $inRestitution ? 'R-SEED-'.$code : null,
         ])->save();
 
         return $pair;

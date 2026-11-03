@@ -28,7 +28,7 @@ function LoginForm() {
     if (space === "opticien") {
       return {
         title: "Vous êtes opticien et vous n’avez pas encore de compte ?",
-        body: "Vous pouvez nous contacter par mail à support@perduesdevue.com. Nous vous assisterons dans la création de votre compte.",
+        body: "Vous pouvez nous contacter par mail à support@perduesdevue.fr. Nous vous assisterons dans la création de votre compte.",
       };
     }
     return {
@@ -95,78 +95,80 @@ function LoginForm() {
         <div className="pdv-login__body">
           <h1 className="pdv-login__title">Bienvenue chez Perdues de Vue !</h1>
 
-          <div className="pdv-login__section">
-            <h2 className="pdv-login__subtitle">Connexion</h2>
+          <form className="pdv-login__stack" onSubmit={onSubmit} noValidate>
+            <div className="pdv-login__section">
+              <h2 className="pdv-login__subtitle">Connexion</h2>
 
-            <PdvToggle
-              checked={space === "client"}
-              onChange={(isClient) => selectSpace(isClient ? "client" : "opticien")}
-              leftLabel="Espace Opticien"
-              rightLabel="Espace Client"
-              ariaLabel="Choisir l’espace Opticien ou Client"
-            />
+              <PdvToggle
+                checked={space === "client"}
+                onChange={(isClient) => selectSpace(isClient ? "client" : "opticien")}
+                leftLabel="Espace Opticien"
+                rightLabel="Espace Client"
+                ariaLabel="Choisir l’espace Opticien ou Client"
+              />
 
-            {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
+              {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
 
-            <form className="pdv-login__form" onSubmit={onSubmit} noValidate>
-              <div className="pdv-field">
-                <label className="pdv-field__label" htmlFor="email">
-                  Adresse e-mail*
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  className={`pdv-field__control${fieldErrors.email ? " is-invalid" : ""}`}
-                  placeholder="adresse@mail.fr"
-                  autoComplete="username"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  required
-                />
-                <FieldError message={fieldErrors.email} />
-              </div>
-
-              <div className="pdv-field">
-                <label className="pdv-field__label" htmlFor="password">
-                  Mot de passe*
-                </label>
-                <div className="pdv-field__password">
+              <div className="pdv-login__fields">
+                <div className="pdv-field">
+                  <label className="pdv-field__label" htmlFor="email">
+                    Adresse e-mail*
+                  </label>
                   <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    className={`pdv-field__control${fieldErrors.password ? " is-invalid" : ""}`}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
+                    id="email"
+                    type="email"
+                    className={`pdv-field__control${fieldErrors.email ? " is-invalid" : ""}`}
+                    placeholder="adresse@mail.fr"
+                    autoComplete="username"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
                     required
                   />
-                  <button
-                    type="button"
-                    className="pdv-field__eye"
-                    aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                    onClick={() => setShowPassword((current) => !current)}
-                  >
-                    <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
-                  </button>
+                  <FieldError message={fieldErrors.email} />
                 </div>
-                <FieldError message={fieldErrors.password} />
-                <div className="pdv-field__forgot">
-                  <Link href={`/mot-de-passe-oublie?space=${space}`}>Mot de passe oublié</Link>
+
+                <div className="pdv-field">
+                  <label className="pdv-field__label" htmlFor="password">
+                    Mot de passe*
+                  </label>
+                  <div className="pdv-field__password">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      className={`pdv-field__control${fieldErrors.password ? " is-invalid" : ""}`}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="pdv-field__eye"
+                      aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                      onClick={() => setShowPassword((current) => !current)}
+                    >
+                      <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
+                    </button>
+                  </div>
+                  <FieldError message={fieldErrors.password} />
+                  <div className="pdv-field__forgot">
+                    <Link href={`/mot-de-passe-oublie?space=${space}`}>Mot de passe oublié</Link>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="pdv-login__submit">
-                <PdvButton variant="primary" size="l" block type="submit" disabled={pending}>
-                  {pending ? "Connexion…" : "Se connecter"}
-                </PdvButton>
+            <div className="pdv-login__submit">
+              <PdvButton variant="primary" size="l" block type="submit" disabled={pending}>
+                {pending ? "Connexion…" : "Se connecter"}
+              </PdvButton>
 
-                <aside className="pdv-login__help">
-                  <p className="pdv-login__help-title">{help.title}</p>
-                  <p className="pdv-login__help-body">{help.body}</p>
-                </aside>
-              </div>
-            </form>
-          </div>
+              <aside className="pdv-login__help">
+                <p className="pdv-login__help-title">{help.title}</p>
+                <p className="pdv-login__help-body">{help.body}</p>
+              </aside>
+            </div>
+          </form>
         </div>
       </div>
     </div>

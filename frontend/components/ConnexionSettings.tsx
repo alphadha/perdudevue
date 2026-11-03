@@ -243,59 +243,85 @@ export default function ConnexionSettings({
   }
 
   const idleFields = (
-    <div className={card ? "pdv-connexion-card__fields" : undefined}>
-      <div className={card ? undefined : "mb-4"}>
-        <div className={card ? "pdv-connexion-card__row" : "d-flex justify-content-between align-items-center mb-2"}>
+    <div className={card ? "pdv-connexion-card__fields" : "pdv-connexion-idle"}>
+      <div className={card ? undefined : "pdv-connexion-idle__row"}>
+        <div className={card ? "pdv-connexion-card__row" : "pdv-connexion-idle__label-row"}>
           <span className="pdv-field__label">{emailLabel}</span>
-          <PdvButton
-            type="button"
-            variant="tertiary"
-            onClick={() => {
-              setNewEmail("");
-              setFieldErrors({});
-              setView("email-form");
-            }}
-          >
-            Modifier
-          </PdvButton>
+          {card ? (
+            <PdvButton
+              type="button"
+              variant="tertiary"
+              onClick={() => {
+                setNewEmail("");
+                setFieldErrors({});
+                setView("email-form");
+              }}
+            >
+              Modifier
+            </PdvButton>
+          ) : null}
         </div>
         {card ? (
           <div className="pdv-connexion-card__value">{displayEmail}</div>
         ) : (
-          <p className="pdv-field__hint mb-0">{displayEmail}</p>
+          <div className="pdv-connexion-idle__value-row">
+            <p className="pdv-connexion-idle__value">{displayEmail}</p>
+            <PdvButton
+              type="button"
+              variant="tertiary"
+              onClick={() => {
+                setNewEmail("");
+                setFieldErrors({});
+                setView("email-form");
+              }}
+            >
+              Modifier
+            </PdvButton>
+          </div>
         )}
       </div>
-      <div>
-        <div className={card ? "pdv-connexion-card__row" : "d-flex justify-content-between align-items-center mb-2"}>
+      <div className={card ? undefined : "pdv-connexion-idle__row"}>
+        <div className={card ? "pdv-connexion-card__row" : "pdv-connexion-idle__label-row"}>
           <span className="pdv-field__label">Mot de passe</span>
-          <PdvButton type="button" variant="tertiary" onClick={openPassword}>
-            Modifier
-          </PdvButton>
+          {card ? (
+            <PdvButton type="button" variant="tertiary" onClick={openPassword}>
+              Modifier
+            </PdvButton>
+          ) : null}
         </div>
         {card ? (
           <div className="pdv-connexion-card__value" aria-hidden>
             ••••••••••
           </div>
         ) : (
-          <p className="pdv-field__hint mb-0">••••••••••</p>
+          <div className="pdv-connexion-idle__value-row">
+            <p className="pdv-connexion-idle__dots" aria-hidden>
+              ••••••••••
+            </p>
+            <PdvButton type="button" variant="tertiary" onClick={openPassword}>
+              Modifier
+            </PdvButton>
+          </div>
         )}
       </div>
     </div>
   );
 
   const emailForm = (
-    <form className="d-flex flex-column gap-3" onSubmit={(event) => void requestEmailChange(event)}>
-      <PdvField id="connexion-old-email" label="Ancienne adresse mail*" type="email" value={displayEmail} readOnly />
-      <PdvField
-        id="connexion-new-email"
-        label="Nouvelle adresse mail*"
-        type="email"
-        value={newEmail}
-        error={fieldErrors.email}
-        autoComplete="email"
-        required
-        onChange={(event) => setNewEmail(event.target.value)}
-      />
+    <form className="pdv-settings-card__stack" onSubmit={(event) => void requestEmailChange(event)}>
+      <div className="pdv-settings-card__fields">
+        <PdvField id="connexion-old-email" label="Ancienne adresse mail*" type="email" value={displayEmail} readOnly />
+        <PdvField
+          id="connexion-new-email"
+          label="Nouvelle adresse mail*"
+          type="email"
+          value={newEmail}
+          error={fieldErrors.email}
+          autoComplete="email"
+          required
+          onChange={(event) => setNewEmail(event.target.value)}
+        />
+      </div>
       <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
         Enregistrer les modifications
       </PdvButton>
@@ -340,7 +366,7 @@ export default function ConnexionSettings({
   );
 
   const passwordForm = (
-    <form className="d-flex flex-column gap-3" onSubmit={(event) => void savePassword(event)} autoComplete="off">
+    <form className="pdv-settings-card__stack" onSubmit={(event) => void savePassword(event)} autoComplete="off">
       <PdvField
         id="current-password"
         label="Ancien mot de passe*"
@@ -379,9 +405,7 @@ export default function ConnexionSettings({
             />
           }
         />
-        <div className="mt-2">
-          <PdvPasswordRules password={password} showError={passwordInvalid} />
-        </div>
+        <PdvPasswordRules password={password} showError={passwordInvalid} />
       </div>
       <PdvField
         id="confirm-password"
@@ -439,7 +463,7 @@ export default function ConnexionSettings({
         <div className="pdv-client-fiche">
           <ClientBackLink href={backHref}>Revenir aux paramètres</ClientBackLink>
           <h1 className="pdv-client-fiche__title">{pageTitle}</h1>
-          {idleFields}
+          <div className="pdv-settings-card">{idleFields}</div>
         </div>
       ) : (
         <section className="pdv-email-flow">

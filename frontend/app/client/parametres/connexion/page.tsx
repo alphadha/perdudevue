@@ -18,11 +18,15 @@ export default function ClientConnexionPage() {
   }, []);
 
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return (
+      <div className="pdv-client-fiche">
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <p>Chargement…</p>;
+    return <div className="pdv-client-fiche" />;
   }
 
   return (

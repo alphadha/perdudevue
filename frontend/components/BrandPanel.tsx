@@ -20,20 +20,22 @@ export default function BrandPanel() {
       <div className="pdv-brand-panel__content">
         <img className="pdv-brand-panel__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
         <div className="pdv-brand-panel__copy">
-          <p className="pdv-brand-panel__tagline">Perdues aujourd&apos;hui, Retrouvées demain</p>
-          <p className="pdv-brand-panel__desc">
-            Perdues de Vue grave sur vos lunettes un identifiant unique et discret. Enregistré dans
-            notre application, il permet de les retrouver facilement en cas de perte. Un service
-            proposé par votre opticien.
-          </p>
-        </div>
-        <div className="pdv-brand-panel__card">
-          <p className="pdv-brand-panel__card-title">Vous avez trouvé une paire de lunettes&nbsp;?</p>
-          <p className="pdv-brand-panel__card-body">
-            Déposez-la chez un opticien partenaire.
-            <br />
-            On s&apos;occupe du reste, et son propriétaire vous remercie&nbsp;!
-          </p>
+          <div className="pdv-brand-panel__intro">
+            <p className="pdv-brand-panel__tagline">Perdues aujourd&apos;hui, Retrouvées demain</p>
+            <p className="pdv-brand-panel__desc">
+              Perdues de Vue grave sur vos lunettes un identifiant unique et discret. Enregistré dans
+              notre application, il permet de les retrouver facilement en cas de perte. Un service
+              proposé par votre opticien.
+            </p>
+          </div>
+          <div className="pdv-brand-panel__card">
+            <p className="pdv-brand-panel__card-title">Vous avez trouvé une paire de lunettes&nbsp;?</p>
+            <p className="pdv-brand-panel__card-body">
+              Déposez-la chez un opticien partenaire.
+              <br />
+              On s&apos;occupe du reste, et son propriétaire vous remercie&nbsp;!
+            </p>
+          </div>
         </div>
       </div>
     </aside>

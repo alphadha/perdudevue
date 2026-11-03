@@ -49,11 +49,20 @@ export default function ClientNotificationsPage() {
   }
 
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return (
+      <div className="pdv-client-fiche">
+        <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <p>Chargement…</p>;
+    return (
+      <div className="pdv-client-fiche">
+        <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
+      </div>
+    );
   }
 
   const dirty = consentEmail !== profile.consent_email || consentSms !== profile.consent_sms;
@@ -63,16 +72,16 @@ export default function ClientNotificationsPage() {
       <AppToast message={toast} />
       <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
       <h1 className="pdv-client-fiche__title">Notifications</h1>
-      <form className="d-flex flex-column gap-3" onSubmit={(event) => void onSubmit(event)}>
+      <form className="pdv-settings-card" onSubmit={(event) => void onSubmit(event)}>
         <PdvToggle
           checked={consentEmail}
           onChange={setConsentEmail}
-          label="Recevoir les notifications par email"
+          label="Recevoir les notifications mail"
         />
         <PdvToggle
           checked={consentSms}
           onChange={setConsentSms}
-          label="Recevoir les notifications par SMS"
+          label="Recevoir les notifications SMS"
         />
         <PdvButton type="submit" variant="primary" size="l" block disabled={pending || !dirty}>
           Enregistrer les modifications

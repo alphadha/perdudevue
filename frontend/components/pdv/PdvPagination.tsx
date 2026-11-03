@@ -8,11 +8,9 @@ type Props = {
 
 /** Pagination kit Tableaux — page active 32×32 #FCFCFC, inactives légende. */
 export default function PdvPagination({ page, pageCount, onChange }: Props) {
-  if (pageCount <= 1) {
-    return null;
-  }
-
-  const pages = Array.from({ length: pageCount }, (_, index) => index + 1);
+  const total = Math.max(1, pageCount);
+  const current = Math.min(Math.max(1, page), total);
+  const pages = Array.from({ length: total }, (_, index) => index + 1);
 
   return (
     <nav className="pdv-pagination" aria-label="Pagination">
@@ -20,8 +18,8 @@ export default function PdvPagination({ page, pageCount, onChange }: Props) {
         type="button"
         className="pdv-pagination__arrow"
         aria-label="Page précédente"
-        disabled={page <= 1}
-        onClick={() => onChange(page - 1)}
+        disabled={current <= 1}
+        onClick={() => onChange(current - 1)}
       >
         <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} className="pdv-pagination__chevron--prev" />
       </button>
@@ -30,8 +28,8 @@ export default function PdvPagination({ page, pageCount, onChange }: Props) {
           <button
             key={item}
             type="button"
-            className={`pdv-pagination__page${item === page ? " is-active" : ""}`}
-            aria-current={item === page ? "page" : undefined}
+            className={`pdv-pagination__page${item === current ? " is-active" : ""}`}
+            aria-current={item === current ? "page" : undefined}
             onClick={() => onChange(item)}
           >
             {item}
@@ -42,8 +40,8 @@ export default function PdvPagination({ page, pageCount, onChange }: Props) {
         type="button"
         className="pdv-pagination__arrow"
         aria-label="Page suivante"
-        disabled={page >= pageCount}
-        onClick={() => onChange(page + 1)}
+        disabled={current >= total}
+        onClick={() => onChange(current + 1)}
       >
         <img src="/icons/pdv/chevron-right.svg" alt="" width={20} height={20} />
       </button>

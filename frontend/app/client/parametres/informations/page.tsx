@@ -1,14 +1,18 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AppToast from "@/components/AppToast";
 import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError } from "@/lib/api";
-import type { ClientProfile } from "@/lib/types";
+import { isIdentityChallenge, type ClientProfile, type IdentityChallenge } from "@/lib/types";
+
+const PHONE_OTP_KEY = "pdv_phone_otp";
 
 export default function ClientInformationsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<ClientProfile | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -31,15 +35,30 @@ export default function ClientInformationsPage() {
       });
   }, []);
 
+  const dirty =
+    profile !== null &&
+    (firstName !== profile.first_name || lastName !== profile.last_name || phone !== (profile.phone ?? ""));
+
   async function save(event: FormEvent) {
     event.preventDefault();
+    if (!dirty) {
+      return;
+    }
     setPending(true);
     setFieldErrors({});
     try {
-      const updated = await api<ClientProfile>("/client/profile", {
+      const updated = await api<ClientProfile | IdentityChallenge>("/client/profile", {
         method: "PATCH",
         body: JSON.stringify({ first_name: firstName, last_name: lastName, phone }),
       });
+      if (isIdentityChallenge(updated)) {
+        setProfile((current) =>
+          current ? { ...current, first_name: firstName, last_name: lastName } : current,
+        );
+        sessionStorage.setItem(PHONE_OTP_KEY, JSON.stringify({ token: updated.action_token, phone }));
+        router.push("/client/parametres/informations/telephone");
+        return;
+      }
       setProfile(updated);
       setToast("Informations enregistrées.");
       window.setTimeout(() => setToast(null), 4000);
@@ -64,11 +83,20 @@ export default function ClientInformationsPage() {
   }
 
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return (
+      <div className="pdv-client-fiche">
+        <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
+    );
   }
 
   if (!profile) {
-    return <p>Chargement…</p>;
+    return (
+      <div className="pdv-client-fiche">
+        <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
+      </div>
+    );
   }
 
   return (
@@ -76,34 +104,36 @@ export default function ClientInformationsPage() {
       <AppToast message={toast} />
       <ClientBackLink href="/client/parametres">Revenir aux paramètres</ClientBackLink>
       <h1 className="pdv-client-fiche__title">Informations personnelles</h1>
-      <form className="d-flex flex-column gap-3" onSubmit={(event) => void save(event)}>
-        <PdvField
-          id="last-name"
-          label="Nom"
-          value={lastName}
-          error={fieldErrors.last_name}
-          required
-          onChange={(event) => setLastName(event.target.value)}
-        />
-        <PdvField
-          id="first-name"
-          label="Prénom"
-          value={firstName}
-          error={fieldErrors.first_name}
-          required
-          onChange={(event) => setFirstName(event.target.value)}
-        />
-        <PdvField
-          id="phone"
-          label="Téléphone"
-          type="tel"
-          value={phone}
-          error={fieldErrors.phone}
-          required
-          onChange={(event) => setPhone(event.target.value)}
-        />
-        <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
-          Enregistrer
+      <form className="pdv-settings-card" onSubmit={(event) => void save(event)}>
+        <div className="pdv-settings-card__fields">
+          <PdvField
+            id="last-name"
+            label="Nom"
+            value={lastName}
+            error={fieldErrors.last_name}
+            required
+            onChange={(event) => setLastName(event.target.value)}
+          />
+          <PdvField
+            id="first-name"
+            label="Prénom"
+            value={firstName}
+            error={fieldErrors.first_name}
+            required
+            onChange={(event) => setFirstName(event.target.value)}
+          />
+          <PdvField
+            id="phone"
+            label="Numéro de téléphone"
+            type="tel"
+            value={phone}
+            error={fieldErrors.phone}
+            required
+            onChange={(event) => setPhone(event.target.value)}
+          />
+        </div>
+        <PdvButton type="submit" variant="primary" size="l" block disabled={pending || !dirty}>
+          Enregistrer les modifications
         </PdvButton>
       </form>
     </div>

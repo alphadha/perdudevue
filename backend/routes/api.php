@@ -41,6 +41,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('role:client')->prefix('client')->group(function () {
         Route::get('/profile', [ClientProfileController::class, 'show']);
         Route::patch('/profile', [ClientProfileController::class, 'update']);
+        Route::post('/profile/phone/otp', [ClientProfileController::class, 'verifyPhone'])
+            ->middleware('throttle:identity-otp');
+        Route::post('/profile/phone/resend', [ClientProfileController::class, 'resendPhone'])
+            ->middleware('throttle:identity-otp');
         Route::patch('/profile/consents', [ClientProfileController::class, 'updateConsents']);
         Route::patch('/account/password', [AccountController::class, 'password']);
         Route::patch('/account/email', [AccountController::class, 'email']);

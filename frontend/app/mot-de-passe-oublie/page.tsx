@@ -48,7 +48,7 @@ function ForgotForm() {
   return (
     <AuthFlowShell backHref={`/login?space=${space}`} title="Mot de passe oublié" progress={30.5}>
       {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
-      <form className="pdv-login__form" onSubmit={onSubmit} noValidate>
+      <form className="pdv-auth-flow__form" onSubmit={onSubmit} noValidate>
         <div className="pdv-field">
           <label className="pdv-field__label" htmlFor="email">
             Adresse e-mail*

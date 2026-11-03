@@ -62,7 +62,7 @@ class Lot10BillingTest extends TestCase
         $admin = User::factory()->admin()->create();
         $opticien = User::factory()->opticienAdmin()->create();
 
-        $this->actingAs($admin)->get('/admin/billing-review')->assertOk()->assertSee('Anomalies');
+        $this->actingAs($admin)->get('/admin/billing-review')->assertOk()->assertSee('Contrôle facturation');
         $this->actingAs($admin)->get('/admin/qonto-sync')->assertOk()->assertSee('QONTO_SECRET');
 
         $this->actingAs($opticien)->get('/admin/billing-review')->assertForbidden();

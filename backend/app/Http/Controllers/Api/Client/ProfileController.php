@@ -3,18 +3,25 @@
 namespace App\Http\Controllers\Api\Client;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Client\ResendPhoneOtpRequest;
 use App\Http\Requests\Client\UpdateConsentsRequest;
 use App\Http\Requests\Client\UpdateProfileRequest;
+use App\Http\Requests\Client\VerifyPhoneOtpRequest;
 use App\Http\Resources\ClientProfileResource;
 use App\Models\Client;
 use App\Services\AuditService;
+use App\Services\ClientProfileService;
 use App\Support\ApiResponse;
+use App\Support\IdentityChallenge;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
-    public function __construct(private readonly AuditService $audit) {}
+    public function __construct(
+        private readonly AuditService $audit,
+        private readonly ClientProfileService $profiles,
+    ) {}
 
     public function show(Request $request): JsonResponse
     {
@@ -26,21 +33,50 @@ class ProfileController extends Controller
         $client = $this->owner($request);
         $user = $request->user();
         abort_unless($user !== null, 403);
-        $client->forceFill([
-            'first_name' => $request->string('first_name')->toString(),
-            'last_name' => $request->string('last_name')->toString(),
-            'phone' => $request->string('phone')->toString(),
-        ])->save();
-        $user->forceFill([
-            'first_name' => $client->first_name,
-            'last_name' => $client->last_name,
-            'phone' => $client->phone,
-        ])->save();
-        $this->audit->record($user, 'client.profile_updated', $request, [
-            'client_uuid' => $client->uuid,
-        ]);
 
-        return ApiResponse::success(ClientProfileResource::make($client->fresh())->resolve());
+        $result = $this->profiles->update(
+            $user,
+            $client,
+            $request->string('first_name')->toString(),
+            $request->string('last_name')->toString(),
+            $request->string('phone')->toString(),
+            $request,
+        );
+
+        if ($result['challenge'] instanceof IdentityChallenge) {
+            return $this->challengeResponse($result['challenge']);
+        }
+
+        return ApiResponse::success(ClientProfileResource::make($result['client'])->resolve());
+    }
+
+    public function verifyPhone(VerifyPhoneOtpRequest $request): JsonResponse
+    {
+        $client = $this->owner($request);
+        $user = $request->user();
+        abort_unless($user !== null, 403);
+
+        $updated = $this->profiles->confirmPhone(
+            $user,
+            $client,
+            $request->string('action_token')->toString(),
+            $request->string('code')->toString(),
+            $request,
+        );
+
+        return ApiResponse::success(ClientProfileResource::make($updated)->resolve());
+    }
+
+    public function resendPhone(ResendPhoneOtpRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_unless($user !== null, 403);
+
+        return $this->challengeResponse($this->profiles->resendPhone(
+            $user,
+            $request->string('action_token')->toString(),
+            $request,
+        ));
     }
 
     public function updateConsents(UpdateConsentsRequest $request): JsonResponse
@@ -54,6 +90,17 @@ class ProfileController extends Controller
         ]);
 
         return ApiResponse::success(ClientProfileResource::make($client->fresh())->resolve());
+    }
+
+    private function challengeResponse(IdentityChallenge $challenge): JsonResponse
+    {
+        return ApiResponse::success([
+            'otp_required' => true,
+            'action_token' => $challenge->actionToken,
+            'otp_channel' => $challenge->otpChannel,
+            'masked_email' => $challenge->maskedEmail,
+            'masked_phone' => $challenge->maskedPhone,
+        ], null, 202);
     }
 
     private function owner(Request $request): Client

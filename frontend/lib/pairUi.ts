@@ -43,5 +43,5 @@ export function clientDisplayName(pair: ShopPair): string {
   if (!pair.client) {
     return "";
   }
-  return `${pair.client.last_name} ${pair.client.first_name}`;
+  return `${pair.client.first_name} ${pair.client.last_name}`;
 }

@@ -133,7 +133,7 @@ export default function LunettesPage() {
   const selectedCount = selectedPairs.length;
   const selectedForLabels = selectedPairs.filter((pair) => pair.actions.can_select_for_labels);
   const selectedForEngrave = selectedPairs.filter((pair) => pair.actions.can_export_code);
-  const showLabelsBulk = selectedForLabels.length >= 1;
+  const showLabelsBulk = selectedForLabels.length >= 2;
   const showEngraveBulk = selectedForEngrave.length >= 1 && selectedForEngrave.length === selectedPairs.length;
   const hasSelection = selectedCount > 0;
 
@@ -286,9 +286,7 @@ export default function LunettesPage() {
                           iconLeft="/icons/pdv/download-01.svg"
                           onClick={() => void downloadLabels(selectedForLabels.map((pair) => pair.uuid))}
                         >
-                          {selectedForLabels.length <= 1
-                            ? "Télécharger le bordereau"
-                            : "Télécharger les bordereaux"}
+                          {`Télécharger les bordereaux (${selectedForLabels.length})`}
                         </PdvButton>
                       ) : null}
                       {showEngraveBulk ? (

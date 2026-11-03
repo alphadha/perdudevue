@@ -193,7 +193,7 @@ export default function RestitutionPage() {
             </PdvButton>
           </div>
         </div>
-        <div className="d-flex flex-wrap gap-2">
+        <div className="pdv-page-head__actions">
           <PdvButton
             variant="secondary"
             size="l"

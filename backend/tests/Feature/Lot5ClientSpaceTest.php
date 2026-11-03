@@ -22,6 +22,8 @@ class Lot5ClientSpaceTest extends TestCase
     {
         $this->getJson('/api/v1/client/pairs')->assertUnauthorized();
         $this->getJson('/api/v1/client/profile')->assertUnauthorized();
+        $this->postJson('/api/v1/client/profile/phone/otp', [])->assertUnauthorized();
+        $this->postJson('/api/v1/client/profile/phone/resend', [])->assertUnauthorized();
     }
 
     public function test_opticien_cannot_list_client_pairs(): void
@@ -169,16 +171,32 @@ class Lot5ClientSpaceTest extends TestCase
         [$user, $client] = $this->ownerWithShop();
         Sanctum::actingAs($user);
 
-        $this->patchJson('/api/v1/client/profile', [
+        Mail::fake();
+        $phoneChallenge = $this->patchJson('/api/v1/client/profile', [
             'first_name' => 'Étienne',
             'last_name' => 'Morel',
             'phone' => '0699887766',
-        ])->assertOk()
-            ->assertJsonPath('data.first_name', 'Étienne')
-            ->assertJsonPath('data.phone', '0699887766');
+        ])
+            ->assertStatus(202)
+            ->assertJsonPath('data.otp_required', true)
+            ->assertJsonPath('data.otp_channel', 'sms');
 
         $this->assertSame('Étienne', $client->fresh()->first_name);
         $this->assertSame('Étienne', $user->fresh()->first_name);
+        $this->assertSame('0612345678', $client->fresh()->phone);
+
+        $phoneCode = null;
+        Mail::assertSent(IdentityOtpMail::class, function (IdentityOtpMail $mail) use (&$phoneCode): bool {
+            $phoneCode = $mail->code;
+
+            return $mail->channel === 'sms';
+        });
+
+        $this->postJson('/api/v1/client/profile/phone/otp', [
+            'action_token' => $phoneChallenge->json('data.action_token'),
+            'code' => $phoneCode,
+        ])->assertOk()->assertJsonPath('data.phone', '0699887766');
+        $this->assertSame('0699887766', $client->fresh()->phone);
 
         Mail::fake();
         $challenge = $this->patchJson('/api/v1/client/account/email', [
@@ -204,6 +222,26 @@ class Lot5ClientSpaceTest extends TestCase
 
         $this->deleteJson('/api/v1/client/account')->assertOk();
         $this->assertNotNull($user->fresh()->blocked_at);
+    }
+
+    public function test_client_phone_otp_is_scoped_to_owner(): void
+    {
+        Mail::fake();
+        [$user] = $this->ownerWithShop();
+        [$other] = $this->ownerWithShop('Optique B', 'client.c2@example.com');
+        Sanctum::actingAs($user);
+
+        $challenge = $this->patchJson('/api/v1/client/profile', [
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'phone' => '0699887766',
+        ])->assertStatus(202);
+
+        Sanctum::actingAs($other);
+        $this->postJson('/api/v1/client/profile/phone/otp', [
+            'action_token' => $challenge->json('data.action_token'),
+            'code' => '000000',
+        ])->assertStatus(422);
     }
 
     public function test_r5_08_sms_off_blocks_pickup_sms(): void

@@ -50,6 +50,7 @@ export type IdentityChallenge = {
   action_token: string;
   otp_channel: "email" | "sms";
   masked_email?: string | null;
+  masked_phone?: string | null;
 };
 
 export type ShopMember = {

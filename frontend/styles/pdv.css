@@ -935,8 +935,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  border: 1px solid var(--pdv-stroke);
+  padding: 16px;
+  border: 0;
   border-radius: var(--pdv-radius);
   background: var(--pdv-blanc);
 }
@@ -2961,7 +2961,7 @@ body {
   min-width: 0;
 }
 
-.pdv-search {
+.pdv-search:has(.pdv-search__field) {
   position: relative;
   z-index: 4;
   width: 100%;
@@ -3352,14 +3352,14 @@ body {
 }
 
 .pdv-toggle-row__label {
-  font-size: var(--pdv-fs-h6);
+  font-size: 16px;
   font-weight: 500;
   color: var(--pdv-texte);
   line-height: 1;
 }
 
 .pdv-toggle-row__label.is-active {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .pdv-toggle {
@@ -3559,6 +3559,13 @@ body {
   margin: 0;
 }
 
+.pdv-login__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
 .pdv-login__form {
   display: flex;
   flex-direction: column;
@@ -3716,14 +3723,24 @@ body {
 
 .pdv-brand-panel__copy {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   color: var(--pdv-blanc);
   text-align: center;
+}
+
+.pdv-brand-panel__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
 .pdv-brand-panel__tagline {
   font-size: 22px;
   font-weight: 700;
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--pdv-blanc);
   text-align: center;
 }
@@ -3814,6 +3831,14 @@ body {
     line-height: 1;
   }
 
+  .pdv-toggle-row__label {
+    font-size: 18px;
+  }
+
+  .pdv-toggle-row__label.is-active {
+    font-weight: 700;
+  }
+
   .pdv-login__submit {
     gap: 16px;
   }
@@ -3825,7 +3850,7 @@ body {
 
 /* Auth flow — MDP oublié / code / nouveau MDP (Figma 145:20691+) */
 .pdv-auth-flow {
-  gap: 32px;
+  gap: 24px;
 }
 
 .pdv-auth-flow__head {
@@ -3845,9 +3870,9 @@ body {
 }
 
 .pdv-auth-flow__back span {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
   color: var(--pdv-texte);
 }
 
@@ -3911,6 +3936,13 @@ body {
   color: var(--pdv-error-fg);
 }
 
+.pdv-auth-flow__form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+}
+
 .pdv-otp-form {
   display: flex;
   flex-direction: column;
@@ -3927,11 +3959,46 @@ body {
   text-align: center;
 }
 
+.pdv-otp-form__block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
 .pdv-otp-form__digits {
   display: flex;
   justify-content: center;
   gap: 10px;
   width: 100%;
+}
+
+.pdv-phone-otp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.pdv-phone-otp__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pdv-phone-otp__intro p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--pdv-legende);
+}
+
+.pdv-otp-form__digits--fluid .pdv-otp-form__digit {
+  flex: 1 0 0;
+  width: auto;
+  min-width: 0;
 }
 
 .pdv-otp-form__digit {
@@ -4191,6 +4258,25 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--pdv-texte);
 }
 
+.pdv-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pdv-settings-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pdv-settings-hub__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.pdv-settings-page .pdv-settings-section-title,
 .pdv-client-fiche .pdv-settings-section-title {
   font-size: 16px;
   font-weight: 600;
@@ -4198,13 +4284,85 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 0 8px;
 }
 
+.pdv-settings-page .pdv-settings-list,
 .pdv-client-fiche .pdv-settings-list {
   gap: 8px;
 }
 
+.pdv-settings-page .pdv-settings-item,
 .pdv-client-fiche .pdv-settings-item {
   font-size: 14px;
   line-height: 21px;
+}
+
+.pdv-settings-page .pdv-settings-item__label > img {
+  width: 18px;
+  height: 18px;
+}
+
+.pdv-settings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--pdv-radius);
+  background: var(--pdv-blanc);
+}
+
+.pdv-settings-card__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.pdv-settings-card__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.pdv-connexion-idle {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.pdv-connexion-idle__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.pdv-connexion-idle__label-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.pdv-connexion-idle__value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.pdv-connexion-idle__value,
+.pdv-connexion-idle__dots {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--pdv-legende);
+}
+
+.pdv-connexion-idle__dots {
+  letter-spacing: 0.12em;
 }
 
 .pdv-settings-list {
@@ -4424,6 +4582,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .pdv-help-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 4px;
   font-size: 14px;
   font-weight: 600;

@@ -314,7 +314,7 @@ class Lot2ClientsTest extends TestCase
         Sanctum::actingAs($admin);
         $this->getJson('/api/v1/opticien/users')
             ->assertOk()
-            ->assertJsonPath('data.0.email', $admin->email);
+            ->assertJsonFragment(['email' => $admin->email]);
     }
 
     public function test_name_only_update_persists_without_otp(): void

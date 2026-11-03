@@ -85,34 +85,40 @@ function OtpForm() {
   return (
     <AuthFlowShell backHref={`/mot-de-passe-oublie?space=${space}`} title="Mot de passe oublié" progress={50}>
       {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
-      <form className="pdv-login__form pdv-otp-form" onSubmit={onSubmit} noValidate>
-        <h1 className="pdv-otp-form__title">
-          Saisissez le code à 6 chiffres envoyé {email ? `au ${maskEmail(email)}` : "à votre e-mail"}
-        </h1>
-        <div className="pdv-otp-form__digits" role="group" aria-label="Code à 6 chiffres">
-          {code.map((digit, index) => (
-            <input
-              key={index}
-              ref={(node) => {
-                inputsRef.current[index] = node;
-              }}
-              className={`pdv-otp-form__digit${error ? " is-invalid" : ""}`}
-              inputMode="numeric"
-              autoComplete={index === 0 ? "one-time-code" : "off"}
-              maxLength={1}
-              value={digit}
-              aria-label={`Chiffre ${index + 1}`}
-              onChange={(event) => updateDigit(index, event.target.value)}
-              onKeyDown={(event) => onKeyDown(index, event.key)}
-              required
-            />
-          ))}
-        </div>
-        <div className="pdv-otp-form__resend">
-          <p>Vous n’avez pas reçu de code ?</p>
-          <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resend()}>
-            {resendPending ? "Envoi…" : "Renvoyer un code"}
-          </button>
+      <form className="pdv-auth-flow__form" onSubmit={onSubmit} noValidate>
+        <div className="pdv-otp-form">
+          <h1 className="pdv-otp-form__title">
+            Saisissez le code à 6 chiffres envoyé
+            <br />
+            {email ? `au ${maskEmail(email)}` : "à votre e-mail"}
+          </h1>
+          <div className="pdv-otp-form__block">
+            <div className="pdv-otp-form__digits" role="group" aria-label="Code à 6 chiffres">
+              {code.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(node) => {
+                    inputsRef.current[index] = node;
+                  }}
+                  className={`pdv-otp-form__digit${error ? " is-invalid" : ""}`}
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  maxLength={1}
+                  value={digit}
+                  aria-label={`Chiffre ${index + 1}`}
+                  onChange={(event) => updateDigit(index, event.target.value)}
+                  onKeyDown={(event) => onKeyDown(index, event.key)}
+                  required
+                />
+              ))}
+            </div>
+            <div className="pdv-otp-form__resend">
+              <p>Vous n’avez pas reçu de code ?</p>
+              <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resend()}>
+                {resendPending ? "Envoi…" : "Renvoyer un code"}
+              </button>
+            </div>
+          </div>
         </div>
         <PdvButton variant="primary" size="l" block type="submit" disabled={pending || code.join("").length < 6}>
           {pending ? "Vérification…" : "Confirmer"}
