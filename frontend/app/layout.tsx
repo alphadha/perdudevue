@@ -17,6 +17,13 @@ export const metadata: Metadata = {
     template: "%s | Perdues de Vue",
   },
   description: "Pour ne plus perdre le lien avec vos lunettes",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  openGraph: {
+    title: "Perdues de Vue",
+    description: "Pour ne plus perdre le lien avec vos lunettes",
+    locale: "fr_FR",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

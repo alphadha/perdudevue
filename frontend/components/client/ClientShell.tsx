@@ -14,7 +14,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
       <GeolocPrompt />
       {isHome ? (
         <nav className="pdv-client-shell__nav" aria-label="Navigation client">
-          <div className="pdv-client-shell__nav-inner">
+          <div className="container pdv-client-shell__nav-inner">
             <Link href="/client" className="pdv-client-shell__brand">
               <img src="/brand/logo.svg" alt="Perdues de Vue" height={36} />
             </Link>
@@ -28,7 +28,7 @@ export default function ClientShell({ children }: { children: ReactNode }) {
           </div>
         </nav>
       ) : null}
-      <div className="pdv-client-shell__body">{children}</div>
+      <div className="container pdv-client-shell__body">{children}</div>
     </div>
   );
 }

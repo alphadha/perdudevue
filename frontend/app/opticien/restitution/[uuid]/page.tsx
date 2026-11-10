@@ -66,12 +66,13 @@ export default function RestitutionFichePage() {
 
   if (error) {
     return (
-      <>
-        <PdvButton variant="tertiary" href="/opticien/restitution" iconLeft="/icons/pdv/arrow-narrow-left.svg">
+      <div className="pdv-fiche">
+        <Link href="/opticien/restitution" className="pdv-back-link">
+          <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
           Revenir aux restitutions
-        </PdvButton>
-        <p className="mt-3">{error}</p>
-      </>
+        </Link>
+        <p className="pdv-client-page-sub">{error}</p>
+      </div>
     );
   }
 
@@ -89,11 +90,12 @@ export default function RestitutionFichePage() {
   return (
     <>
       <AppToast title={toast?.title} message={toast?.message ?? null} variant={toast?.variant} onDismiss={() => setToast(null)} />
-      <p className="mb-3">
-        <PdvButton variant="tertiary" href="/opticien/restitution" iconLeft="/icons/pdv/arrow-narrow-left.svg">
+      <div className="pdv-fiche">
+      <div className="pdv-fiche__intro">
+        <Link href="/opticien/restitution" className="pdv-back-link">
+          <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
           Revenir aux restitutions
-        </PdvButton>
-      </p>
+        </Link>
       <div className="pdv-page-head pdv-page-head--pair">
         <div>
           <h1>{dossierTitle}</h1>
@@ -121,7 +123,7 @@ export default function RestitutionFichePage() {
               </PdvButton>
             </>
           ) : null}
-          {item.actions.can_download_label || item.status === "livraison_demandee" || item.status === "en_livraison" ? (
+          {item.status === "livraison_demandee" ? (
             <PdvButton
               variant="secondary"
               size="l"
@@ -133,6 +135,7 @@ export default function RestitutionFichePage() {
             </PdvButton>
           ) : null}
         </div>
+      </div>
       </div>
       <div className="pdv-fiche-grid">
         <div className="pdv-panel pdv-panel--fiche">
@@ -214,6 +217,7 @@ export default function RestitutionFichePage() {
             <p className="pdv-timeline__date mb-0">Aucun événement.</p>
           )}
         </div>
+      </div>
       </div>
 
       {handoverOpen ? (

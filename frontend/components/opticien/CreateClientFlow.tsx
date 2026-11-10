@@ -311,7 +311,13 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
           <form onSubmit={(event) => void submitEdit(event)}>
             <div className="modal-body">
               {formError ? <div className="alert alert-danger">{formError}</div> : null}
-              <ClientFormFields idPrefix="dash-edit" value={form} fieldErrors={fieldErrors} onChange={setForm} />
+              <ClientFormFields
+                idPrefix="dash-edit"
+                value={form}
+                fieldErrors={fieldErrors}
+                onChange={setForm}
+                showConsents={false}
+              />
             </div>
             <div className="modal-footer flex-column">
               <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>

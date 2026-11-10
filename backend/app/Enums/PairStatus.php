@@ -38,6 +38,12 @@ enum PairStatus: string
         return $this === self::Active;
     }
 
+    /** Figma kebab « Modifier la paire » : tous les statuts sauf inactive (et archivee). */
+    public function canEditAttributes(): bool
+    {
+        return ! in_array($this, [self::Inactive, self::Archivee], true);
+    }
+
     /** Figma client : inactive depuis Active, Perdue ou Livraison demandée. */
     public function canClientInactivate(): bool
     {

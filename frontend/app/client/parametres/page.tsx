@@ -110,10 +110,15 @@ export default function ClientSettingsPage() {
           <img src="/icons/pdv/help-circle.svg" alt="" width={20} height={20} />
           Vous avez besoin d’aide ?
         </p>
-        <p className="pdv-help-card__body">
-          Notre support client est à votre disposition pour répondre à toutes vos questions. Vous pouvez nous
-          contacter par mail à <strong>{SUPPORT}</strong>.
-        </p>
+        <div className="pdv-help-card__body">
+          <p>Notre support client est à votre disposition pour répondre à toutes vos questions.</p>
+          <p>
+            Vous pouvez nous contacter par mail à{" "}
+            <a className="pdv-help-card__mail" href={`mailto:${SUPPORT}`}>
+              {SUPPORT}
+            </a>.
+          </p>
+        </div>
       </aside>
 
       {logoutOpen ? (

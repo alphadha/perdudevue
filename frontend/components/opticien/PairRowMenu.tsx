@@ -1,13 +1,14 @@
 "use client";
 
 import PdvRowActions, { type PdvRowAction } from "@/components/pdv/PdvRowActions";
-import { downloadAssignedCode } from "@/lib/pairUi";
 import type { ShopPair } from "@/lib/types";
 
 type Props = {
   pair: ShopPair;
   onEngrave: (pair: ShopPair) => void;
   onInactivate: (pair: ShopPair) => void;
+  onEdit?: (pair: ShopPair) => void;
+  onExport?: (pair: ShopPair) => void;
   onHandOver?: () => void;
   onResend?: (pair: ShopPair) => void;
   onDownloadLabel?: (pair: ShopPair) => void;
@@ -18,6 +19,8 @@ export default function PairRowMenu({
   pair,
   onEngrave,
   onInactivate,
+  onEdit,
+  onExport,
   onHandOver,
   onResend,
   onDownloadLabel,
@@ -25,9 +28,13 @@ export default function PairRowMenu({
 }: Props) {
   const items: PdvRowAction[] = [{ label: "Voir la fiche", href: `/opticien/lunettes/${pair.uuid}` }];
 
+  if (pair.actions.can_edit) {
+    items.push({ label: "Modifier la paire", onClick: () => onEdit?.(pair) });
+  }
+
   if (pair.status === "a_graver") {
     items.push(
-      { label: "Exporter le code assigné", onClick: () => downloadAssignedCode(pair) },
+      { label: "Exporter le code assigné", onClick: () => onExport?.(pair) },
       { label: "Indiquer comme gravée", onClick: () => onEngrave(pair) },
     );
   }

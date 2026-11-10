@@ -1,10 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AppToast from "@/components/AppToast";
 import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvCodeBoxes from "@/components/pdv/PdvCodeBoxes";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatPhoneFr } from "@/lib/formatPhone";
 import type { ClientProfile } from "@/lib/types";
@@ -35,12 +36,11 @@ function readChallenge(): StoredChallenge | null {
 export default function ClientPhoneOtpPage() {
   const router = useRouter();
   const [challenge, setChallenge] = useState<StoredChallenge | null>(null);
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [resendPending, setResendPending] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
   useEffect(() => {
     const stored = readChallenge();
@@ -50,31 +50,6 @@ export default function ClientPhoneOtpPage() {
     }
     setChallenge(stored);
   }, [router]);
-
-  function updateDigit(index: number, raw: string) {
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length > 1) {
-      const next = ["", "", "", "", "", ""];
-      digits.slice(0, 6).split("").forEach((digit, offset) => {
-        next[offset] = digit;
-      });
-      setCode(next);
-      inputsRef.current[Math.min(digits.length, 5)]?.focus();
-      return;
-    }
-    const next = [...code];
-    next[index] = digits.slice(-1);
-    setCode(next);
-    if (digits && index < 5) {
-      inputsRef.current[index + 1]?.focus();
-    }
-  }
-
-  function onKeyDown(index: number, key: string) {
-    if (key === "Backspace" && !code[index] && index > 0) {
-      inputsRef.current[index - 1]?.focus();
-    }
-  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -86,7 +61,7 @@ export default function ClientPhoneOtpPage() {
     try {
       await api<ClientProfile>("/client/profile/phone/otp", {
         method: "POST",
-        body: JSON.stringify({ action_token: challenge.token, code: code.join("") }),
+        body: JSON.stringify({ action_token: challenge.token, code }),
       });
       sessionStorage.removeItem(STORAGE_KEY);
       router.push("/client/parametres/informations");
@@ -143,25 +118,15 @@ export default function ClientPhoneOtpPage() {
             au {formatPhoneFr(challenge.phone)}.
           </h2>
           <div className="pdv-otp-form__block">
-            <div className="pdv-otp-form__digits pdv-otp-form__digits--fluid" role="group" aria-label="Code à 6 chiffres">
-              {code.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(node) => {
-                    inputsRef.current[index] = node;
-                  }}
-                  className={`pdv-otp-form__digit${error ? " is-invalid" : ""}`}
-                  inputMode="numeric"
-                  autoComplete={index === 0 ? "one-time-code" : "off"}
-                  maxLength={1}
-                  value={digit}
-                  aria-label={`Chiffre ${index + 1}`}
-                  onChange={(event) => updateDigit(index, event.target.value)}
-                  onKeyDown={(event) => onKeyDown(index, event.key)}
-                  required
-                />
-              ))}
-            </div>
+            <PdvCodeBoxes
+              idPrefix="phone-otp"
+              value={code}
+              onChange={setCode}
+              numeric
+              invalid={Boolean(error)}
+              className="pdv-otp-form__digits--fluid"
+              ariaLabel="Code à 6 chiffres"
+            />
             <div className="pdv-otp-form__resend">
               <p>Vous n’avez pas reçu de code ?</p>
               <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resend()}>
@@ -171,7 +136,7 @@ export default function ClientPhoneOtpPage() {
           </div>
         </div>
         {error ? <p className="pdv-field__error">{error}</p> : null}
-        <PdvButton variant="primary" size="l" block type="submit" disabled={pending || code.join("").length < 6}>
+        <PdvButton variant="primary" size="l" block type="submit" disabled={pending || code.length < 6}>
           {pending ? "Vérification…" : "Confirmer"}
         </PdvButton>
       </form>

@@ -25,7 +25,7 @@ export default function AuthFlowShell({ backHref, title, progress, children }: P
           <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
         </header>
 
-        <div className="pdv-login__body pdv-auth-flow">
+        <div className="container pdv-login__body pdv-auth-flow">
           <div className="pdv-auth-flow__head">
             <Link href={backHref} className="pdv-auth-flow__back">
               <img

@@ -132,6 +132,7 @@ export type ShopPair = {
   actions: {
     can_engrave: boolean;
     can_export_code: boolean;
+    can_edit: boolean;
     can_inactivate: boolean;
     can_archive: boolean;
     can_hand_over: boolean;

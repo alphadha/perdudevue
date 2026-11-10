@@ -73,7 +73,7 @@ const BY_TITLE: Record<string, ToastState> = {
   [CLIENT_UPDATED_TOAST.title ?? ""]: CLIENT_UPDATED_TOAST,
 };
 
-const ERROR_HINT = /impossible|limite|erreur|non enregistr|non prises|atteint/i;
+const ERROR_HINT = /impossible|limite|erreur|échec|echec|non enregistr|non prises|atteint/i;
 
 export function normalizeToast(input: {
   title?: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import AddressAutocomplete, { type AddressSuggestion } from "@/components/AddressAutocomplete";
 import AppToast from "@/components/AppToast";
@@ -67,7 +67,7 @@ export default function DeliveryRequestPage() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [step, setStep] = useState<"mode" | "recap">("mode");
-  const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
+  const [toast, setToast] = useState<{ title: string; message: string; variant?: "error" | "success" } | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
   const [mode, setMode] = useState<"home" | "relay">("home");
   const [relayId, setRelayId] = useState("");
@@ -83,6 +83,7 @@ export default function DeliveryRequestPage() {
     postal_code: "",
     city: "",
   });
+  const payFailRestored = useRef(false);
 
   const persistDraft = useCallback(
     (next: Draft) => {
@@ -150,10 +151,13 @@ export default function DeliveryRequestPage() {
         `/client/pairs/${pair.uuid}/shipping?${paramsQs.toString()}`,
       );
       setQuote(nextQuote);
-      if (nextQuote.relays[0]) {
-        setRelayId(nextQuote.relays[0].id);
-      } else {
-        setRelayId("");
+      setRelayId((current) => {
+        if (current && nextQuote.relays.some((relay) => relay.id === current)) {
+          return current;
+        }
+        return nextQuote.relays[0]?.id ?? "";
+      });
+      if (!nextQuote.relays[0]) {
         setRelaySearchError(
           nextQuote.postal_code
             ? "Aucun point relais trouvé près de cette adresse."
@@ -198,12 +202,14 @@ export default function DeliveryRequestPage() {
   useEffect(() => {
     const failed = searchParams.get("paiement") === "echec";
     const sessionId = searchParams.get("session_id");
-    if (!failed) {
+    if (!failed || !pair || payFailRestored.current) {
       return;
     }
+    payFailRestored.current = true;
     setToast({
       title: "Échec du paiement",
       message: "Votre paiement n’a pas abouti. Nous vous invitons à réessayer.",
+      variant: "error",
     });
     try {
       const raw = sessionStorage.getItem(draftKey(params.uuid));
@@ -217,6 +223,9 @@ export default function DeliveryRequestPage() {
           ...draft.form,
         });
         setStep("recap");
+        if (draft.mode === "relay" && draft.addressQuery.trim() !== "") {
+          void searchRelays(draft.addressQuery);
+        }
       }
     } catch {
       setStep("mode");
@@ -230,7 +239,7 @@ export default function DeliveryRequestPage() {
     }).catch(() => {
       // Session expirée ou déjà failed : le toaster Figma suffit.
     });
-  }, [params.uuid, searchParams]);
+  }, [params.uuid, searchParams, pair]);
 
   function continueToRecap(event: FormEvent) {
     event.preventDefault();
@@ -361,6 +370,7 @@ export default function DeliveryRequestPage() {
       <AppToast
         title={toast?.title}
         message={toast?.message ?? null}
+        variant={toast?.variant}
         onDismiss={() => setToast(null)}
       />
       <div className="pdv-delivery__bar">
@@ -495,27 +505,29 @@ export default function DeliveryRequestPage() {
           </div>
 
           <div className={`pdv-ship-card${mode === "relay" ? " is-open" : ""}`}>
-            <div className="pdv-ship-card__head" onClick={() => selectMode("relay")}>
-              <span className="pdv-ship-card__choice">
-                <span className="pdv-ship-radio">
-                  <input
-                    type="radio"
-                    name="mode"
-                    id="mode-relay"
-                    checked={mode === "relay"}
-                    onChange={() => selectMode("relay")}
-                  />
-                  <span className="pdv-ship-radio__mark" />
-                </span>
-                <label className="pdv-ship-card__label" htmlFor="mode-relay">
-                  En point Mondial Relay
-                </label>
-              </span>
-              <span className="pdv-ship-card__price">{formatPrice(relayCents)}</span>
-            </div>
             {mode === "relay" ? (
               <>
-                <p className="pdv-ship-card__lead">Un commerce proche de chez vous</p>
+                <div className="pdv-ship-card__intro">
+                  <div className="pdv-ship-card__head" onClick={() => selectMode("relay")}>
+                    <span className="pdv-ship-card__choice">
+                      <span className="pdv-ship-radio">
+                        <input
+                          type="radio"
+                          name="mode"
+                          id="mode-relay"
+                          checked={mode === "relay"}
+                          onChange={() => selectMode("relay")}
+                        />
+                        <span className="pdv-ship-radio__mark" />
+                      </span>
+                      <label className="pdv-ship-card__label" htmlFor="mode-relay">
+                        En point Mondial Relay
+                      </label>
+                    </span>
+                    <span className="pdv-ship-card__price">{formatPrice(relayCents)}</span>
+                  </div>
+                  <p className="pdv-ship-card__lead">Un commerce proche de chez vous</p>
+                </div>
                 <label className="visually-hidden" htmlFor="relay-address">
                   Adresse
                 </label>
@@ -540,12 +552,38 @@ export default function DeliveryRequestPage() {
                         <img src="/icons/pdv/marker-pin-01.svg" alt="" width={16} height={16} />
                         {selectedRelay.address} {selectedRelay.postal_code} {selectedRelay.city}
                       </p>
+                      {quote.eta_label ? (
+                        <p className="pdv-relay-pick__row">
+                          <img src="/icons/pdv/clock.svg" alt="" width={16} height={16} />
+                          {quote.eta_label}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
                 ) : null}
               </>
             ) : (
-              <p className="pdv-ship-card__lead">Un commerce proche de chez vous</p>
+              <>
+                <div className="pdv-ship-card__head" onClick={() => selectMode("relay")}>
+                  <span className="pdv-ship-card__choice">
+                    <span className="pdv-ship-radio">
+                      <input
+                        type="radio"
+                        name="mode"
+                        id="mode-relay"
+                        checked={mode === "relay"}
+                        onChange={() => selectMode("relay")}
+                      />
+                      <span className="pdv-ship-radio__mark" />
+                    </span>
+                    <label className="pdv-ship-card__label" htmlFor="mode-relay">
+                      En point Mondial Relay
+                    </label>
+                  </span>
+                  <span className="pdv-ship-card__price">{formatPrice(relayCents)}</span>
+                </div>
+                <p className="pdv-ship-card__lead">Un commerce proche de chez vous</p>
+              </>
             )}
           </div>
 
@@ -594,21 +632,23 @@ export default function DeliveryRequestPage() {
                 </p>
               ) : null}
             </div>
-            <div className="pdv-recap-card__prices">
-              <p className="pdv-recap-card__label">Détails du prix</p>
-              <div className="pdv-recap-card__price-row">
-                <span>Prix HT</span>
-                <span>{formatPrice(priceParts.ht)}</span>
+            {mode === "home" ? (
+              <div className="pdv-recap-card__prices">
+                <p className="pdv-recap-card__label">Détails du prix</p>
+                <div className="pdv-recap-card__price-row">
+                  <span>Prix HT</span>
+                  <span>{formatPrice(priceParts.ht)}</span>
+                </div>
+                <div className="pdv-recap-card__price-row">
+                  <span>TVA (20%)</span>
+                  <span>{formatPrice(priceParts.vat)}</span>
+                </div>
+                <div className="pdv-recap-card__price-row">
+                  <span>Prix TTC</span>
+                  <span>{formatPrice(priceParts.ttc)}</span>
+                </div>
               </div>
-              <div className="pdv-recap-card__price-row">
-                <span>TVA (20%)</span>
-                <span>{formatPrice(priceParts.vat)}</span>
-              </div>
-              <div className="pdv-recap-card__price-row">
-                <span>Prix TTC</span>
-                <span>{formatPrice(priceParts.ttc)}</span>
-              </div>
-            </div>
+            ) : null}
           </section>
           <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void pay()}>
             Procéder au paiement

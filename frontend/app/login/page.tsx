@@ -79,7 +79,7 @@ function LoginForm() {
           <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
         </header>
 
-        <div className="pdv-login__body">
+        <div className="container pdv-login__body">
           <h1 className="pdv-login__title">Bienvenue chez Perdues de Vue !</h1>
 
           <form className="pdv-login__stack" onSubmit={onSubmit} noValidate>

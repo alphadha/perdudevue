@@ -94,6 +94,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pairs', [PairController::class, 'index']);
         Route::post('/pairs', [PairController::class, 'store']);
         Route::get('/pairs/{uuid}', [PairController::class, 'show']);
+        Route::patch('/pairs/{uuid}', [PairController::class, 'update']);
         Route::post('/pairs/{uuid}/engrave', [PairController::class, 'engrave']);
         Route::post('/pairs/{uuid}/inactivate', [PairController::class, 'inactivate']);
         Route::delete('/pairs/{uuid}', [PairController::class, 'destroy']);

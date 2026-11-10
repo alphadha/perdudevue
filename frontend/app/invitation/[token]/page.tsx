@@ -39,7 +39,7 @@ function InvitationBlocked({
       <BrandPanel />
       <div className="pdv-login__main">
         <AuthHero />
-        <div className="pdv-login__body">
+        <div className="container pdv-login__body">
           <section className="pdv-invite-used">
             <div className="pdv-invite-used__copy">
               <p className="pdv-invite-used__title">{title}</p>
@@ -160,7 +160,7 @@ export default function InvitationPage() {
       <BrandPanel />
       <div className="pdv-login__main">
         <AuthHero />
-        <div className="pdv-login__body">
+        <div className="container pdv-login__body">
           <h1 className="pdv-login__title">Bienvenue chez Perdues de Vue !</h1>
 
           <div className="pdv-login__section">

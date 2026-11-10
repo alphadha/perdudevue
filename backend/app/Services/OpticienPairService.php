@@ -90,6 +90,38 @@ class OpticienPairService
         });
     }
 
+    /**
+     * Identité visuelle uniquement (type / marque / couleurs / description).
+     * Le code assigné et le statut restent immuables.
+     *
+     * @param  array<string, mixed>  $input
+     */
+    public function updateAttributes(User $actor, Pair $pair, array $input, Request $request): Pair
+    {
+        if (! $pair->status->canEditAttributes()) {
+            throw ValidationException::withMessages([
+                'status' => 'Cette paire ne peut plus être modifiée.',
+            ]);
+        }
+
+        $brand = $input['brand'] === PairCatalog::OTHER_BRAND
+            ? trim((string) ($input['custom_brand'] ?? ''))
+            : $input['brand'];
+
+        $pair->fill([
+            'type' => $input['type'],
+            'brand' => $brand,
+            'colors' => $input['colors'],
+            'description' => $input['description'] ?? null,
+        ]);
+        $pair->save();
+        $this->audit->record($actor, 'pair.updated', $request, [
+            'pair_uuid' => $pair->uuid,
+        ]);
+
+        return $pair->fresh()->load(['client', 'events']);
+    }
+
     public function engrave(User $actor, Pair $pair, Request $request): Pair
     {
         if ($pair->status !== PairStatus::AGraver) {

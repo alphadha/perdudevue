@@ -7,9 +7,16 @@ type Props = {
   fieldErrors: Record<string, string>;
   onChange: (next: ClientPayload) => void;
   idPrefix: string;
+  showConsents?: boolean;
 };
 
-export default function ClientFormFields({ value, fieldErrors, onChange, idPrefix }: Props) {
+export default function ClientFormFields({
+  value,
+  fieldErrors,
+  onChange,
+  idPrefix,
+  showConsents = true,
+}: Props) {
   function set<K extends keyof ClientPayload>(key: K, next: ClientPayload[K]) {
     onChange({ ...value, [key]: next });
   }
@@ -55,25 +62,27 @@ export default function ClientFormFields({ value, fieldErrors, onChange, idPrefi
         required
         onChange={(event) => set("phone", event.target.value)}
       />
-      <div className="pdv-consent-block">
-        <div className="pdv-consent-block__intro">
-          <p className="pdv-field__label">Préférences de notifications de votre client*</p>
-          <p className="pdv-field__hint">
-            Le client doit donner son accord pour chaque mode de communication. Ces choix peuvent être
-            modifiés ultérieurement
-          </p>
+      {showConsents ? (
+        <div className="pdv-consent-block">
+          <div className="pdv-consent-block__intro">
+            <p className="pdv-field__label">Préférences de notifications de votre client*</p>
+            <p className="pdv-field__hint">
+              Le client doit donner son accord pour chaque mode de communication. Ces choix peuvent être
+              modifiés ultérieurement
+            </p>
+          </div>
+          <PdvToggle
+            checked={value.consent_email}
+            onChange={(checked) => set("consent_email", checked)}
+            label="Le client accepte les notifications par email"
+          />
+          <PdvToggle
+            checked={value.consent_sms}
+            onChange={(checked) => set("consent_sms", checked)}
+            label="Le client accepte les notifications par SMS"
+          />
         </div>
-        <PdvToggle
-          checked={value.consent_email}
-          onChange={(checked) => set("consent_email", checked)}
-          label="Le client accepte les notifications par email"
-        />
-        <PdvToggle
-          checked={value.consent_sms}
-          onChange={(checked) => set("consent_sms", checked)}
-          label="Le client accepte les notifications par SMS"
-        />
-      </div>
+      ) : null}
     </>
   );
 }

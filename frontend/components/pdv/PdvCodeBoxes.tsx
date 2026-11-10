@@ -10,6 +10,7 @@ type Props = {
   numeric?: boolean;
   invalid?: boolean;
   ariaLabel: string;
+  className?: string;
 };
 
 const BOXES = 6;
@@ -22,14 +23,35 @@ export default function PdvCodeBoxes({
   numeric = false,
   invalid = false,
   ariaLabel,
+  className,
 }: Props) {
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
+  const skipInput = useRef(false);
   const sanitize = (raw: string) =>
     (numeric ? raw.replace(/\D/g, "") : raw.replace(/[^A-Za-z0-9]/g, "")).toUpperCase();
   const chars = Array.from({ length }, (_, index) => value[index] ?? "");
 
+  function fill(raw: string) {
+    const pasted = sanitize(raw).slice(0, length);
+    skipInput.current = true;
+    onChange(pasted);
+    const focusAt = Math.min(Math.max(pasted.length, 1), length) - 1;
+    requestAnimationFrame(() => {
+      skipInput.current = false;
+      inputs.current[focusAt]?.focus();
+    });
+  }
+
   function setChar(index: number, raw: string) {
-    const char = sanitize(raw).slice(-1);
+    if (skipInput.current) {
+      return;
+    }
+    const cleaned = sanitize(raw);
+    if (cleaned.length > 1) {
+      fill(cleaned);
+      return;
+    }
+    const char = cleaned.slice(-1);
     const next = chars.map((current, i) => (i === index ? char : current));
     onChange(next.join(""));
     if (char && index < length - 1) {
@@ -45,13 +67,15 @@ export default function PdvCodeBoxes({
 
   function onPaste(event: ClipboardEvent<HTMLInputElement>) {
     event.preventDefault();
-    const pasted = sanitize(event.clipboardData.getData("text")).slice(0, length);
-    onChange(pasted);
-    inputs.current[Math.min(pasted.length, length - 1)]?.focus();
+    fill(event.clipboardData.getData("text") || event.clipboardData.getData("text/plain"));
   }
 
   return (
-    <div className="pdv-otp-form__digits" role="group" aria-label={ariaLabel}>
+    <div
+      className={["pdv-otp-form__digits", className].filter(Boolean).join(" ")}
+      role="group"
+      aria-label={ariaLabel}
+    >
       {chars.map((char, index) => (
         <input
           key={index}
@@ -61,7 +85,7 @@ export default function PdvCodeBoxes({
           }}
           className={`pdv-otp-form__digit${invalid ? " is-invalid" : ""}`}
           value={char}
-          maxLength={1}
+          maxLength={length}
           autoComplete={index === 0 ? "one-time-code" : "off"}
           inputMode={numeric ? "numeric" : "text"}
           aria-label={`Caractère ${index + 1}`}

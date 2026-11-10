@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import AppToast from "@/components/AppToast";
 import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvCodeBoxes from "@/components/pdv/PdvCodeBoxes";
 import PdvField from "@/components/pdv/PdvField";
 import PdvPasswordRules, { passwordMeetsRules } from "@/components/pdv/PdvPasswordRules";
 import { api, ApiRequestError } from "@/lib/api";
@@ -48,8 +49,7 @@ export default function ConnexionSettings({
   const [newEmail, setNewEmail] = useState("");
   const [displayEmail, setDisplayEmail] = useState(initialEmail);
   const [challenge, setChallenge] = useState<IdentityChallenge | null>(null);
-  const [otpDigits, setOtpDigits] = useState(["", "", "", "", "", ""]);
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [otpCode, setOtpCode] = useState("");
   const [currentForPassword, setCurrentForPassword] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -66,7 +66,7 @@ export default function ConnexionSettings({
 
   const card = variant === "card";
   const emailLabel = card ? "Adresse mail" : "Adresse e-mail";
-  const otpValue = otpDigits.join("");
+  const otpValue = otpCode;
   const passwordInvalid = passwordTouched && !passwordMeetsRules(password);
   const canAttemptPassword =
     currentForPassword.length > 0 && password.length > 0 && passwordConfirmation.length > 0;
@@ -101,7 +101,7 @@ export default function ConnexionSettings({
     setView("idle");
     setNewEmail("");
     setChallenge(null);
-    setOtpDigits(["", "", "", "", "", ""]);
+    setOtpCode("");
     setOtpError(null);
     setCurrentForPassword("");
     setPassword("");
@@ -137,7 +137,7 @@ export default function ConnexionSettings({
       if (isIdentityChallenge(result)) {
         setChallenge(result);
         setView("email-otp");
-        setOtpDigits(["", "", "", "", "", ""]);
+        setOtpCode("");
         setOtpError(null);
         return;
       }
@@ -224,31 +224,6 @@ export default function ConnexionSettings({
       captureErrors(caught);
     } finally {
       setPending(false);
-    }
-  }
-
-  function updateDigit(index: number, raw: string) {
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length > 1) {
-      const next = ["", "", "", "", "", ""];
-      digits.slice(0, 6).split("").forEach((digit, offset) => {
-        next[offset] = digit;
-      });
-      setOtpDigits(next);
-      otpRefs.current[Math.min(digits.length, 5)]?.focus();
-      return;
-    }
-    const next = [...otpDigits];
-    next[index] = digits.slice(-1);
-    setOtpDigits(next);
-    if (digits && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  }
-
-  function onOtpKeyDown(index: number, key: string) {
-    if (key === "Backspace" && !otpDigits[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus();
     }
   }
 
@@ -348,25 +323,15 @@ export default function ConnexionSettings({
         </h2>
         {otpError ? <p className="pdv-field__error">{otpError}</p> : null}
         <div className="pdv-otp-form__block">
-          <div className="pdv-otp-form__digits pdv-otp-form__digits--fluid" role="group" aria-label="Code à 6 chiffres">
-            {otpDigits.map((digit, index) => (
-              <input
-                key={index}
-                ref={(node) => {
-                  otpRefs.current[index] = node;
-                }}
-                className={`pdv-otp-form__digit${otpError ? " is-invalid" : ""}`}
-                inputMode="numeric"
-                autoComplete={index === 0 ? "one-time-code" : "off"}
-                maxLength={1}
-                value={digit}
-                aria-label={`Chiffre ${index + 1}`}
-                onChange={(event) => updateDigit(index, event.target.value)}
-                onKeyDown={(event) => onOtpKeyDown(index, event.key)}
-                required
-              />
-            ))}
-          </div>
+          <PdvCodeBoxes
+            idPrefix="connexion-otp"
+            value={otpCode}
+            onChange={setOtpCode}
+            numeric
+            invalid={Boolean(otpError)}
+            className="pdv-otp-form__digits--fluid"
+            ariaLabel="Code à 6 chiffres"
+          />
           <div className="pdv-otp-form__resend">
             <p>Vous n’avez pas reçu de code ?</p>
             <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resendEmailCode()}>
@@ -461,20 +426,24 @@ export default function ConnexionSettings({
     <>
       <AppToast title={toastTitle} message={toast} />
       {card ? (
-        <section className="pdv-connexion-card">
-          {view === "idle" ? (
-            <Link className="pdv-connexion-card__back" href={backHref}>
-              <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
-              <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
-            </Link>
-          ) : (
-            <button type="button" className="pdv-connexion-card__back" onClick={goIdle}>
-              <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
-              <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
-            </button>
-          )}
-          {editor}
-        </section>
+        <div className="row g-0 justify-content-center">
+          <div className="col-12 col-lg-8 col-xl-5">
+            <section className="pdv-connexion-card">
+              {view === "idle" ? (
+                <Link className="pdv-connexion-card__back" href={backHref}>
+                  <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
+                  <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
+                </Link>
+              ) : (
+                <button type="button" className="pdv-connexion-card__back" onClick={goIdle}>
+                  <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
+                  <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
+                </button>
+              )}
+              {editor}
+            </section>
+          </div>
+        </div>
       ) : view === "idle" ? (
         <div className="pdv-client-fiche">
           <ClientBackLink href={backHref}>Revenir aux paramètres</ClientBackLink>

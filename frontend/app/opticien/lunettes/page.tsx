@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import AppToast from "@/components/AppToast";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
 import HandoverModal from "@/components/opticien/HandoverModal";
+import ExportCodeModal from "@/components/opticien/ExportCodeModal";
 import MarkShippedModal from "@/components/opticien/MarkShippedModal";
 import { PairEngraveModal, PairInactiveModal } from "@/components/opticien/PairActionModals";
+import EditPairModal from "@/components/opticien/EditPairModal";
 import PairRowMenu from "@/components/opticien/PairRowMenu";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
 import RegisterPairModal from "@/components/opticien/RegisterPairModal";
@@ -17,7 +19,7 @@ import PdvPagination from "@/components/pdv/PdvPagination";
 import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatSyncLabel } from "@/lib/formatSync";
-import { PAIR_CREATED_TOAST, clientDisplayName, downloadAssignedCode, downloadLabelFile } from "@/lib/pairUi";
+import { PAIR_CREATED_TOAST, clientDisplayName, downloadLabelFile } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
 import { formatFrDate, type ShopPair, type ShippingLabelFile } from "@/lib/types";
 
@@ -51,6 +53,8 @@ export default function LunettesPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [pendingResend, setPendingResend] = useState(false);
+  const [exportPairs, setExportPairs] = useState<ShopPair[] | null>(null);
+  const [editPair, setEditPair] = useState<ShopPair | null>(null);
 
   const showToast = useCallback((message: string, title?: string) => {
     setToast({ title, message });
@@ -175,9 +179,7 @@ export default function LunettesPage() {
   }
 
   function exportEngraveCodes(targets: ShopPair[]) {
-    targets.forEach((pair) => downloadAssignedCode(pair));
-    setSelected([]);
-    showToast(`${targets.length} code(s) à graver exporté(s).`);
+    setExportPairs(targets);
   }
 
   async function resend(channels: Array<"email" | "sms">) {
@@ -332,6 +334,8 @@ export default function LunettesPage() {
                     pair={pair}
                     onEngrave={mutations.setEngravePair}
                     onInactivate={mutations.setInactivePair}
+                    onEdit={setEditPair}
+                    onExport={(item) => setExportPairs([item])}
                     onHandOver={() => setHandoverOpen(true)}
                     onResend={(item) => setResendTarget(item)}
                     onDownloadLabel={(item) => void downloadOne(item)}
@@ -344,6 +348,20 @@ export default function LunettesPage() {
           <PdvPagination page={page} pageCount={pageCount} onChange={setPage} />
         </div>
       )}
+      {editPair ? (
+        <EditPairModal
+          pair={editPair}
+          onUpdated={() => {
+            void load();
+          }}
+          onClose={(discarded) => {
+            setEditPair(null);
+            if (discarded) {
+              showToast("Modifications non prises en compte");
+            }
+          }}
+        />
+      ) : null}
       {registerOpen ? (
         <RegisterPairModal
           onCreated={() => {
@@ -353,6 +371,20 @@ export default function LunettesPage() {
           }}
           onClose={(discarded) => {
             setRegisterOpen(false);
+            if (discarded) {
+              showToast("Modifications non prises en compte");
+            }
+          }}
+        />
+      ) : null}
+      {exportPairs ? (
+        <ExportCodeModal
+          pairs={exportPairs}
+          onClose={(discarded) => {
+            setExportPairs(null);
+            if (!discarded) {
+              setSelected([]);
+            }
             if (discarded) {
               showToast("Modifications non prises en compte");
             }

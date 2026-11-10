@@ -57,7 +57,7 @@ class ClientPairResource extends JsonResource
                     'recovered' => 'Déclaration de perte annulée',
                     'found' => 'Paire retrouvée, le client a été notifié',
                     'returned' => 'Paire restituée au client',
-                    'inactivated' => 'Paire déclarée comme inactive',
+                    'inactivated' => 'Paire signalée comme inactive',
                     'archived' => 'Paire supprimée',
                     'delivery_requested' => 'Livraison demandée par le client.',
                     'shipped' => 'Colis déposé, livraison en cours.',

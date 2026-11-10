@@ -20,6 +20,7 @@ class Lot3PairsTest extends TestCase
     {
         $this->getJson('/api/v1/opticien/pairs')->assertUnauthorized();
         $this->postJson('/api/v1/opticien/pairs', [])->assertUnauthorized();
+        $this->patchJson('/api/v1/opticien/pairs/00000000-0000-0000-0000-000000000000', [])->assertUnauthorized();
     }
 
     public function test_r3_01_create_without_code_is_a_graver_with_unique_fr_code(): void
@@ -35,6 +36,7 @@ class Lot3PairsTest extends TestCase
             ->assertJsonPath('data.title', 'Lunettes Vue - Gucci')
             ->assertJsonPath('data.actions.can_engrave', true)
             ->assertJsonPath('data.actions.can_export_code', true)
+            ->assertJsonPath('data.actions.can_edit', true)
             ->assertJsonPath('data.actions.can_inactivate', false);
 
         $code = $response->json('data.assigned_code');
@@ -167,7 +169,8 @@ class Lot3PairsTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'inactive')
             ->assertJsonPath('data.events.0.label', 'Paire déclarée comme inactive')
-            ->assertJsonPath('data.actions.can_inactivate', false);
+            ->assertJsonPath('data.actions.can_inactivate', false)
+            ->assertJsonPath('data.actions.can_edit', false);
 
         $pair = Pair::query()->where('uuid', $uuid)->first();
         $this->assertFalse($pair->status->allowsLostOrFound());
@@ -233,7 +236,95 @@ class Lot3PairsTest extends TestCase
         $this->assertSame($uuidA, $list[0]['uuid']);
         $this->getJson('/api/v1/opticien/pairs/'.$uuidB)->assertNotFound();
         $this->postJson('/api/v1/opticien/pairs/'.$uuidB.'/engrave')->assertNotFound();
+        $this->patchJson('/api/v1/opticien/pairs/'.$uuidB, [
+            'type' => 'Soleil',
+            'brand' => 'Ray-Ban',
+            'colors' => ['Noir'],
+        ])->assertNotFound();
         $this->deleteJson('/api/v1/opticien/pairs/'.$uuidB)->assertNotFound();
+    }
+
+    public function test_update_identity_keeps_assigned_code_and_status(): void
+    {
+        [$admin, $shop] = $this->shopWithAdmin();
+        $client = $this->seedClient($shop);
+        Sanctum::actingAs($admin);
+        $created = $this->postJson('/api/v1/opticien/pairs', $this->payload($client->uuid))
+            ->assertCreated();
+        $uuid = $created->json('data.uuid');
+        $code = $created->json('data.assigned_code');
+
+        $this->patchJson('/api/v1/opticien/pairs/'.$uuid, [
+            'type' => 'Soleil',
+            'brand' => 'Ray-Ban',
+            'colors' => ['Bleu', 'Gris'],
+            'description' => 'Monture acetate',
+            'assigned_code' => 'FR9999ZZ',
+            'status' => 'active',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.type', 'Soleil')
+            ->assertJsonPath('data.brand', 'Ray-Ban')
+            ->assertJsonPath('data.colors', ['Bleu', 'Gris'])
+            ->assertJsonPath('data.description', 'Monture acetate')
+            ->assertJsonPath('data.title', 'Lunettes Soleil - Ray-Ban')
+            ->assertJsonPath('data.status', 'a_graver')
+            ->assertJsonPath('data.assigned_code', $code);
+
+        $this->assertSame($code, Pair::query()->where('uuid', $uuid)->value('assigned_code'));
+        $this->assertSame(PairStatus::AGraver, Pair::query()->where('uuid', $uuid)->first()?->status);
+    }
+
+    public function test_update_other_brand_is_persisted_as_free_label(): void
+    {
+        [$admin, $shop] = $this->shopWithAdmin();
+        $client = $this->seedClient($shop);
+        Sanctum::actingAs($admin);
+        $uuid = $this->postJson('/api/v1/opticien/pairs', $this->payload($client->uuid))
+            ->json('data.uuid');
+
+        $this->patchJson('/api/v1/opticien/pairs/'.$uuid, [
+            'type' => 'Vue',
+            'brand' => 'Autre marque',
+            'custom_brand' => 'Lunetier du Coin',
+            'colors' => ['Noir'],
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.brand', 'Lunetier du Coin')
+            ->assertJsonPath('data.title', 'Lunettes Vue - Lunetier du Coin');
+    }
+
+    public function test_update_rejects_invalid_type(): void
+    {
+        [$admin, $shop] = $this->shopWithAdmin();
+        $client = $this->seedClient($shop);
+        Sanctum::actingAs($admin);
+        $uuid = $this->postJson('/api/v1/opticien/pairs', $this->payload($client->uuid))
+            ->json('data.uuid');
+
+        $this->patchJson('/api/v1/opticien/pairs/'.$uuid, [
+            'type' => 'Sport',
+            'brand' => 'Gucci',
+            'colors' => ['Noir'],
+        ])->assertStatus(422);
+    }
+
+    public function test_update_rejects_inactive_pair(): void
+    {
+        [$admin, $shop] = $this->shopWithAdmin();
+        $client = $this->seedClient($shop);
+        Sanctum::actingAs($admin);
+        $uuid = $this->postJson('/api/v1/opticien/pairs', $this->payload($client->uuid, [
+            'already_engraved' => true,
+            'assigned_code' => 'FR2222BB',
+        ]))->json('data.uuid');
+        $this->postJson('/api/v1/opticien/pairs/'.$uuid.'/inactivate')->assertOk();
+
+        $this->patchJson('/api/v1/opticien/pairs/'.$uuid, [
+            'type' => 'Soleil',
+            'brand' => 'Ray-Ban',
+            'colors' => ['Noir'],
+        ])->assertStatus(422);
     }
 
     public function test_catalog_exposes_figma_types(): void

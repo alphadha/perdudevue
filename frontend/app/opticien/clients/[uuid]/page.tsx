@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import AppToast from "@/components/AppToast";
-import BootstrapModal from "@/components/opticien/BootstrapModal";
+import BootstrapModal, { ModalSuccessMark } from "@/components/opticien/BootstrapModal";
 import ClientFormFields from "@/components/opticien/ClientFormFields";
+import EditPairModal from "@/components/opticien/EditPairModal";
+import ExportCodeModal from "@/components/opticien/ExportCodeModal";
 import HandoverModal from "@/components/opticien/HandoverModal";
 import { PairEngraveModal, PairInactiveModal } from "@/components/opticien/PairActionModals";
 import PairRowMenu from "@/components/opticien/PairRowMenu";
@@ -66,9 +68,12 @@ export default function ClientFichePage() {
   const [otp, setOtp] = useState<IdentityChallenge | null>(null);
   const [otpCode, setOtpCode] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
+  const [editSuccess, setEditSuccess] = useState(false);
   const [toDelete, setToDelete] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [handoverOpen, setHandoverOpen] = useState(false);
+  const [exportPair, setExportPair] = useState<ShopPair | null>(null);
+  const [editPair, setEditPair] = useState<ShopPair | null>(null);
   const [pending, setPending] = useState(false);
 
   const showToast = useCallback((message: string, title?: string) => {
@@ -211,7 +216,7 @@ export default function ClientFichePage() {
       setClient(result);
       setForm(toPayload(result));
       setEditOpen(false);
-      showToast("La fiche client a bien été mise à jour.");
+      setEditSuccess(true);
     } catch (caught) {
       if (caught instanceof ApiRequestError) {
         const next: Record<string, string> = {};
@@ -249,7 +254,7 @@ export default function ClientFichePage() {
       setForm(toPayload(result));
       setOtp(null);
       setOtpCode("");
-      showToast("La fiche client a bien été mise à jour.");
+      setEditSuccess(true);
     } catch (caught) {
       if (caught instanceof ApiRequestError) {
         setOtpError(caught.fieldError("code") ?? caught.message);
@@ -355,6 +360,8 @@ export default function ClientFichePage() {
               pair={pair}
               onEngrave={mutations.setEngravePair}
               onInactivate={mutations.setInactivePair}
+              onEdit={setEditPair}
+              onExport={setExportPair}
               onHandOver={() => setHandoverOpen(true)}
               onResend={(item) => setResendTarget(item)}
             />
@@ -393,6 +400,8 @@ export default function ClientFichePage() {
                 pair={pairLike}
                 onEngrave={mutations.setEngravePair}
                 onInactivate={mutations.setInactivePair}
+                onEdit={setEditPair}
+                onExport={setExportPair}
                 onHandOver={() => setHandoverOpen(true)}
                 onResend={(pair) => setResendTarget(pair)}
               />
@@ -404,6 +413,21 @@ export default function ClientFichePage() {
       </div>
       </section>
       </div>
+
+      {editPair ? (
+        <EditPairModal
+          pair={editPair}
+          onUpdated={() => {
+            void load();
+          }}
+          onClose={(discarded) => {
+            setEditPair(null);
+            if (discarded) {
+              showToast("Modifications non prises en compte");
+            }
+          }}
+        />
+      ) : null}
 
       {registerOpen ? (
         <RegisterPairModal
@@ -474,6 +498,18 @@ export default function ClientFichePage() {
         </BootstrapModal>
       ) : null}
 
+      {exportPair ? (
+        <ExportCodeModal
+          pairs={[exportPair]}
+          onClose={(discarded) => {
+            setExportPair(null);
+            if (discarded) {
+              showToast("Modifications non prises en compte");
+            }
+          }}
+        />
+      ) : null}
+
       {mutations.engravePair ? (
         <PairEngraveModal
           pair={mutations.engravePair}
@@ -504,22 +540,28 @@ export default function ClientFichePage() {
           <form onSubmit={(event) => void submitEdit(event)}>
             <div className="modal-body">
               {formError ? <div className="alert alert-danger">{formError}</div> : null}
-              <ClientFormFields idPrefix="fiche" value={form} fieldErrors={fieldErrors} onChange={setForm} />
+              <ClientFormFields
+                idPrefix="fiche"
+                value={form}
+                fieldErrors={fieldErrors}
+                onChange={setForm}
+                showConsents={false}
+              />
             </div>
-            <div className="modal-footer flex-column">
-              <button type="submit" className="btn btn-primary w-100" disabled={pending}>
+            <div className="modal-footer">
+              <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
                 Enregistrer les modifications
-              </button>
-              <button
+              </PdvButton>
+              <PdvButton
                 type="button"
-                className="btn btn-link"
+                variant="tertiary"
                 onClick={() => {
                   setEditOpen(false);
                   showToast("Modifications non prises en compte");
                 }}
               >
                 Annuler
-              </button>
+              </PdvButton>
             </div>
           </form>
         </BootstrapModal>
@@ -588,6 +630,24 @@ export default function ClientFichePage() {
               </PdvButton>
             </div>
           </form>
+        </BootstrapModal>
+      ) : null}
+
+      {editSuccess ? (
+        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 3/3" size="md" onClose={() => setEditSuccess(false)}>
+          <div className="modal-body">
+            <div className="pdv-modal-success">
+              <ModalSuccessMark />
+              <div className="pdv-modal-success__copy">
+                <p className="pdv-modal-success__title">Modifications enregistrée</p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <PdvButton type="button" variant="secondary" size="l" block onClick={() => setEditSuccess(false)}>
+              Fermer
+            </PdvButton>
+          </div>
         </BootstrapModal>
       ) : null}
 

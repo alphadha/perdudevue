@@ -40,6 +40,9 @@ class PairResource extends JsonResource
             'actions' => [
                 'can_engrave' => $this->status === PairStatus::AGraver,
                 'can_export_code' => $this->status === PairStatus::AGraver,
+                'can_edit' => $shopId !== null
+                    && $this->origin_optician_id === $shopId
+                    && $this->status->canEditAttributes(),
                 'can_inactivate' => $this->status->canInactivate(),
                 'can_archive' => $this->status !== PairStatus::Archivee,
                 'can_hand_over' => $isDepositary && $this->status === PairStatus::ARecuperer,

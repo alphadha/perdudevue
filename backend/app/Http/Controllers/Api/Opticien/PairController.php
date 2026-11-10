@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Opticien;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Opticien\StorePairRequest;
+use App\Http\Requests\Opticien\UpdatePairRequest;
 use App\Http\Resources\PairResource;
 use App\Models\Optician;
 use App\Models\Pair;
@@ -57,6 +58,21 @@ class PairController extends Controller
         $this->authorize('view', $pair);
 
         return ApiResponse::success(PairResource::make($pair)->resolve());
+    }
+
+    public function update(UpdatePairRequest $request, string $uuid): JsonResponse
+    {
+        $pair = $this->pairs->findInShop($this->shop($request), $uuid);
+        if ($pair === null) {
+            return ApiResponse::message('Ressource introuvable.', 404);
+        }
+        $this->authorize('update', $pair);
+
+        return ApiResponse::success(
+            PairResource::make(
+                $this->pairs->updateAttributes($request->user(), $pair, $request->validated(), $request)
+            )->resolve()
+        );
     }
 
     public function engrave(Request $request, string $uuid): JsonResponse

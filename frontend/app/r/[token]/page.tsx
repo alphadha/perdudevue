@@ -25,7 +25,7 @@ function PublicBlocked({
         <LoginPattern />
         <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
       </header>
-      <section className="pdv-public__blocked-card">
+      <section className="container pdv-public__blocked-card">
         <div className="pdv-public__blocked-copy">
           <p className="pdv-public__blocked-title">{title}</p>
           <p className="pdv-public__blocked-body">{body}</p>
@@ -83,7 +83,7 @@ export default function PublicRestitutionPage() {
   if (!data) {
     return (
       <div className="pdv-public">
-        <p className="pdv-client-page-sub">Chargement…</p>
+        <p className="container pdv-client-page-sub">Chargement…</p>
       </div>
     );
   }
@@ -112,7 +112,7 @@ export default function PublicRestitutionPage() {
 
   return (
     <div className="pdv-public">
-      <div className="pdv-public__inner">
+      <div className="container pdv-public__inner">
         <h1 className="pdv-public__title">{data.title}</h1>
         <section className="pdv-client-info-card">
           <header className="pdv-client-info-card__head">

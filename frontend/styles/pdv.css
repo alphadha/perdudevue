@@ -230,7 +230,7 @@ body {
 
 .pdv-main > .container.py-4 {
   padding-top: 40px !important;
-  padding-bottom: 0 !important;
+  padding-bottom: 80px !important;
 }
 
 @media (max-width: 991.98px) {
@@ -474,7 +474,8 @@ body {
   color: var(--pdv-tag-arecuperer-fg);
 }
 
-.pdv-tag--livraison_demandee {
+.pdv-tag--livraison_demandee,
+.pdv-tag--recommended {
   background: var(--pdv-tag-livraison-bg);
   color: var(--pdv-tag-livraison-fg);
 }
@@ -585,6 +586,12 @@ body {
   max-width: 159px;
 }
 
+.pdv-select--field {
+  height: 40px;
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
 .pdv-select--field:hover {
   border-color: var(--pdv-cta);
 }
@@ -626,6 +633,8 @@ body {
 
 .pdv-select--field .pdv-select__trigger {
   gap: 8px;
+  min-height: 0;
+  height: 100%;
 }
 
 .pdv-select.is-placeholder .pdv-select__value {
@@ -1119,6 +1128,7 @@ body {
 
 .pdv-page-head--pair {
   align-items: center;
+  min-height: 48px;
 }
 
 .pdv-page-head--pair h1 {
@@ -1441,9 +1451,17 @@ body {
   min-width: 242px;
 }
 
+.pdv-fiche .pdv-page-head--pair .pdv-page-head__actions .pdv-btn--secondary {
+  min-width: 0;
+}
+
 .pdv-fiche .pdv-page-head__actions .pdv-btn--primary {
   border-width: 0;
   min-width: 230px;
+}
+
+.pdv-fiche .pdv-page-head--pair .pdv-page-head__actions .pdv-btn--primary {
+  min-width: 0;
 }
 
 .pdv-fiche-identity {
@@ -1884,6 +1902,12 @@ body {
 
   .pdv-fiche-grid {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdv-fiche-grid .pdv-panel--fiche {
+    width: 100%;
+    flex: none;
   }
 
   .pdv-field-row {
@@ -2250,15 +2274,17 @@ body {
 }
 
 .modal-dialog {
-  max-width: 343px;
+  width: auto;
+  max-width: min(343px, calc(100% - 32px));
+  margin: 16px auto;
 }
 
 .modal-dialog--md {
-  max-width: 500px;
+  max-width: min(500px, calc(100% - 32px));
 }
 
 .modal-dialog--lg {
-  max-width: 524px;
+  max-width: min(524px, calc(100% - 32px));
 }
 
 .modal-content {
@@ -2278,7 +2304,7 @@ body {
   padding: 20px 20px 19px;
   margin: 0;
   min-height: 70px;
-  height: 70px;
+  height: auto;
   border-bottom: 1px solid var(--pdv-stroke);
   align-items: center;
   justify-content: space-between;
@@ -2472,14 +2498,17 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  min-height: 21px;
   font-size: 14px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 21px;
   color: var(--pdv-legende);
 }
 
 .pdv-info-card strong {
+  font-size: 14px;
   font-weight: 600;
+  line-height: 21px;
   color: var(--pdv-texte);
   text-align: right;
 }
@@ -2489,8 +2518,10 @@ body {
 }
 
 .modal-body:has(.pdv-info-card) > p {
+  margin: 0;
   font-size: 14px;
-  line-height: 1;
+  font-weight: 400;
+  line-height: 21px;
   color: var(--pdv-legende);
   text-align: left;
 }
@@ -2516,13 +2547,16 @@ body {
 }
 
 .pdv-code-field .pdv-otp-form__digits {
-  width: 314px;
+  width: 100%;
 }
 
 .pdv-code-field .pdv-field__hint {
   margin: 0;
   width: 100%;
-  line-height: 1;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  color: var(--pdv-legende);
 }
 
 .pdv-modal-success {
@@ -2561,7 +2595,7 @@ body {
   margin: 0;
   font-size: var(--pdv-fs-h6);
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.5;
   color: var(--pdv-texte);
 }
 
@@ -2621,9 +2655,12 @@ body {
   margin: 0;
 }
 
-.pdv-duplicate-copy .pdv-field__hint {
+.pdv-duplicate-copy > p.pdv-field__hint {
   margin: 0;
-  line-height: 1.5;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  color: var(--pdv-legende);
 }
 
 .pdv-consent-block {
@@ -2852,13 +2889,13 @@ body {
   margin: 0;
 }
 
+.pdv-client-shell .container {
+  --bs-gutter-x: 2rem;
+}
+
 .pdv-client-shell__nav-inner,
 .pdv-client-shell__body {
   width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  padding-left: 16px;
-  padding-right: 16px;
 }
 
 .pdv-client-shell__nav-inner {
@@ -2880,7 +2917,11 @@ body {
 .pdv-public {
   min-height: 100vh;
   background: var(--pdv-page-bg);
-  padding: 16px;
+  padding: 16px 0;
+}
+
+.pdv-public .container {
+  --bs-gutter-x: 2rem;
 }
 
 .pdv-public__inner {
@@ -2888,8 +2929,6 @@ body {
   flex-direction: column;
   gap: 16px;
   width: 100%;
-  max-width: 343px;
-  margin: 0 auto;
 }
 
 .pdv-public__title {
@@ -2909,8 +2948,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  width: calc(100% - 32px);
-  max-width: 343px;
+  width: 100%;
   margin: 20px auto 0;
   padding: 20px;
   border-radius: var(--pdv-radius);
@@ -2949,6 +2987,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
 }
 
 .pdv-client-fiche__main {
@@ -3184,7 +3223,10 @@ body {
 }
 
 .pdv-shop-map-modal__body {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  width: 100%;
 }
 
 .pdv-shop-map-modal__body > p {
@@ -3464,7 +3506,19 @@ body {
 .pdv-search:has(.pdv-search__field) {
   position: relative;
   z-index: 4;
+  display: block;
   width: 100%;
+  height: auto;
+  padding: 0;
+  flex: none;
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+
+.pdv-search:has(.pdv-search__field):hover,
+.pdv-search:has(.pdv-search__field):focus-within {
+  border-color: transparent;
 }
 
 .pdv-search__field {
@@ -3472,6 +3526,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
   height: 40px;
   padding: 8px 12px;
   border-radius: var(--pdv-radius);
@@ -3924,6 +3979,10 @@ body {
   color: var(--pdv-texte);
 }
 
+.pdv-settings-card .pdv-toggle-line__label {
+  line-height: 1;
+}
+
 /* Segmented login Figma 308:6600 */
 .pdv-segmented {
   display: flex;
@@ -4192,11 +4251,15 @@ body {
   width: auto;
 }
 
+.pdv-login .container {
+  --bs-gutter-x: 2rem;
+}
+
 .pdv-login__body {
   width: 100%;
-  max-width: 375px;
   margin: 0 auto;
-  padding: 24px 16px 40px;
+  padding-top: 24px;
+  padding-bottom: 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -4461,9 +4524,9 @@ body {
   }
 
   .pdv-login__body {
-    max-width: 525px;
     width: 100%;
-    padding: 0;
+    padding-top: 0;
+    padding-bottom: 0;
     gap: 32px;
   }
 
@@ -4954,6 +5017,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 .pdv-settings-page__main {
@@ -5132,8 +5196,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .pdv-connexion-card {
-  width: min(525px, 100%);
-  margin: 0 auto;
+  width: 100%;
   padding: 24px;
   background: var(--pdv-blanc);
   border-radius: var(--pdv-radius);
@@ -5188,8 +5251,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .pdv-email-flow {
-  width: min(525px, 100%);
-  margin: 0 auto;
+  width: 100%;
 }
 
 .pdv-email-flow__title {
@@ -5314,6 +5376,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .pdv-help-card {
+  width: 100%;
   background: var(--pdv-vert);
   border-radius: var(--pdv-radius);
   padding: 16px;
@@ -5335,12 +5398,18 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-size: 12px;
   font-weight: 400;
-  line-height: 18px;
+  line-height: 1;
   color: var(--pdv-texte);
 }
 
-.pdv-help-card__body strong {
+.pdv-help-card__body p {
+  margin: 0;
+}
+
+.pdv-help-card__mail {
   font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
 }
 
 .pdv-toast-host {
@@ -5349,11 +5418,22 @@ h1, h2, h3, h4, h5, h6 {
   right: 24px;
   z-index: 2000;
   pointer-events: none;
+  max-width: calc(100% - 48px);
+}
+
+@media (max-width: 767px) {
+  .pdv-toast-host {
+    top: 8px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: center;
+  }
 }
 
 .pdv-toast {
   pointer-events: auto;
-  width: 343px;
+  width: 100%;
   padding: 16px 12px;
   background: var(--pdv-blanc);
   border-radius: 8px;
@@ -5446,6 +5526,68 @@ h1, h2, h3, h4, h5, h6 {
 
 .pdv-toast--error .pdv-toast__bar {
   background: var(--pdv-error-fg);
+}
+
+.modal-body.pdv-export {
+  gap: 16px;
+}
+
+.modal-body.pdv-export > p {
+  text-align: left;
+}
+
+.pdv-export__formats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.pdv-export__label {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--pdv-texte);
+}
+
+.pdv-export__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.pdv-export__format-name {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--pdv-texte);
+}
+
+.pdv-export__option.is-selected .pdv-export__format-name {
+  font-weight: 600;
+}
+
+.pdv-export__option .pdv-tag {
+  margin-left: 4px;
+}
+
+.pdv-export__dims {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.pdv-export__dims-value {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--pdv-texte);
 }
 
 @keyframes pdv-toast-progress {

@@ -253,6 +253,7 @@ export default function OpticienTeamPage() {
                 <PdvField
                   id="team-last-name"
                   label="Nom*"
+                  placeholder="Roux"
                   value={invite.last_name}
                   error={fieldErrors.last_name}
                   required
@@ -261,6 +262,7 @@ export default function OpticienTeamPage() {
                 <PdvField
                   id="team-first-name"
                   label="Prénom*"
+                  placeholder="Thomas"
                   value={invite.first_name}
                   error={fieldErrors.first_name}
                   required
@@ -271,6 +273,7 @@ export default function OpticienTeamPage() {
                 id="team-email"
                 label="Adresse e-mail*"
                 type="email"
+                placeholder="thomas.roux@optikal.fr"
                 value={invite.email}
                 error={fieldErrors.email}
                 required

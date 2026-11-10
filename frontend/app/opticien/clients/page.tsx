@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import AppToast from "@/components/AppToast";
-import BootstrapModal from "@/components/opticien/BootstrapModal";
+import BootstrapModal, { ModalSuccessMark } from "@/components/opticien/BootstrapModal";
 import ClientFormFields from "@/components/opticien/ClientFormFields";
 import CreateClientFlow from "@/components/opticien/CreateClientFlow";
 import { api, ApiRequestError } from "@/lib/api";
@@ -80,6 +80,7 @@ export default function OpticienClientsPage() {
   const [otp, setOtp] = useState<IdentityChallenge | null>(null);
   const [otpCode, setOtpCode] = useState("");
   const [otpError, setOtpError] = useState<string | null>(null);
+  const [editSuccess, setEditSuccess] = useState(false);
   const [toDelete, setToDelete] = useState<ShopClient | null>(null);
 
   const showToast = useCallback((message: string, title?: string) => {
@@ -168,7 +169,7 @@ export default function OpticienClientsPage() {
         return;
       }
       setEditOpen(false);
-      showToast("La fiche client a bien été mise à jour.");
+      setEditSuccess(true);
       await load();
     } catch (caught) {
       if (caught instanceof ApiRequestError) {
@@ -199,7 +200,7 @@ export default function OpticienClientsPage() {
       }
       setOtp(null);
       setOtpCode("");
-      showToast("La fiche client a bien été mise à jour.");
+      setEditSuccess(true);
       await load();
     } catch (caught) {
       if (caught instanceof ApiRequestError) {
@@ -380,22 +381,28 @@ export default function OpticienClientsPage() {
           <form onSubmit={(event) => void submitEdit(event)}>
             <div className="modal-body">
               {formError ? <div className="alert alert-danger">{formError}</div> : null}
-              <ClientFormFields idPrefix="edit" value={form} fieldErrors={fieldErrors} onChange={setForm} />
+              <ClientFormFields
+                idPrefix="edit"
+                value={form}
+                fieldErrors={fieldErrors}
+                onChange={setForm}
+                showConsents={false}
+              />
             </div>
-            <div className="modal-footer flex-column">
-              <button type="submit" className="btn btn-primary w-100" disabled={pending}>
+            <div className="modal-footer">
+              <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
                 Enregistrer les modifications
-              </button>
-              <button
+              </PdvButton>
+              <PdvButton
                 type="button"
-                className="btn btn-link"
+                variant="tertiary"
                 onClick={() => {
                   setEditOpen(false);
                   showToast("Modifications non prises en compte");
                 }}
               >
                 Annuler
-              </button>
+              </PdvButton>
             </div>
           </form>
         </BootstrapModal>
@@ -453,6 +460,24 @@ export default function OpticienClientsPage() {
               </PdvButton>
             </div>
           </form>
+        </BootstrapModal>
+      ) : null}
+
+      {editSuccess ? (
+        <BootstrapModal title="Modifier la fiche client" subtitle="Étape 3/3" size="md" onClose={() => setEditSuccess(false)}>
+          <div className="modal-body">
+            <div className="pdv-modal-success">
+              <ModalSuccessMark />
+              <div className="pdv-modal-success__copy">
+                <p className="pdv-modal-success__title">Modifications enregistrée</p>
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <PdvButton type="button" variant="secondary" size="l" block onClick={() => setEditSuccess(false)}>
+              Fermer
+            </PdvButton>
+          </div>
         </BootstrapModal>
       ) : null}
 

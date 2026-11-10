@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import AppToast from "@/components/AppToast";
 import HandoverModal from "@/components/opticien/HandoverModal";
-import MarkShippedModal from "@/components/opticien/MarkShippedModal";
+import ExportCodeModal from "@/components/opticien/ExportCodeModal";
 import { PairEngraveModal, PairInactiveModal } from "@/components/opticien/PairActionModals";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
 import ResendPickupModal from "@/components/opticien/ResendPickupModal";
@@ -13,7 +13,7 @@ import { usePairStatusMutations } from "@/components/opticien/usePairStatusMutat
 import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatPhoneFr } from "@/lib/formatPhone";
-import { downloadAssignedCode, downloadLabelFile } from "@/lib/pairUi";
+import { downloadLabelFile } from "@/lib/pairUi";
 import { formatFrDate, type ShopPair, type ShippingLabelFile } from "@/lib/types";
 
 export default function PairFichePage() {
@@ -22,8 +22,8 @@ export default function PairFichePage() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [handoverOpen, setHandoverOpen] = useState(false);
-  const [shipOpen, setShipOpen] = useState(false);
   const [resendOpen, setResendOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -106,22 +106,23 @@ export default function PairFichePage() {
   return (
     <>
       <AppToast message={toast} />
-      <p className="mb-3">
-        <PdvButton variant="tertiary" href="/opticien/lunettes" iconLeft="/icons/pdv/arrow-narrow-left.svg">
+      <div className="pdv-fiche">
+      <div className="pdv-fiche__intro">
+        <Link href="/opticien/lunettes" className="pdv-back-link">
+          <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
           Revenir aux lunettes
-        </PdvButton>
-      </p>
-      <div className="pdv-page-head pdv-page-head--pair">
-        <div>
-          <h1>{pair.title}</h1>
-        </div>
-        <div className="pdv-page-head__actions">
+        </Link>
+        <div className="pdv-page-head pdv-page-head--pair">
+          <div>
+            <h1>{pair.title}</h1>
+          </div>
+          <div className="pdv-page-head__actions">
           {pair.status === "a_graver" ? (
             <PdvButton
               variant="secondary"
               size="l"
               iconLeft="/icons/pdv/share-03.svg"
-              onClick={() => downloadAssignedCode(pair)}
+              onClick={() => setExportOpen(true)}
             >
               Exporter le code assigné
             </PdvButton>
@@ -158,29 +159,18 @@ export default function PairFichePage() {
               </PdvButton>
             </>
           ) : null}
-          {pair.actions.can_download_label || pair.actions.can_mark_shipped || pair.status === "livraison_demandee" || pair.status === "en_livraison" ? (
-            <>
-              <PdvButton
-                variant="secondary"
-                size="l"
-                iconLeft="/icons/pdv/download-01.svg"
-                disabled={!pair.actions.can_download_label}
-                onClick={() => void downloadLabel()}
-              >
-                Télécharger le bordereau d’envoi
-              </PdvButton>
-              {pair.status === "livraison_demandee" || pair.actions.can_mark_shipped ? (
-                <PdvButton
-                  variant="primary"
-                  size="l"
-                  disabled={!pair.actions.can_mark_shipped}
-                  onClick={() => setShipOpen(true)}
-                >
-                  Indiquer comme en livraison
-                </PdvButton>
-              ) : null}
-            </>
+          {pair.actions.can_download_label || pair.status === "livraison_demandee" || pair.status === "en_livraison" ? (
+            <PdvButton
+              variant="secondary"
+              size="l"
+              iconLeft="/icons/pdv/download-01.svg"
+              disabled={!pair.actions.can_download_label}
+              onClick={() => void downloadLabel()}
+            >
+              Télécharger le bordereau d’envoi
+            </PdvButton>
           ) : null}
+          </div>
         </div>
       </div>
       <div className="pdv-fiche-grid">
@@ -260,6 +250,7 @@ export default function PairFichePage() {
           )}
         </div>
       </div>
+      </div>
 
       {resendOpen ? (
         <ResendPickupModal
@@ -290,16 +281,11 @@ export default function PairFichePage() {
           }}
         />
       ) : null}
-      {shipOpen && pair ? (
-        <MarkShippedModal
-          pairUuid={pair.uuid}
-          onDone={() => {
-            setShipOpen(false);
-            void load();
-            showToast("La paire a été indiquée comme en livraison.");
-          }}
+      {exportOpen ? (
+        <ExportCodeModal
+          pairs={[pair]}
           onClose={(discarded) => {
-            setShipOpen(false);
+            setExportOpen(false);
             if (discarded) {
               showToast("Modifications non prises en compte");
             }

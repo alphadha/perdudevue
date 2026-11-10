@@ -139,7 +139,7 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
         </div>
         <div className="modal-footer">
           <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
-            Signaler comme retrouvé
+            Signaler comme retrouvées
           </PdvButton>
           <PdvButton type="button" variant="tertiary" onClick={() => onClose(true)}>
             Annuler

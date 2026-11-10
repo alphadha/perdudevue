@@ -24,7 +24,7 @@ export default function ClientPairPage() {
   const [pair, setPair] = useState<ClientPair | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [toast, setToast] = useState<{ title?: string; message: string } | null>(null);
+  const [toast, setToast] = useState<{ title?: string; message: string; variant?: "success" | "error" } | null>(null);
   const [lostOpen, setLostOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [inactiveOpen, setInactiveOpen] = useState(false);
@@ -64,7 +64,8 @@ export default function ClientPairPage() {
         setToast({
           title: "Paiement confirmé",
           message:
-            "Votre opticien prépare actuellement vos lunettes de vue. Elles seront remises au transporteur dans les plus brefs délais.",
+            "Votre opticien prépare actuellement vos lunettes. Elles seront remises au transporteur dans les plus brefs délais.",
+          variant: "success",
         });
         router.replace(`/client/lunettes/${params.uuid}`);
       } catch (caught) {
@@ -144,6 +145,7 @@ export default function ClientPairPage() {
       <AppToast
         title={toast?.title}
         message={toast?.message ?? null}
+        variant={toast?.variant}
         onDismiss={() => setToast(null)}
       />
       <ClientBackLink href="/client">Revenir à mes lunettes</ClientBackLink>
@@ -169,6 +171,11 @@ export default function ClientPairPage() {
         </div>
         </div>
 
+        {pair.status === "a_recuperer" ||
+        pair.status === "en_livraison" ||
+        pair.status === "active" ||
+        pair.status === "perdue" ||
+        pair.status === "inactive" ? (
         <div className="pdv-client-fiche__actions">
           {pair.status === "a_recuperer" ? (
             <PdvButton href={`/client/lunettes/${pair.uuid}/recuperer`} variant="primary" size="l" block>
@@ -185,16 +192,6 @@ export default function ClientPairPage() {
             >
               Suivre ma livraison
             </PdvButton>
-          ) : null}
-          {pair.status === "livraison_demandee" ? (
-            <>
-              <PdvButton type="button" variant="primary" size="l" block onClick={() => setCancelOpen(true)}>
-                J’ai retrouvé mes lunettes
-              </PdvButton>
-              <PdvButton type="button" variant="tertiary" size="l" block onClick={() => setInactiveOpen(true)}>
-                Déclarer comme inactive
-              </PdvButton>
-            </>
           ) : null}
           {pair.status === "active" ? (
             <>
@@ -227,6 +224,7 @@ export default function ClientPairPage() {
             </>
           ) : null}
         </div>
+        ) : null}
 
         {pair.events && pair.events.length > 0 ? (
           <section className="pdv-client-history">
