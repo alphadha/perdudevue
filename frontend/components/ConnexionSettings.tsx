@@ -426,24 +426,20 @@ export default function ConnexionSettings({
     <>
       <AppToast title={toastTitle} message={toast} />
       {card ? (
-        <div className="row g-0 justify-content-center">
-          <div className="col-12 col-lg-8 col-xl-5">
-            <section className="pdv-connexion-card">
-              {view === "idle" ? (
-                <Link className="pdv-connexion-card__back" href={backHref}>
-                  <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
-                  <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
-                </Link>
-              ) : (
-                <button type="button" className="pdv-connexion-card__back" onClick={goIdle}>
-                  <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
-                  <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
-                </button>
-              )}
-              {editor}
-            </section>
-          </div>
-        </div>
+        <section className="pdv-connexion-card">
+          {view === "idle" ? (
+            <Link className="pdv-connexion-card__back" href={backHref}>
+              <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
+              <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
+            </Link>
+          ) : (
+            <button type="button" className="pdv-connexion-card__back" onClick={goIdle}>
+              <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
+              <h1 className="pdv-connexion-card__title">{cardTitle}</h1>
+            </button>
+          )}
+          {editor}
+        </section>
       ) : view === "idle" ? (
         <div className="pdv-client-fiche">
           <ClientBackLink href={backHref}>Revenir aux paramètres</ClientBackLink>

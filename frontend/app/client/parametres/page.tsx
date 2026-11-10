@@ -91,14 +91,12 @@ export default function ClientSettingsPage() {
                   <img src="/icons/pdv/file-02.svg" alt="" width={18} height={18} />
                   Conditions générales d’utilisation
                 </span>
-                <img src="/icons/pdv/arrow-up-s-line.svg" alt="" width={24} height={24} className="pdv-settings-item__trail" />
               </a>
               <a className="pdv-settings-item" href={`mailto:${SUPPORT}`} target="_blank" rel="noreferrer">
                 <span className="pdv-settings-item__label">
                   <img src="/icons/pdv/file-02.svg" alt="" width={18} height={18} />
                   Politique de confidentialité
                 </span>
-                <img src="/icons/pdv/arrow-up-s-line.svg" alt="" width={24} height={24} className="pdv-settings-item__trail" />
               </a>
             </div>
           </section>

@@ -3979,10 +3979,6 @@ body {
   color: var(--pdv-texte);
 }
 
-.pdv-settings-card .pdv-toggle-line__label {
-  line-height: 1;
-}
-
 /* Segmented login Figma 308:6600 */
 .pdv-segmented {
   display: flex;
@@ -5197,6 +5193,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .pdv-connexion-card {
   width: 100%;
+  max-width: 525px;
+  margin-inline: auto;
   padding: 24px;
   background: var(--pdv-blanc);
   border-radius: var(--pdv-radius);
@@ -5398,7 +5396,7 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-size: 12px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 1.5;
   color: var(--pdv-texte);
 }
 
