@@ -29,17 +29,19 @@ type Props<T, K extends string> = {
   sort?: SortState<K> | null;
   onSort?: (key: K) => void;
   selection?: PdvTableSelection<T>;
+  /** Lunettes BAT 155:35623 : case à cocher en colonne séparée (space-between). */
+  selectionSplit?: boolean;
   actions?: (row: T) => ReactNode;
 };
 
-const LEAD_GUTTER = 40;
+const CHECK_COL = 24;
 const ACTIONS_COL = 54;
 
-function track(width: number | undefined, extra = 0): string {
-  return `minmax(${(width ?? 120) + extra}px, 1fr)`;
+function track(width: number | undefined): string {
+  return `${width ?? 120}px`;
 }
 
-/** Tableau Prod UI — Figma 155:44838 : flex space-between, case+1re col groupées. */
+/** Tableau Prod UI — BAT 155:35623 : space-between, case 24px séparée, rangée 56 pad 16. */
 export default function PdvTable<T, K extends string>({
   columns,
   rows,
@@ -48,16 +50,26 @@ export default function PdvTable<T, K extends string>({
   sort = null,
   onSort,
   selection,
+  selectionSplit = false,
   actions,
 }: Props<T, K>) {
   const [lead, ...rest] = columns;
-  const gridCols = [
-    track(lead.width, selection ? LEAD_GUTTER : 0),
-    ...rest.map((column) => track(column.width)),
-    actions ? `${ACTIONS_COL}px` : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const grouped = Boolean(selection) && !selectionSplit;
+  const gridCols = grouped
+    ? [
+        track((lead.width ?? 120) + CHECK_COL + 16),
+        ...rest.map((column) => track(column.width)),
+        actions ? `${ACTIONS_COL}px` : null,
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : [
+        selection ? `${CHECK_COL}px` : null,
+        ...columns.map((column) => track(column.width)),
+        actions ? `${ACTIONS_COL}px` : null,
+      ]
+        .filter(Boolean)
+        .join(" ");
   const enabled = selection ? rows.filter((row) => selection.isEnabled?.(row) ?? true) : [];
   const allChecked =
     enabled.length > 0 && enabled.every((row) => selection?.selected.includes(getRowId(row)));
@@ -92,7 +104,7 @@ export default function PdvTable<T, K extends string>({
       <div className="pdv-table-wrap">
         <div className="pdv-table" role="table" style={{ "--pdv-table-cols": gridCols } as CSSProperties}>
           <div className="pdv-table__row pdv-table__row--head" role="row">
-            {selection ? (
+            {grouped ? (
               <div className="pdv-table__cell pdv-table__cell--lead" role="columnheader" aria-sort={sortAria(lead)}>
                 <PdvCheckbox
                   checked={Boolean(allChecked)}
@@ -101,20 +113,35 @@ export default function PdvTable<T, K extends string>({
                   aria-label={selection.headerAriaLabel}
                   onChange={selection.onToggleAll}
                 />
-                <div className="pdv-table__col">
-                  {sortButton(lead)}
-                </div>
+                <div className="pdv-table__col">{sortButton(lead)}</div>
               </div>
             ) : (
-              <div className="pdv-table__cell" role="columnheader" aria-sort={sortAria(lead)}>
-                {sortButton(lead)}
-              </div>
+              <>
+                {selection ? (
+                  <div className="pdv-table__cell pdv-table__cell--check" role="columnheader">
+                    <PdvCheckbox
+                      checked={Boolean(allChecked)}
+                      indeterminate={someChecked}
+                      disabled={enabled.length === 0}
+                      aria-label={selection.headerAriaLabel}
+                      onChange={selection.onToggleAll}
+                    />
+                  </div>
+                ) : null}
+                {columns.map((column) => (
+                  <div key={column.key} className="pdv-table__cell" role="columnheader" aria-sort={sortAria(column)}>
+                    {sortButton(column)}
+                  </div>
+                ))}
+              </>
             )}
-            {rest.map((column) => (
-              <div key={column.key} className="pdv-table__cell" role="columnheader" aria-sort={sortAria(column)}>
-                {sortButton(column)}
-              </div>
-            ))}
+            {grouped
+              ? rest.map((column) => (
+                  <div key={column.key} className="pdv-table__cell" role="columnheader" aria-sort={sortAria(column)}>
+                    {sortButton(column)}
+                  </div>
+                ))
+              : null}
             {actions ? (
               <div className="pdv-table__cell pdv-table__cell--actions" role="columnheader">
                 Actions
@@ -134,7 +161,7 @@ export default function PdvTable<T, K extends string>({
             const id = getRowId(row);
             return (
               <div key={id} className="pdv-table__row" role="row">
-                {selection ? (
+                {grouped ? (
                   <div className="pdv-table__cell pdv-table__cell--lead" role="cell">
                     <PdvCheckbox
                       checked={selection.selected.includes(id)}
@@ -145,15 +172,31 @@ export default function PdvTable<T, K extends string>({
                     <div className="pdv-table__col">{lead.render(row)}</div>
                   </div>
                 ) : (
-                  <div className="pdv-table__cell" role="cell">
-                    {lead.render(row)}
-                  </div>
+                  <>
+                    {selection ? (
+                      <div className="pdv-table__cell pdv-table__cell--check" role="cell">
+                        <PdvCheckbox
+                          checked={selection.selected.includes(id)}
+                          disabled={selection.isEnabled ? !selection.isEnabled(row) : false}
+                          aria-label={selection.rowAriaLabel(row)}
+                          onChange={(checked) => selection.onToggleRow(id, checked)}
+                        />
+                      </div>
+                    ) : null}
+                    {columns.map((column) => (
+                      <div key={column.key} className="pdv-table__cell" role="cell">
+                        {column.render(row)}
+                      </div>
+                    ))}
+                  </>
                 )}
-                {rest.map((column) => (
-                  <div key={column.key} className="pdv-table__cell" role="cell">
-                    {column.render(row)}
-                  </div>
-                ))}
+                {grouped
+                  ? rest.map((column) => (
+                      <div key={column.key} className="pdv-table__cell" role="cell">
+                        {column.render(row)}
+                      </div>
+                    ))
+                  : null}
                 {actions ? (
                   <div className="pdv-table__cell pdv-table__cell--actions" role="cell">
                     {actions(row)}

@@ -17,7 +17,7 @@ export default function AuthFlowShell({ backHref, title, progress, children }: P
   const clamped = Math.min(100, Math.max(0, progress));
 
   return (
-    <div className="pdv-login">
+    <div className="pdv-login pdv-login--flow">
       <BrandPanel />
       <div className="pdv-login__main">
         <header className="pdv-login__hero pdv-login__hero--mobile">

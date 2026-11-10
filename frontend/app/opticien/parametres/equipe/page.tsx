@@ -77,14 +77,14 @@ export default function OpticienTeamPage() {
   }, [members, query, sort]);
 
   const columns: PdvTableColumn<ShopMember, SortKey>[] = [
-    { key: "last_name", label: "Nom", width: 160, render: (member) => member.last_name },
+    { key: "last_name", label: "Nom", width: 170, render: (member) => member.last_name },
     {
       key: "first_name",
       label: "Prénom",
-      width: 180,
+      width: 170,
       render: (member) => (member.is_self ? `${member.first_name} (vous)` : member.first_name),
     },
-    { key: "email", label: "Email", width: 240, render: (member) => member.email },
+    { key: "email", label: "Email", width: 260, render: (member) => member.email },
     {
       key: "status",
       label: "Statut",
@@ -209,7 +209,7 @@ export default function OpticienTeamPage() {
                 id="team-search"
                 value={query}
                 onChange={setQuery}
-                placeholder="Rechercher un collaborateur..."
+                placeholder="Rechercher un collaborateur…"
               />
             </div>
             <div className="pdv-panel pdv-panel--table">
@@ -228,7 +228,7 @@ export default function OpticienTeamPage() {
                       aria-label={`Retirer ${member.first_name} ${member.last_name}`}
                       onClick={() => setToRemove(member)}
                     >
-                      <img src="/icons/pdv/trash-01.svg" alt="" width={20} height={20} />
+                      <img src="/icons/pdv/trash-01.svg" alt="" width={24} height={24} />
                     </button>
                   ) : null
                 }
@@ -284,7 +284,7 @@ export default function OpticienTeamPage() {
                 </p>
               </div>
             </div>
-            <div className="modal-footer flex-column">
+            <div className="modal-footer">
               <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
                 Envoyer l’invitation
               </PdvButton>
@@ -312,7 +312,7 @@ export default function OpticienTeamPage() {
               visibles dans l’historique.
             </p>
           </div>
-          <div className="modal-footer flex-column">
+          <div className="modal-footer">
             <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={() => void confirmRemove()}>
               Retirer le collaborateur
             </PdvButton>

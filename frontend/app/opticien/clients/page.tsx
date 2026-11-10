@@ -9,6 +9,7 @@ import CreateClientFlow from "@/components/opticien/CreateClientFlow";
 import { api, ApiRequestError } from "@/lib/api";
 import RegisterPairModal from "@/components/opticien/RegisterPairModal";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvCodeBoxes from "@/components/pdv/PdvCodeBoxes";
 import PdvRowActions from "@/components/pdv/PdvRowActions";
 import PdvPagination from "@/components/pdv/PdvPagination";
 import PdvSearchBar from "@/components/pdv/PdvSearchBar";
@@ -31,7 +32,7 @@ const PAGE_SIZE = 10;
 const CLIENT_COLUMNS: PdvTableColumn<ShopClient, SortKey>[] = [
   { key: "last_name", label: "Nom", width: 170, render: (client) => client.last_name },
   { key: "first_name", label: "Prénom", width: 170, render: (client) => client.first_name },
-  { key: "email", label: "Email", width: 220, render: (client) => client.email },
+  { key: "email", label: "Email", width: 180, render: (client) => client.email },
   { key: "phone", label: "Téléphone", width: 120, render: (client) => formatPhoneFr(client.phone) },
   { key: "pairs_count", label: "Paires enreg.", width: 120, render: (client) => client.pairs_count },
   { key: "pairs_lost_count", label: "Paires perdues", width: 130, render: (client) => client.pairs_lost_count },
@@ -352,9 +353,9 @@ export default function OpticienClientsPage() {
 
       <CreateClientFlow
         open={createOpen}
-        onCreated={(client, message) => {
+        onCreated={(client, message, title) => {
           setCreateOpen(false);
-          showToast(message);
+          showToast(message, title);
           router.push(`/opticien/clients/${client.uuid}`);
         }}
         onClose={(discarded) => {
@@ -412,34 +413,33 @@ export default function OpticienClientsPage() {
         >
           <form onSubmit={(event) => void submitOtp(event)}>
             <div className="modal-body">
-              <div className="pdv-field">
-                <div className="d-flex justify-content-between align-items-center">
-                  <label className="pdv-field__label" htmlFor="otp-code">
+              <div className="pdv-code-field">
+                <div className="pdv-code-field__head">
+                  <label className="pdv-field__label" htmlFor="otp-code-0">
                     Code de vérification*
                   </label>
                   <PdvButton type="button" variant="tertiary" onClick={() => void resendOtp()}>
                     Renvoyer le code
                   </PdvButton>
                 </div>
-                <input
-                  id="otp-code"
-                  className={`pdv-field__control${otpError ? " is-invalid" : ""}`}
-                  inputMode="numeric"
-                  maxLength={6}
+                <PdvCodeBoxes
+                  idPrefix="otp-code"
                   value={otpCode}
-                  onChange={(event) => setOtpCode(event.target.value)}
-                  required
+                  onChange={setOtpCode}
+                  numeric
+                  invalid={Boolean(otpError)}
+                  ariaLabel="Code de vérification"
                 />
                 {otpError ? <p className="pdv-field__error">{otpError}</p> : null}
+                <p className="pdv-field__hint">
+                  Le client a reçu un code par mail ou SMS pour valider la mise à jour de ses informations
+                  personnelles.
+                </p>
               </div>
-              <p className="pdv-field__hint mb-0">
-                Le client a reçu un code par mail ou SMS pour valider la mise à jour de ses informations
-                personnelles.
-              </p>
             </div>
-            <div className="modal-footer flex-column">
-              <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
-                Vérifier le code
+            <div className="modal-footer">
+              <PdvButton type="submit" variant="primary" size="l" block disabled={pending || otpCode.length !== 6}>
+                Vérifier le code et ajouter le client
               </PdvButton>
               <PdvButton
                 type="button"
@@ -457,20 +457,20 @@ export default function OpticienClientsPage() {
       ) : null}
 
       {toDelete ? (
-        <BootstrapModal title="Supprimer un client" onClose={() => setToDelete(null)}>
+        <BootstrapModal title="Supprimer client" size="md" onClose={() => setToDelete(null)}>
           <div className="modal-body">
-            <p className="mb-0">
+            <p>
               Vous êtes sur le point de supprimer {toDelete.last_name} {toDelete.first_name} de votre liste de
-              clients. Toutes les données rattachées à son dossier client seront supprimées.
+              clients. Toutes les données rattachées à son dossier client seront supprimées de votre espace.
             </p>
           </div>
-          <div className="modal-footer flex-column">
+          <div className="modal-footer">
             <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={() => void confirmDelete()}>
               Supprimer le client
             </PdvButton>
-            <button type="button" className="btn btn-link" onClick={() => setToDelete(null)}>
+            <PdvButton type="button" variant="tertiary" onClick={() => setToDelete(null)}>
               Annuler
-            </button>
+            </PdvButton>
           </div>
         </BootstrapModal>
       ) : null}

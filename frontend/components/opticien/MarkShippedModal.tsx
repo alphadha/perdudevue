@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
+import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
 
 type Props = {
@@ -28,19 +29,19 @@ export default function MarkShippedModal({ pairUuid, onDone, onClose }: Props) {
   }
 
   return (
-    <BootstrapModal title="Indiquer comme en livraison" onClose={() => onClose(true)}>
+    <BootstrapModal title="Indiquer comme en livraison" size="md" onClose={() => onClose(true)}>
       <div className="modal-body">
         <p>Vous êtes sur le point de confirmer le dépôt du colis contenant une paire de lunettes à livrer.</p>
-        <p className="fw-medium">Ne confirmez que si le colis a bien été déposé.</p>
+        <p className="is-em">Ne confirmez que si le colis a bien été déposé.</p>
         {error ? <p className="text-danger mb-0">{error}</p> : null}
       </div>
-      <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={() => void confirm()}>
+      <div className="modal-footer">
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirm()}>
           Indiquer comme en livraison
-        </button>
-        <button type="button" className="btn btn-link" disabled={pending} onClick={() => onClose(true)}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" disabled={pending} onClick={() => onClose(true)}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardEvent, FormEvent, KeyboardEvent, useRef, useState } from "react";
+import { FormEvent, useState } from "react";
 import BootstrapModal, { ModalSuccessMark } from "@/components/opticien/BootstrapModal";
 import FieldError from "@/components/FieldError";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvCodeBoxes from "@/components/pdv/PdvCodeBoxes";
 import { api, ApiRequestError } from "@/lib/api";
 import type { ShopRestitution } from "@/lib/types";
 
@@ -17,44 +18,10 @@ const BOXES = 6;
 
 export default function HandoverModal({ onDone, onClose }: Props) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [boxes, setBoxes] = useState<string[]>(Array.from({ length: BOXES }, () => ""));
-  const inputs = useRef<Array<HTMLInputElement | null>>([]);
+  const [pickupCode, setPickupCode] = useState("");
   const [preview, setPreview] = useState<ShopRestitution | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-
-  const pickupCode = boxes.join("");
-
-  function setBox(index: number, raw: string) {
-    const char = raw.replace(/[^A-Za-z0-9]/g, "").slice(-1).toUpperCase();
-    setBoxes((current) => {
-      const next = [...current];
-      next[index] = char;
-      return next;
-    });
-    if (char && index < BOXES - 1) {
-      inputs.current[index + 1]?.focus();
-    }
-  }
-
-  function onBoxKeyDown(index: number, event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Backspace" && !boxes[index] && index > 0) {
-      inputs.current[index - 1]?.focus();
-    }
-  }
-
-  function onBoxPaste(event: ClipboardEvent<HTMLInputElement>) {
-    event.preventDefault();
-    const pasted = event.clipboardData
-      .getData("text")
-      .replace(/[^A-Za-z0-9]/g, "")
-      .slice(0, BOXES)
-      .toUpperCase()
-      .split("");
-    setBoxes((current) => current.map((_, index) => pasted[index] ?? ""));
-    const focusAt = Math.min(pasted.length, BOXES - 1);
-    inputs.current[focusAt]?.focus();
-  }
 
   async function lookup(event: FormEvent) {
     event.preventDefault();
@@ -97,13 +64,17 @@ export default function HandoverModal({ onDone, onClose }: Props) {
   if (step === 3) {
     return (
       <BootstrapModal title="Remettre des lunettes" subtitle="Étape 3/3" size="md" onClose={() => onDone()}>
-        <div className="modal-body text-center">
-          <ModalSuccessMark />
-          <p className="h5">Restitution terminée !</p>
-          <p className="mb-0">La paire a été restituée au client. Le dossier est clôturé.</p>
+        <div className="modal-body">
+          <div className="pdv-modal-success">
+            <ModalSuccessMark />
+            <div className="pdv-modal-success__copy">
+              <p className="pdv-modal-success__title">Restitution terminée !</p>
+              <p className="pdv-modal-success__text">La paire a été restituée au client. Le dossier est clôturé.</p>
+            </div>
+          </div>
         </div>
-        <div className="modal-footer flex-column">
-          <PdvButton type="button" variant="primary" size="l" block onClick={() => onDone()}>
+        <div className="modal-footer">
+          <PdvButton type="button" variant="secondary" size="l" block onClick={() => onDone()}>
             Fermer
           </PdvButton>
         </div>
@@ -117,37 +88,37 @@ export default function HandoverModal({ onDone, onClose }: Props) {
         <div className="modal-body">
           {error ? <div className="alert alert-danger">{error}</div> : null}
           <p>
-            Vérifiez bien que la paire identifiée est la bonne. Cette action est définitive. La paire sera marquée
+            Vérifiez bien que la paire identifiée est la bonne. Cette action est définitive. La paire sera notée
             comme restituée.
           </p>
-          <ul className="pdv-recap-list">
+          <ul className="pdv-info-card">
             {preview.client ? (
               <li>
-                <span>Client</span>
+                <span>Client :</span>
                 <strong>
                   {preview.client.first_name} {preview.client.last_name}
                 </strong>
               </li>
             ) : null}
             <li>
-              <span>Type de lunettes</span>
+              <span>Paire :</span>
               <strong>{preview.type_label}</strong>
             </li>
             <li>
-              <span>Marque</span>
+              <span>Marque :</span>
               <strong>{preview.brand}</strong>
             </li>
             <li>
-              <span>Couleur(s)</span>
+              <span>Couleur(s) :</span>
               <strong>{preview.colors.join(", ")}</strong>
             </li>
             <li>
-              <span>Code assigné</span>
+              <span>Code assigné :</span>
               <strong>{preview.assigned_code}</strong>
             </li>
           </ul>
         </div>
-        <div className="modal-footer flex-column">
+        <div className="modal-footer">
           <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirm()}>
             Confirmer la remise
           </PdvButton>
@@ -163,41 +134,27 @@ export default function HandoverModal({ onDone, onClose }: Props) {
     <BootstrapModal title="Remettre des lunettes" subtitle="Étape 1/3" size="md" onClose={() => onClose(true)}>
       <form onSubmit={(event) => void lookup(event)}>
         <div className="modal-body">
-          <div className="d-flex justify-content-between align-items-start">
-            <label className="form-label" htmlFor="handover-pickup-0">
-              Code de restitution*
-            </label>
-            <Link href="/opticien/restitution" className="pdv-modal-link" onClick={() => onClose(false)}>
-              Le client a oublié son code
-            </Link>
+          <div className="pdv-code-field">
+            <div className="pdv-code-field__head">
+              <label className="pdv-field__label" htmlFor="handover-pickup-0">
+                Code de restitution*
+              </label>
+              <Link href="/opticien/restitution" className="pdv-modal-link" onClick={() => onClose(false)}>
+                Le client a oublié son code
+              </Link>
+            </div>
+            <PdvCodeBoxes
+              idPrefix="handover-pickup"
+              value={pickupCode}
+              onChange={setPickupCode}
+              invalid={Boolean(error)}
+              ariaLabel="Code de restitution"
+            />
+            <FieldError message={error ?? undefined} />
+            <p className="pdv-field__hint">Demander au client de vous fournir le code de restitution reçu.</p>
           </div>
-          <div className="d-flex justify-content-center gap-2">
-            {boxes.map((value, index) => (
-              <input
-                key={index}
-                id={`handover-pickup-${index}`}
-                ref={(node) => {
-                  inputs.current[index] = node;
-                }}
-                className={`form-control text-center${error ? " is-invalid" : ""}`}
-                value={value}
-                maxLength={1}
-                autoComplete="off"
-                inputMode="text"
-                aria-label={`Caractère ${index + 1} du code de restitution`}
-                onChange={(event) => setBox(index, event.target.value)}
-                onKeyDown={(event) => onBoxKeyDown(index, event)}
-                onPaste={onBoxPaste}
-                required
-              />
-            ))}
-          </div>
-          <FieldError message={error ?? undefined} />
-          <p className="small text-secondary mt-2 mb-0">
-            Demander au client de vous fournir le code de restitution reçu.
-          </p>
         </div>
-        <div className="modal-footer flex-column">
+        <div className="modal-footer">
           <PdvButton type="submit" variant="primary" size="l" block disabled={pending || pickupCode.length !== BOXES}>
             Valider le code
           </PdvButton>

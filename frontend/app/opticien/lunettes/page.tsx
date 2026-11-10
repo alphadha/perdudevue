@@ -138,18 +138,18 @@ export default function LunettesPage() {
   const hasSelection = selectedCount > 0;
 
   const pairColumns: PdvTableColumn<ShopPair, SortKey>[] = [
-    { key: "assigned_code", label: "Code assigné", width: 120, render: (pair) => pair.assigned_code },
-    { key: "client", label: "Client", width: 170, render: (pair) => clientDisplayName(pair) },
-    { key: "type", label: "Type", width: 130, render: (pair) => pair.type },
-    { key: "brand", label: "Marque", width: 120, render: (pair) => pair.brand },
-    { key: "colors", label: "Couleur(s)", width: 140, render: (pair) => pair.colors.join(", ") },
+    { key: "assigned_code", label: "Code assigné", width: 122, render: (pair) => pair.assigned_code },
+    { key: "client", label: "Client", width: 176, render: (pair) => clientDisplayName(pair) },
+    { key: "type", label: "Type", width: 113, render: (pair) => pair.type },
+    { key: "brand", label: "Marque", width: 100, render: (pair) => pair.brand },
+    { key: "colors", label: "Couleur(s)", width: 120, render: (pair) => pair.colors.join(", ") },
     {
       key: "status",
       label: "Statut",
-      width: 160,
+      width: 149,
       render: (pair) => <PairStatusBadge status={pair.status} label={pair.status_label} />,
     },
-    { key: "registered_at", label: "Date enreg.", width: 110, render: (pair) => formatFrDate(pair.registered_at) },
+    { key: "registered_at", label: "Date enreg.", width: 107, render: (pair) => formatFrDate(pair.registered_at) },
   ];
 
   async function downloadLabels(uuids: string[]) {
@@ -307,6 +307,7 @@ export default function LunettesPage() {
                 empty="Aucune paire de lunette enregistrée pour le moment"
                 sort={sort}
                 onSort={(key) => setSort((current) => toggleSort(current, key))}
+                selectionSplit
                 selection={{
                   selected,
                   isEnabled: isCheckboxEnabled,

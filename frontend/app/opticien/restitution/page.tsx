@@ -112,17 +112,17 @@ export default function RestitutionPage() {
   const showLabelsBulk = selectedForLabels.length >= 2;
 
   const restitutionColumns: PdvTableColumn<ShopRestitution, SortKey>[] = [
-    { key: "reference", label: "Ref dossier", width: 130, render: (item) => (item.reference ? `#${item.reference}` : "") },
-    { key: "type", label: "Type", width: 130, render: (item) => item.type },
-    { key: "brand", label: "Marque", width: 120, render: (item) => item.brand },
-    { key: "colors", label: "Couleur(s)", width: 140, render: (item) => item.colors.join(", ") },
+    { key: "reference", label: "Ref dossier", width: 109, render: (item) => (item.reference ? `#${item.reference}` : "") },
+    { key: "type", label: "Type", width: 113, render: (item) => item.type },
+    { key: "brand", label: "Marque", width: 100, render: (item) => item.brand },
+    { key: "colors", label: "Couleur(s)", width: 120, render: (item) => item.colors.join(", ") },
     {
       key: "status",
       label: "Statut",
-      width: 160,
+      width: 149,
       render: (item) => <PairStatusBadge status={item.status} label={item.status_label} />,
     },
-    { key: "found_at", label: "Date signalement", width: 140, render: (item) => formatFrDate(item.found_at) },
+    { key: "found_at", label: "Date signalement", width: 152, render: (item) => formatFrDate(item.found_at) },
   ];
 
   function restitutionActions(item: ShopRestitution): PdvRowAction[] {

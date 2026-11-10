@@ -58,8 +58,9 @@ export default function RecoverPairPage() {
     <div className="pdv-client-fiche">
       <ClientBackLink href={`/client/lunettes/${pair.uuid}`}>Revenir à mes lunettes</ClientBackLink>
       <div className="pdv-client-fiche__main">
+        <div className="pdv-client-fiche__hero">
         <h1 className="pdv-client-fiche__title">Récupérer mes lunettes</h1>
-        <div className="pdv-client-fiche__cards">
+        <div className="pdv-client-fiche__cards pdv-client-fiche__cards--pickup">
           <section className="pdv-pickup-card">
             <div className="pdv-pickup-card__top">
               <div>
@@ -73,6 +74,7 @@ export default function RecoverPairPage() {
             <p className="pdv-pickup-card__help">{PICKUP_HELP}</p>
           </section>
           {shop ? <ShopCard shop={shop} title="Où les récupérer ?" onMap={() => setMapOpen(true)} /> : null}
+        </div>
         </div>
         <section className="pdv-delivery-card">
           <div>

@@ -12,7 +12,10 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Perdues de Vue",
+  title: {
+    default: "Perdues de Vue",
+    template: "%s | Perdues de Vue",
+  },
   description: "Pour ne plus perdre le lien avec vos lunettes",
 };
 

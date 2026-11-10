@@ -4,8 +4,10 @@ import { FormEvent, useEffect, useState } from "react";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
 import ClientFormFields from "@/components/opticien/ClientFormFields";
 import PdvButton from "@/components/pdv/PdvButton";
+import PdvCodeBoxes from "@/components/pdv/PdvCodeBoxes";
 import { api, ApiRequestError } from "@/lib/api";
 import { formatPhoneFr } from "@/lib/formatPhone";
+import { clientCreatedToast } from "@/lib/toasts";
 import {
   isDuplicatePayload,
   isIdentityChallenge,
@@ -16,7 +18,7 @@ import {
 
 type Props = {
   open: boolean;
-  onCreated: (client: ShopClient, message: string) => void;
+  onCreated: (client: ShopClient, message: string, title?: string) => void;
   onClose: (discarded: boolean) => void;
   onInfoToast?: (message: string) => void;
 };
@@ -89,7 +91,8 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
         method: "POST",
         body: JSON.stringify(form),
       });
-      onCreated(created, "Le client a bien été créé.");
+      const toast = clientCreatedToast(created);
+      onCreated(created, toast.message, toast.title);
     } catch (caught) {
       if (caught instanceof ApiRequestError && caught.status === 409 && isDuplicatePayload(caught.data)) {
         setDuplicate({ token: caught.data.action_token, client: caught.data.client });
@@ -112,7 +115,8 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
       const client = await api<ShopClient>(`/opticien/clients/duplicates/${duplicate.token}/confirm`, {
         method: "POST",
       });
-      onCreated(client, "Le client a bien été ajouté.");
+      const toast = clientCreatedToast(client);
+      onCreated(client, toast.message, toast.title);
     } catch (caught) {
       if (caught instanceof ApiRequestError) {
         setFormError(caught.message);
@@ -254,7 +258,7 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
               <ClientFormFields idPrefix="dash-create" value={form} fieldErrors={fieldErrors} onChange={setForm} />
             </div>
             <div className="modal-footer flex-column">
-              <PdvButton type="submit" variant="primary" size="l" block iconLeft="/icons/pdv/user-plus-01.svg" disabled={pending}>
+              <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
                 Créer le client
               </PdvButton>
               <PdvButton type="button" variant="tertiary" onClick={discard}>
@@ -268,25 +272,26 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
       {duplicate ? (
         <BootstrapModal title="Compte client déjà existant" size="md" onClose={discard}>
           <div className="modal-body">
-            <p>Un compte client avec les informations personnelles que vous avez saisies existe déjà :</p>
-            <p>
-              Nom : {duplicate.client.last_name}
-              <br />
-              Prénom : {duplicate.client.first_name}
-              <br />
-              Adresse e-mail : {duplicate.client.email}
-              <br />
-              Numéro de téléphone : {formatPhoneFr(duplicate.client.phone)}
-            </p>
-            <p className="mb-0">Échanger avec votre client pour savoir si ce compte est le sien.</p>
+            <div className="pdv-duplicate-copy">
+              <p>Un compte client avec les informations personnelles que vous avez saisies existe déjà :</p>
+              <ul>
+                <li>Nom : {duplicate.client.last_name}</li>
+                <li>Prénom : {duplicate.client.first_name}</li>
+                <li>Adresse e-mail : {duplicate.client.email}</li>
+                <li>Numéro de téléphone : {formatPhoneFr(duplicate.client.phone)}</li>
+              </ul>
+              <p className="pdv-field__hint">Échanger avec votre client pour savoir si ce compte est le sien.</p>
+            </div>
           </div>
-          <div className="modal-footer flex-column">
-            <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirmDuplicate()}>
-              Confirmer
-            </PdvButton>
-            <PdvButton type="button" variant="secondary" size="l" block onClick={startDuplicateUpdate}>
-              Mettre à jour
-            </PdvButton>
+          <div className="modal-footer">
+            <div className="pdv-modal-cta-stack">
+              <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirmDuplicate()}>
+                Ajouter ce client à mon espace
+              </PdvButton>
+              <PdvButton type="button" variant="secondary" size="l" block onClick={startDuplicateUpdate}>
+                Modifier la fiche client
+              </PdvButton>
+            </div>
             <PdvButton
               type="button"
               variant="tertiary"
@@ -324,33 +329,32 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
         <BootstrapModal title="Modifier la fiche client" subtitle="Étape 2/3" size="md" onClose={discard}>
           <form onSubmit={(event) => void submitOtp(event)}>
             <div className="modal-body">
-              <div className="pdv-field">
-                <div className="d-flex justify-content-between align-items-center">
-                  <label className="pdv-field__label" htmlFor="dash-otp-code">
+              <div className="pdv-code-field">
+                <div className="pdv-code-field__head">
+                  <label className="pdv-field__label" htmlFor="dash-otp-code-0">
                     Code de vérification*
                   </label>
                   <PdvButton type="button" variant="tertiary" onClick={() => void resendOtp()}>
                     Renvoyer le code
                   </PdvButton>
                 </div>
-                <input
-                  id="dash-otp-code"
-                  className={`pdv-field__control${otpError ? " is-invalid" : ""}`}
-                  inputMode="numeric"
-                  maxLength={6}
+                <PdvCodeBoxes
+                  idPrefix="dash-otp-code"
                   value={otpCode}
-                  required
-                  onChange={(event) => setOtpCode(event.target.value)}
+                  onChange={setOtpCode}
+                  numeric
+                  invalid={Boolean(otpError)}
+                  ariaLabel="Code de vérification"
                 />
                 {otpError ? <p className="pdv-field__error">{otpError}</p> : null}
+                <p className="pdv-field__hint">
+                  Le client a reçu un code par mail ou SMS pour valider la mise à jour de ses informations
+                  personnelles.
+                </p>
               </div>
-              <p className="pdv-field__hint mb-0">
-                Le client a reçu un code par mail ou SMS pour valider la mise à jour de ses informations
-                personnelles.
-              </p>
             </div>
-            <div className="modal-footer flex-column">
-              <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
+            <div className="modal-footer">
+              <PdvButton type="submit" variant="primary" size="l" block disabled={pending || otpCode.length !== 6}>
                 Vérifier le code et ajouter le client
               </PdvButton>
               <PdvButton type="button" variant="tertiary" onClick={discard}>

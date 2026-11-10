@@ -219,9 +219,9 @@ export default function OpticienHomePage() {
 
       <CreateClientFlow
         open={createOpen}
-        onCreated={(client, message) => {
+        onCreated={(client, message, title) => {
           setCreateOpen(false);
-          showToast(message);
+          showToast(message, title);
           router.push(`/opticien/clients/${client.uuid}`);
         }}
         onClose={(discarded) => {

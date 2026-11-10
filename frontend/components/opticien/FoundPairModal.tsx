@@ -61,13 +61,19 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
   if (step === 3) {
     return (
       <BootstrapModal title="Signaler des lunettes retrouvées" subtitle="Étape 3/3" size="md" onClose={() => onDone()}>
-        <div className="modal-body text-center">
-          <ModalSuccessMark />
-          <p className="h5">Signalement confirmé !</p>
-          <p className="mb-0">Le propriétaire a été notifié que ses lunettes ont été retrouvées.</p>
+        <div className="modal-body">
+          <div className="pdv-modal-success">
+            <ModalSuccessMark />
+            <div className="pdv-modal-success__copy">
+              <p className="pdv-modal-success__title">Signalement confirmé !</p>
+              <p className="pdv-modal-success__text">
+                Le propriétaire a été notifié que ses lunettes ont été retrouvées.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="modal-footer flex-column">
-          <PdvButton type="button" variant="primary" size="l" block onClick={() => onDone()}>
+        <div className="modal-footer">
+          <PdvButton type="button" variant="secondary" size="l" block onClick={() => onDone()}>
             Fermer
           </PdvButton>
         </div>
@@ -84,26 +90,26 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
             Vérifiez bien que la paire identifiée est la bonne. Cette action permettra au propriétaire de la paire
             d’être notifié.
           </p>
-          <ul className="pdv-recap-list">
+          <ul className="pdv-info-card">
             <li>
-              <span>Type de lunettes</span>
+              <span>Paire :</span>
               <strong>{preview.type_label}</strong>
             </li>
             <li>
-              <span>Marque</span>
+              <span>Marque :</span>
               <strong>{preview.brand}</strong>
             </li>
             <li>
-              <span>Couleur(s)</span>
+              <span>Couleur(s) :</span>
               <strong>{preview.colors.join(", ")}</strong>
             </li>
             <li>
-              <span>Code assigné</span>
+              <span>Code assigné :</span>
               <strong>{preview.assigned_code}</strong>
             </li>
           </ul>
         </div>
-        <div className="modal-footer flex-column">
+        <div className="modal-footer">
           <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void confirm()}>
             Confirmer le signalement
           </PdvButton>
@@ -121,7 +127,7 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
         <div className="modal-body">
           <PdvField
             id="found-assigned-code"
-            label="Code assigné à la paire*"
+            label="Code unique assigné*"
             placeholder={ASSIGNED_CODE_EXAMPLE}
             value={assignedCode}
             error={error ?? undefined}
@@ -131,7 +137,7 @@ export default function FoundPairModal({ onDone, onClose }: Props) {
             onChange={(event) => setAssignedCode(event.target.value.toUpperCase())}
           />
         </div>
-        <div className="modal-footer flex-column">
+        <div className="modal-footer">
           <PdvButton type="submit" variant="primary" size="l" block disabled={pending}>
             Signaler comme retrouvé
           </PdvButton>

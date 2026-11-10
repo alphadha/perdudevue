@@ -26,9 +26,11 @@ function PublicBlocked({
         <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
       </header>
       <section className="pdv-public__blocked-card">
-        <p className="pdv-public__blocked-title">{title}</p>
-        <p className="pdv-public__blocked-body">{body}</p>
-        <PdvButton href="/login?space=client" variant="tertiary" size="l">
+        <div className="pdv-public__blocked-copy">
+          <p className="pdv-public__blocked-title">{title}</p>
+          <p className="pdv-public__blocked-body">{body}</p>
+        </div>
+        <PdvButton href="/login?space=client" variant="tertiary">
           Me connecter
         </PdvButton>
       </section>

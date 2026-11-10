@@ -50,6 +50,14 @@ export const CLIENT_UPDATED_TOAST: ToastState = {
   variant: "success",
 };
 
+export function clientCreatedToast(client: { first_name: string; last_name: string }): ToastState {
+  return {
+    title: "Client enregistré",
+    message: `${client.last_name} ${client.first_name} a bien été ajouté à votre liste de clients.`,
+    variant: "success",
+  };
+}
+
 const BY_MESSAGE: Record<string, ToastState> = {
   "Modifications non prises en compte": DISCARD_TOAST,
   [DISCARD_TOAST.message]: DISCARD_TOAST,

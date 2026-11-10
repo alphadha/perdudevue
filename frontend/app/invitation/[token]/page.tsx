@@ -45,7 +45,7 @@ function InvitationBlocked({
               <p className="pdv-invite-used__title">{title}</p>
               <p className="pdv-invite-used__body">{body}</p>
             </div>
-            <PdvButton href="/login?space=client" variant="tertiary" size="l">
+            <PdvButton href="/login?space=client" variant="tertiary">
               Me connecter
             </PdvButton>
           </section>
@@ -184,36 +184,38 @@ export default function InvitationPage() {
                     />
                   </div>
 
-                  <div className="pdv-field">
-                    <label className="pdv-field__label" htmlFor="password">
-                      Mot de passe*
-                    </label>
-                    <div className="pdv-field__password">
-                      <input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        className={`pdv-field__control${fieldErrors.password || passwordInvalid ? " is-invalid" : ""}`}
-                        placeholder="Saisissez votre mot de passe"
-                        autoComplete="new-password"
-                        value={password}
-                        onBlur={() => {
-                          if (password.length > 0) {
-                            setPasswordTouched(true);
-                          }
-                        }}
-                        onChange={(event) => setPassword(event.target.value)}
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="pdv-field__eye"
-                        aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                        onClick={() => setShowPassword((current) => !current)}
-                      >
-                        <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
-                      </button>
+                  <div className="pdv-password-field">
+                    <div className="pdv-field">
+                      <label className="pdv-field__label" htmlFor="password">
+                        Mot de passe*
+                      </label>
+                      <div className="pdv-field__password">
+                        <input
+                          id="password"
+                          type={showPassword ? "text" : "password"}
+                          className={`pdv-field__control${fieldErrors.password || passwordInvalid ? " is-invalid" : ""}`}
+                          placeholder="Saisissez votre mot de passe"
+                          autoComplete="new-password"
+                          value={password}
+                          onBlur={() => {
+                            if (password.length > 0) {
+                              setPasswordTouched(true);
+                            }
+                          }}
+                          onChange={(event) => setPassword(event.target.value)}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="pdv-field__eye"
+                          aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                          onClick={() => setShowPassword((current) => !current)}
+                        >
+                          <img src="/icons/pdv/eye.svg" alt="" width={20} height={20} />
+                        </button>
+                      </div>
+                      <FieldError message={fieldErrors.password} />
                     </div>
-                    <FieldError message={fieldErrors.password} />
                     <PdvPasswordRules password={password} showError={passwordInvalid} />
                   </div>
 

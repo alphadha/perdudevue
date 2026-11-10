@@ -386,32 +386,34 @@ export default function DeliveryRequestPage() {
           <h1 className="pdv-delivery__title">Mode de livraison</h1>
 
           <div className={`pdv-ship-card pdv-ship-card--home${mode === "home" ? " is-open" : ""}`}>
-            <div className="pdv-ship-card__head" onClick={() => selectMode("home")}>
-              <span className="pdv-ship-card__choice">
-                <span className="pdv-ship-radio">
-                  <input
-                    type="radio"
-                    name="mode"
-                    id="mode-home"
-                    checked={mode === "home"}
-                    onChange={() => selectMode("home")}
-                  />
-                  <span className="pdv-ship-radio__mark" />
-                </span>
-                <label className="pdv-ship-card__label" htmlFor="mode-home">
-                  {homeCarrier} à domicile
-                </label>
-              </span>
-              <span className="pdv-ship-card__price">{formatPrice(homeCents)}</span>
-            </div>
             {mode === "home" ? (
               <>
-                <div className="pdv-ship-card__copy">
-                  <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
-                  <p className="pdv-ship-card__hint">
-                    En choisissant cette option, vous acceptez que votre adresse serve à la livraison. Elle ne sera pas
-                    utilisée à des fins commerciales.
-                  </p>
+                <div className="pdv-ship-card__intro">
+                  <div className="pdv-ship-card__head" onClick={() => selectMode("home")}>
+                    <span className="pdv-ship-card__choice">
+                      <span className="pdv-ship-radio">
+                        <input
+                          type="radio"
+                          name="mode"
+                          id="mode-home"
+                          checked={mode === "home"}
+                          onChange={() => selectMode("home")}
+                        />
+                        <span className="pdv-ship-radio__mark" />
+                      </span>
+                      <label className="pdv-ship-card__label" htmlFor="mode-home">
+                        {homeCarrier} à domicile
+                      </label>
+                    </span>
+                    <span className="pdv-ship-card__price">{formatPrice(homeCents)}</span>
+                  </div>
+                  <div className="pdv-ship-card__copy">
+                    <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
+                    <p className="pdv-ship-card__hint">
+                      En choisissant cette option, vous acceptez que votre adresse serve à la livraison. Elle ne sera pas
+                      utilisée à des fins commerciales.
+                    </p>
+                  </div>
                 </div>
                 <div className="pdv-ship-card__fields">
                   <div className="pdv-ship-card__row">
@@ -468,7 +470,27 @@ export default function DeliveryRequestPage() {
                 </div>
               </>
             ) : (
-              <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
+              <>
+                <div className="pdv-ship-card__head" onClick={() => selectMode("home")}>
+                  <span className="pdv-ship-card__choice">
+                    <span className="pdv-ship-radio">
+                      <input
+                        type="radio"
+                        name="mode"
+                        id="mode-home"
+                        checked={mode === "home"}
+                        onChange={() => selectMode("home")}
+                      />
+                      <span className="pdv-ship-radio__mark" />
+                    </span>
+                    <label className="pdv-ship-card__label" htmlFor="mode-home">
+                      {homeCarrier} à domicile
+                    </label>
+                  </span>
+                  <span className="pdv-ship-card__price">{formatPrice(homeCents)}</span>
+                </div>
+                <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
+              </>
             )}
           </div>
 

@@ -82,6 +82,7 @@ export default function OpticienSettingsPage() {
                   <img src="/icons/pdv/file-02.svg" alt="" width={20} height={20} />
                   {item.label}
                 </span>
+                <img src="/icons/pdv/arrow-up-s-line.svg" alt="" width={24} height={24} className="pdv-settings-item__trail" />
               </a>
             ))}
           </div>

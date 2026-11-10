@@ -13,13 +13,13 @@ type EngraveProps = {
 
 export function PairEngraveModal({ pending, onConfirm, onClose }: EngraveProps) {
   return (
-    <BootstrapModal title="Indiquer comme gravée" onClose={onClose}>
+    <BootstrapModal title="Indiquer comme gravée" size="md" onClose={onClose}>
       <div className="modal-body">
         <p>
           Vous êtes sur le point de confirmer que la paire de lunettes a bien été gravée. Cette action est
           irréversible.
         </p>
-        <p className="mb-0">Ne confirmez que si la paire a bien été gravée.</p>
+        <p className="is-em">Ne confirmez que si la paire a bien été gravée.</p>
       </div>
       <div className="modal-footer">
         <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
@@ -42,10 +42,10 @@ type InactiveProps = {
 
 export function PairInactiveModal({ pair, pending, onConfirm, onClose }: InactiveProps) {
   return (
-    <BootstrapModal title="Déclarer la paire comme inactive" onClose={onClose}>
+    <BootstrapModal title="Déclarer la paire comme inactive" size="md" onClose={onClose}>
       <div className="modal-body">
-        <p className="mb-0">
-          Vous êtes sur le point de déclarer la paire “{pair.title}” comme inactive. Une paire inactive
+        <p>
+          Vous êtes sur le point de déclarer la paire “<strong>{pair.title}</strong>” comme inactive. Une paire inactive
           correspond à une paire définitivement perdue ou cassée par le client.
         </p>
       </div>

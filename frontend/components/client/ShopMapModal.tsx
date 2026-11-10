@@ -16,6 +16,11 @@ function shopQuery(shop: ClientShop): string {
   return [shop.address, shop.postal_code, shop.city].filter(Boolean).join(" ");
 }
 
+function shopAddress(shop: ClientShop): string {
+  const locality = [shop.postal_code, shop.city].filter(Boolean).join(" ");
+  return [shop.address, locality].filter(Boolean).join(", ");
+}
+
 function itineraryUrl(shop: ClientShop): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(shopQuery(shop))}&travelmode=driving`;
 }
@@ -92,13 +97,14 @@ function ShopMiniMap({ shop }: { shop: ClientShop }) {
         maxZoom: 19,
       }).addTo(map);
 
-      L.circleMarker([shopPoint.lat, shopPoint.lng], {
-        radius: 8,
-        color: "#fcfcfc",
-        weight: 2,
-        fillColor: "#13263f",
-        fillOpacity: 1,
-      }).addTo(map);
+      const shopIcon = L.divIcon({
+        className: "pdv-shop-pin",
+        html:
+          '<div class="pdv-shop-pin__bubble"><img src="/icons/pdv/building-02.svg" alt="" width="12" height="12"></div><span class="pdv-shop-pin__tail"></span>',
+        iconSize: [26, 32],
+        iconAnchor: [13, 32],
+      });
+      L.marker([shopPoint.lat, shopPoint.lng], { icon: shopIcon, interactive: false }).addTo(map);
 
       const user = await new Promise<LatLng | null>((resolve) => {
         if (!navigator.geolocation) {
@@ -117,13 +123,13 @@ function ShopMiniMap({ shop }: { shop: ClientShop }) {
       }
 
       if (user) {
-        L.circleMarker([user.lat, user.lng], {
-          radius: 5,
-          color: "#fcfcfc",
-          weight: 1,
-          fillColor: "#13263f",
-          fillOpacity: 1,
-        }).addTo(map);
+        const userIcon = L.divIcon({
+          className: "pdv-shop-user",
+          html: '<span class="pdv-shop-user__dot"></span>',
+          iconSize: [15, 15],
+          iconAnchor: [8, 8],
+        });
+        L.marker([user.lat, user.lng], { icon: userIcon, interactive: false }).addTo(map);
         const path = await drivingPath(user, shopPoint);
         if (cancelled || !map) {
           return;
@@ -164,17 +170,17 @@ function ShopMiniMap({ shop }: { shop: ClientShop }) {
 }
 
 export default function ShopMapModal({ shop, onClose }: Props) {
-  const address = shopQuery(shop);
+  const address = shopAddress(shop);
 
   function openItinerary() {
     window.location.assign(itineraryUrl(shop));
   }
 
   return (
-    <BootstrapModal title="Localisation" onClose={onClose}>
+    <BootstrapModal title="Localisation" variant="client" onClose={onClose}>
       <div className="modal-body pdv-shop-map-modal__body">
         <ShopMiniMap shop={shop} />
-        <div>
+        <div className="pdv-shop-map-modal__details">
           <p className="pdv-shop-card__name">{shop.name}</p>
           {address ? <p className="pdv-shop-card__meta">{address}</p> : null}
         </div>
@@ -183,7 +189,7 @@ export default function ShopMapModal({ shop, onClose }: Props) {
         <PdvButton type="button" variant="primary" size="l" block iconLeft="/icons/pdv/share-03.svg" onClick={openItinerary}>
           Voir l’itinéraire
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
         </PdvButton>
       </div>

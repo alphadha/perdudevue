@@ -208,14 +208,14 @@ export default function RegisterPairModal({ lockedClient, onCreated, onClose }: 
             onChange={(event) => setDescription(event.target.value)}
           />
           <hr className="pdv-panel__divider" />
-          <div className="pdv-engrave">
+          <div className={`pdv-engrave${alreadyEngraved ? " pdv-engrave--code" : ""}`}>
             <p className="pdv-field__label">La paire est-t-elle déjà gravée d’un code unique ?</p>
             <div className="pdv-choice-row">
-              <div className="pdv-choice">
+              <div className="pdv-choice" onClick={() => setAlreadyEngraved(true)}>
                 <PdvCheckbox checked={alreadyEngraved} onChange={() => setAlreadyEngraved(true)} aria-label="Oui" />
                 <span className="pdv-choice__label">Oui</span>
               </div>
-              <div className="pdv-choice">
+              <div className="pdv-choice" onClick={() => setAlreadyEngraved(false)}>
                 <PdvCheckbox checked={!alreadyEngraved} onChange={() => setAlreadyEngraved(false)} aria-label="Non" />
                 <span className="pdv-choice__label">Non</span>
               </div>
@@ -232,7 +232,7 @@ export default function RegisterPairModal({ lockedClient, onCreated, onClose }: 
                 onChange={(event) => setAssignedCode(event.target.value.toUpperCase())}
               />
             ) : (
-              <p className="pdv-field__hint mb-0">
+              <p className="pdv-field__hint">
                 Cette paire n’étant pas encore gravée, un code unique lui sera automatiquement attribué lors de
                 son enregistrement. Ce code devra ensuite être apposé sur la paire. Vous pourrez retrouver ce
                 code dans la fiche d’information de la paire.

@@ -8,27 +8,43 @@ type Props = {
   title: string;
   subtitle?: string;
   size?: ModalSize;
+  variant?: "default" | "client";
+  className?: string;
   onClose: () => void;
   children: ReactNode;
 };
 
-export default function BootstrapModal({ title, subtitle, size = "sm", onClose, children }: Props) {
-  const dialogClass =
-    size === "lg"
-      ? "modal-dialog modal-dialog-centered modal-dialog--lg"
-      : size === "md"
-        ? "modal-dialog modal-dialog-centered modal-dialog--md"
-        : "modal-dialog modal-dialog-centered";
+export default function BootstrapModal({
+  title,
+  subtitle,
+  size = "sm",
+  variant = "default",
+  className,
+  onClose,
+  children,
+}: Props) {
+  const dialogClass = [
+    "modal-dialog modal-dialog-centered",
+    size === "lg" ? "modal-dialog--lg" : "",
+    size === "md" ? "modal-dialog--md" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
-      <div className="modal fade show d-block" tabIndex={-1} role="dialog" aria-modal="true">
+      <div
+        className={`modal fade show d-block${variant === "client" ? " pdv-modal--client" : ""}${className ? ` ${className}` : ""}`}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+      >
         <div className={dialogClass}>
           <div className="modal-content">
             <div className="modal-header">
-              <div>
+              <div className="pdv-modal-heading">
                 <h2 className="modal-title mb-0">{title}</h2>
-                {subtitle ? <p className="pdv-field__hint mb-0">{subtitle}</p> : null}
+                {subtitle ? <p className="pdv-modal-subtitle">{subtitle}</p> : null}
               </div>
               <button type="button" className="pdv-modal-close" aria-label="Fermer" onClick={onClose}>
                 <img src="/icons/pdv/x-close.svg" alt="" width={24} height={24} />
@@ -45,9 +61,9 @@ export default function BootstrapModal({ title, subtitle, size = "sm", onClose, 
 
 export function ModalSuccessMark() {
   return (
-    <p className="mb-3" aria-hidden="true">
-      <span className="fs-4 text-primary border border-primary rounded-circle px-2">✓</span>
-    </p>
+    <div className="pdv-modal-success__icon" aria-hidden>
+      <img src="/icons/pdv/check.svg" alt="" width={24} height={24} />
+    </div>
   );
 }
 

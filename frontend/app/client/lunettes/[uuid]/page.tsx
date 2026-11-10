@@ -148,6 +148,7 @@ export default function ClientPairPage() {
       />
       <ClientBackLink href="/client">Revenir à mes lunettes</ClientBackLink>
       <div className="pdv-client-fiche__main">
+        <div className="pdv-client-fiche__hero">
         <h1 className="pdv-client-fiche__title">{pair.title}</h1>
         <div className="pdv-client-fiche__cards">
           <section className="pdv-client-info-card">
@@ -165,6 +166,7 @@ export default function ClientPairPage() {
             </dl>
           </section>
           {shop ? <ShopCard shop={shop} onMap={() => setMapOpen(true)} /> : null}
+        </div>
         </div>
 
         <div className="pdv-client-fiche__actions">

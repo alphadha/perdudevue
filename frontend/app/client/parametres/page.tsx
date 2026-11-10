@@ -86,17 +86,19 @@ export default function ClientSettingsPage() {
           <section>
             <h2 className="pdv-settings-section-title">Documents légaux</h2>
             <div className="pdv-settings-list">
-              <a className="pdv-settings-item" href={`mailto:${SUPPORT}`}>
+              <a className="pdv-settings-item" href={`mailto:${SUPPORT}`} target="_blank" rel="noreferrer">
                 <span className="pdv-settings-item__label">
                   <img src="/icons/pdv/file-02.svg" alt="" width={18} height={18} />
                   Conditions générales d’utilisation
                 </span>
+                <img src="/icons/pdv/arrow-up-s-line.svg" alt="" width={24} height={24} className="pdv-settings-item__trail" />
               </a>
-              <a className="pdv-settings-item" href={`mailto:${SUPPORT}`}>
+              <a className="pdv-settings-item" href={`mailto:${SUPPORT}`} target="_blank" rel="noreferrer">
                 <span className="pdv-settings-item__label">
                   <img src="/icons/pdv/file-02.svg" alt="" width={18} height={18} />
                   Politique de confidentialité
                 </span>
+                <img src="/icons/pdv/arrow-up-s-line.svg" alt="" width={24} height={24} className="pdv-settings-item__trail" />
               </a>
             </div>
           </section>
@@ -110,12 +112,12 @@ export default function ClientSettingsPage() {
         </p>
         <p className="pdv-help-card__body">
           Notre support client est à votre disposition pour répondre à toutes vos questions. Vous pouvez nous
-          contacter par mail à {SUPPORT}.
+          contacter par mail à <strong>{SUPPORT}</strong>.
         </p>
       </aside>
 
       {logoutOpen ? (
-        <LogoutModal pending={pending} onConfirm={logout} onClose={() => setLogoutOpen(false)} />
+        <LogoutModal variant="client" pending={pending} onConfirm={logout} onClose={() => setLogoutOpen(false)} />
       ) : null}
       {deleteOpen ? (
         <DeleteAccountModal

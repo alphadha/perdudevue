@@ -11,27 +11,21 @@ type LostProps = {
   onClose: () => void;
 };
 
-export function DeclareLostModal({ pair, pending, onConfirm, onClose }: LostProps) {
+export function DeclareLostModal({ pending, onConfirm, onClose }: LostProps) {
   return (
-    <BootstrapModal title="Déclarer comme perdue" onClose={onClose}>
+    <BootstrapModal title="Déclarer comme perdue" variant="client" onClose={onClose}>
       <div className="modal-body">
         <p>Vous êtes sur le point de déclarer cette paire de lunette comme perdue.</p>
         <p>
           Si vos lunettes sont retrouvées et déposées chez un opticien partenaire, vous en serez informé pour les
-          récupérer.
+          récupérer
         </p>
-        <div className="card">
-          <div className="card-body py-2">
-            <p className="mb-1">{pair.title}</p>
-            <p className="small text-secondary mb-0">Code assigné : {pair.assigned_code}</p>
-          </div>
-        </div>
       </div>
-      <div className="modal-footer flex-column">
+      <div className="modal-footer">
         <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Déclarer comme perdue
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
         </PdvButton>
       </div>
@@ -41,19 +35,19 @@ export function DeclareLostModal({ pair, pending, onConfirm, onClose }: LostProp
 
 export function CancelLostModal({ pending, onConfirm, onClose }: Omit<LostProps, "pair">) {
   return (
-    <BootstrapModal title="J’ai retrouvé mes lunettes" onClose={onClose}>
+    <BootstrapModal title="J’ai retrouvé mes lunettes" variant="client" onClose={onClose}>
       <div className="modal-body">
         <p>Vous êtes sur le point de confirmer que vous avez retrouvé vos lunettes.</p>
-        <p className="mb-0">
+        <p>
           Si vous confirmez, votre déclaration de perte sera supprimée et le statut de votre paire passera à « Active
           ».
         </p>
       </div>
-      <div className="modal-footer flex-column">
+      <div className="modal-footer">
         <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           J’ai retrouvé mes lunettes
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
         </PdvButton>
       </div>
@@ -61,24 +55,18 @@ export function CancelLostModal({ pending, onConfirm, onClose }: Omit<LostProps,
   );
 }
 
-export function ClientInactiveModal({ pair, pending, onConfirm, onClose }: LostProps) {
+export function ClientInactiveModal({ pending, onConfirm, onClose }: LostProps) {
   return (
-    <BootstrapModal title="Déclarer comme inactive" onClose={onClose}>
+    <BootstrapModal title="Déclarer comme inactive" variant="client" onClose={onClose}>
       <div className="modal-body">
         <p>Vous êtes sur le point de déclarer cette paire de lunette comme inactive.</p>
         <p>Une paire inactive correspond à une paire définitivement perdue ou cassée.</p>
-        <div className="card">
-          <div className="card-body py-2">
-            <p className="mb-1">{pair.title}</p>
-            <p className="small text-secondary mb-0">Code assigné : {pair.assigned_code}</p>
-          </div>
-        </div>
       </div>
-      <div className="modal-footer flex-column">
+      <div className="modal-footer">
         <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Déclarer comme inactive
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
         </PdvButton>
       </div>
@@ -88,18 +76,16 @@ export function ClientInactiveModal({ pair, pending, onConfirm, onClose }: LostP
 
 export function ArchivePairModal({ pending, onConfirm, onClose }: Omit<LostProps, "pair">) {
   return (
-    <BootstrapModal title="Supprimer définitivement la paire" onClose={onClose}>
+    <BootstrapModal title="Supprimer une paire" variant="client" onClose={onClose}>
       <div className="modal-body">
-        <p className="mb-0">
-          Cette action est irréversible. La paire disparaîtra de votre espace. Le code assigné ne sera jamais
-          réutilisé.
-        </p>
+        <p>Vous êtes sur le point de supprimer définitivement cette paire de lunettes.</p>
+        <p>Elle ne sera plus visible dans votre espace ni dans celui de l’opticien. Cette action est irréversible.</p>
       </div>
-      <div className="modal-footer flex-column">
+      <div className="modal-footer">
         <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={onConfirm}>
-          Supprimer définitivement la paire
+          Supprimer définitivement
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
         </PdvButton>
       </div>
@@ -115,37 +101,43 @@ type LogoutProps = {
 
 export function DeleteAccountModal({ pending, onConfirm, onClose, error }: LogoutProps & { error?: string | null }) {
   return (
-    <BootstrapModal title="Supprimer mon compte" onClose={onClose}>
+    <BootstrapModal title="Supprimer mon compte" variant="client" className="pdv-modal--client-pad24" onClose={onClose}>
       <div className="modal-body">
         {error ? <div className="alert alert-danger">{error}</div> : null}
-        <p className="mb-0">
-          Êtes-vous certain(e) de vouloir supprimer votre compte Perdues de vue ? Toutes vos données seront
-          supprimées.
+        <p>
+          Êtes-vous certain(e) de vouloir supprimer votre compte Perdues de vue ?
+          <br />
+          Toutes vos données seront supprimées.
         </p>
       </div>
-      <div className="modal-footer flex-column">
+      <div className="modal-footer">
         <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={onConfirm}>
           Supprimer mon compte
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
-          Annuler
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
+          Conserver mon compte
         </PdvButton>
       </div>
     </BootstrapModal>
   );
 }
 
-export function LogoutModal({ pending, onConfirm, onClose }: LogoutProps) {
+export function LogoutModal({
+  pending,
+  onConfirm,
+  onClose,
+  variant = "default",
+}: LogoutProps & { variant?: "default" | "client" }) {
   return (
-    <BootstrapModal title="Se déconnecter" onClose={onClose}>
+    <BootstrapModal title="Se déconnecter" variant={variant} onClose={onClose}>
       <div className="modal-body">
-        <p className="mb-0">Êtes-vous sûr(e) de vouloir vous déconnecter ?</p>
+        <p>Êtes-vous sûr(e) de vouloir vous déconnecter ?</p>
       </div>
-      <div className="modal-footer flex-column">
+      <div className="modal-footer">
         <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Me déconnecter
         </PdvButton>
-        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" onClick={onClose}>
           Annuler
         </PdvButton>
       </div>
