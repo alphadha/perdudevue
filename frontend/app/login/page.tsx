@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useMemo, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import BrandPanel from "@/components/BrandPanel";
+import LoginPattern from "@/components/LoginPattern";
 import FieldError from "@/components/FieldError";
 import PdvButton from "@/components/pdv/PdvButton";
-import PdvToggle from "@/components/pdv/PdvToggle";
+import PdvSegmented from "@/components/pdv/PdvSegmented";
 import { api, ApiRequestError, setSession } from "@/lib/api";
 import type { AuthUser, Space } from "@/lib/types";
 
@@ -24,18 +25,10 @@ function LoginForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
 
-  const help = useMemo(() => {
-    if (space === "opticien") {
-      return {
-        title: "Vous êtes opticien et vous n’avez pas encore de compte ?",
-        body: "Vous pouvez nous contacter par mail à support@perduesdevue.fr. Nous vous assisterons dans la création de votre compte.",
-      };
-    }
-    return {
-      title: "Vous n’avez pas encore de compte ?",
-      body: "Rapprochez-vous de votre opticien. Il pourra créer votre compte et vous recevrez un email pour accéder à votre espace.",
-    };
-  }, [space]);
+  const helpTitle =
+    space === "opticien"
+      ? "Vous êtes opticien et vous n’avez pas encore de compte ?"
+      : "Vous n’avez pas encore de compte ?";
 
   function selectSpace(next: LoginSpace) {
     setSpace(next);
@@ -82,13 +75,7 @@ function LoginForm() {
 
       <div className="pdv-login__main">
         <header className="pdv-login__hero pdv-login__hero--mobile">
-          <div className="pdv-login__pattern" aria-hidden>
-            <img src="/brand/login-pattern-a.svg" alt="" />
-            <img src="/brand/login-pattern-b.svg" alt="" />
-            <img src="/brand/login-pattern-a.svg" alt="" />
-            <img src="/brand/login-pattern-b.svg" alt="" />
-            <img src="/brand/login-pattern-a.svg" alt="" />
-          </div>
+          <LoginPattern />
           <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
         </header>
 
@@ -99,12 +86,14 @@ function LoginForm() {
             <div className="pdv-login__section">
               <h2 className="pdv-login__subtitle">Connexion</h2>
 
-              <PdvToggle
-                checked={space === "client"}
-                onChange={(isClient) => selectSpace(isClient ? "client" : "opticien")}
-                leftLabel="Espace Opticien"
-                rightLabel="Espace Client"
+              <PdvSegmented
+                value={space}
+                onChange={selectSpace}
                 ariaLabel="Choisir l’espace Opticien ou Client"
+                options={[
+                  { value: "opticien", label: "Espace Opticien" },
+                  { value: "client", label: "Espace Client" },
+                ]}
               />
 
               {error ? <div className="alert alert-danger mb-0">{error}</div> : null}
@@ -164,8 +153,19 @@ function LoginForm() {
               </PdvButton>
 
               <aside className="pdv-login__help">
-                <p className="pdv-login__help-title">{help.title}</p>
-                <p className="pdv-login__help-body">{help.body}</p>
+                <p className="pdv-login__help-title">{helpTitle}</p>
+                {space === "opticien" ? (
+                  <p className="pdv-login__help-body">
+                    Vous pouvez nous contacter par mail à{" "}
+                    <a href="mailto:support@perduesdevue.com">support@perduesdevue.com</a>. Nous vous
+                    assisterons dans la création de votre compte.
+                  </p>
+                ) : (
+                  <p className="pdv-login__help-body">
+                    Rapprochez-vous de votre opticien. Il créera votre compte et vous recevrez un email
+                    pour accéder à votre espace.
+                  </p>
+                )}
               </aside>
             </div>
           </form>

@@ -16,6 +16,7 @@ import { api, ApiRequestError } from "@/lib/api";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvRowActions from "@/components/pdv/PdvRowActions";
 import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import { PAIR_CREATED_TOAST } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
 import {
@@ -311,7 +312,7 @@ export default function ClientFichePage() {
               {client.last_name} {client.first_name}
             </h1>
             <p className="pdv-fiche-meta">
-              {client.phone}
+              {formatPhoneFr(client.phone)}
               {client.phone && client.email ? " · " : null}
               {client.email}
             </p>

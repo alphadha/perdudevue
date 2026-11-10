@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId } from "react";
+import OpticienFooter from "@/components/opticien/OpticienFooter";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvRestitutionIcon from "@/components/pdv/PdvRestitutionIcon";
 import { api, clearSession } from "@/lib/api";
@@ -151,6 +152,8 @@ export default function OpticienShell({ children }: { children: React.ReactNode 
       <main className="pdv-main">
         <div className="container py-4">{children}</div>
       </main>
+
+      <OpticienFooter />
     </div>
   );
 }

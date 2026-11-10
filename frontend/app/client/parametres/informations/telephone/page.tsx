@@ -6,6 +6,7 @@ import AppToast from "@/components/AppToast";
 import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import type { ClientProfile } from "@/lib/types";
 
 const STORAGE_KEY = "pdv_phone_otp";
@@ -14,11 +15,6 @@ type StoredChallenge = {
   token: string;
   phone: string;
 };
-
-function formatPhoneFr(phone: string): string {
-  const digits = phone.replace(/\D/g, "");
-  return digits.replace(/(\d{2})(?=\d)/g, "$1 ").trim();
-}
 
 function readChallenge(): StoredChallenge | null {
   try {

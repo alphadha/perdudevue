@@ -11,7 +11,6 @@ const LEGAL = "mailto:support@perduesdevue.com";
 
 const LEGAL_LINKS = [
   { href: LEGAL, label: "Conditions générales d’utilisation" },
-  { href: LEGAL, label: "Conditions générales de Vente" },
   { href: LEGAL, label: "Politique de confidentialité" },
 ];
 
@@ -83,13 +82,6 @@ export default function OpticienSettingsPage() {
                   <img src="/icons/pdv/file-02.svg" alt="" width={20} height={20} />
                   {item.label}
                 </span>
-                <img
-                  src="/icons/pdv/arrow-up-s-line.svg"
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="pdv-settings-item__trail"
-                />
               </a>
             ))}
           </div>

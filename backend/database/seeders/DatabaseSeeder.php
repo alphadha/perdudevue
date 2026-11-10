@@ -14,6 +14,7 @@ use App\Models\PublicRestitutionToken;
 use App\Models\Shipment;
 use App\Models\ShopNotification;
 use App\Models\User;
+use App\Services\EmailTemplateService;
 use App\Services\ShopInboxService;
 use App\Support\SecureToken;
 use Illuminate\Database\Seeder;
@@ -30,6 +31,8 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        app(EmailTemplateService::class)->ensureDefaults();
+
         $admin = $this->user('Admin', 'PDV', 'admin@perduesdevue.fr', Role::AdminPdv);
 
         $optA = $this->optician('Optique A', '10 rue de la Paix', 'Paris', '75002', '0142000001');

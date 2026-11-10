@@ -67,6 +67,8 @@ body {
 /* ——— Shell ——— */
 .pdv-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--pdv-page-bg);
 }
 
@@ -79,7 +81,8 @@ body {
 }
 
 .pdv-nav > .container,
-.pdv-main > .container {
+.pdv-main > .container,
+.pdv-footer > .container {
   max-width: 1360px;
   padding-left: 40px;
   padding-right: 40px;
@@ -221,6 +224,7 @@ body {
 }
 
 .pdv-main {
+  flex: 1;
   padding: 0;
 }
 
@@ -235,7 +239,8 @@ body {
   }
 
   .pdv-nav > .container,
-  .pdv-main > .container {
+  .pdv-main > .container,
+  .pdv-footer > .container {
     padding-left: 16px;
     padding-right: 16px;
   }
@@ -558,8 +563,14 @@ body {
   width: 169px;
   min-width: 169px;
   max-width: 169px;
+  height: 40px;
   flex-shrink: 0;
   box-sizing: border-box;
+}
+
+.pdv-select--filter .pdv-select__trigger {
+  min-height: 0;
+  height: 100%;
 }
 
 .pdv-toolbar__filters .pdv-select--filter:first-child {
@@ -1032,6 +1043,31 @@ body {
   color: var(--pdv-texte);
 }
 
+.pdv-page-head__back {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 0;
+  color: var(--pdv-texte);
+  text-decoration: none;
+}
+
+.pdv-page-head__back:hover {
+  color: var(--pdv-texte);
+}
+
+.pdv-page-head__back img {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.pdv-page-head__back h1 {
+  margin: 0;
+  font-size: var(--pdv-fs-h6);
+  line-height: 1;
+}
+
 .pdv-page-head__lead {
   margin: 0;
   font-size: 14px;
@@ -1064,6 +1100,15 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
+}
+
+.pdv-page-head--pair {
+  align-items: center;
+}
+
+.pdv-page-head--pair h1 {
+  line-height: 1.5;
+  margin: 0;
 }
 
 .pdv-panel {
@@ -1157,20 +1202,24 @@ body {
 
 .pdv-pagination__page,
 .pdv-pagination__arrow {
-  width: 32px;
-  height: 32px;
   border: none;
-  border-radius: var(--pdv-radius);
   background: transparent;
   color: var(--pdv-legende);
   font-family: var(--pdv-font);
   font-size: 16px;
   font-weight: 400;
+  line-height: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0;
+}
+
+.pdv-pagination__page {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--pdv-radius);
 }
 
 .pdv-pagination__page.is-active {
@@ -1180,6 +1229,9 @@ body {
 }
 
 .pdv-pagination__arrow {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
   color: var(--pdv-texte);
 }
 
@@ -2140,6 +2192,7 @@ body {
 .modal-header {
   padding: 20px;
   margin: 0;
+  min-height: 70px;
   border-bottom: 1px solid var(--pdv-stroke);
   align-items: center;
   justify-content: space-between;
@@ -2147,9 +2200,9 @@ body {
 }
 
 .modal-title {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.5;
+  font-size: var(--pdv-fs-h5);
+  font-weight: 700;
+  line-height: 1;
   color: var(--pdv-texte);
 }
 
@@ -2164,7 +2217,7 @@ body {
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -2173,7 +2226,7 @@ body {
 
 .modal-body > p {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   line-height: 1.5;
   color: var(--pdv-texte);
@@ -2210,7 +2263,7 @@ body {
   display: flex;
   flex-direction: column;
   border-top: none;
-  padding: 0 20px 20px;
+  padding: 0 24px 24px;
   margin: 0;
   gap: 16px;
   align-items: center;
@@ -2383,6 +2436,7 @@ body {
 .pdv-pickup-chip {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 4px 12px;
   border-radius: 28px;
   background: var(--pdv-tag-arecuperer-bg);
@@ -2491,7 +2545,7 @@ body {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  line-height: 1;
+  line-height: 30px;
   color: var(--pdv-texte);
 }
 
@@ -2547,9 +2601,9 @@ body {
 
 .pdv-client-fiche__title {
   margin: 0;
-  font-size: 20px;
+  font-size: var(--pdv-fs-h5);
   font-weight: 700;
-  line-height: 30px;
+  line-height: 1;
   color: var(--pdv-texte);
 }
 
@@ -3159,12 +3213,6 @@ body {
   flex-shrink: 0;
 }
 
-.pdv-delivery__consent {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
 .pdv-delivery__consent-label {
   margin: 0;
   font-size: 12px;
@@ -3255,6 +3303,26 @@ body {
   font-size: 14px;
   font-weight: 400;
   line-height: 1;
+  color: var(--pdv-legende);
+}
+
+.pdv-recap-card__prices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--pdv-stroke);
+}
+
+.pdv-recap-card__price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
   color: var(--pdv-legende);
 }
 
@@ -3405,8 +3473,142 @@ body {
 .pdv-toggle-line__label {
   font-size: 16px;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1;
   color: var(--pdv-texte);
+}
+
+/* Segmented login Figma 308:6600 */
+.pdv-segmented {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--pdv-field-bg);
+}
+
+.pdv-segmented__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 8px 16px 8px 14px;
+  border: 0;
+  border-radius: var(--pdv-radius);
+  background: var(--pdv-field-bg);
+  color: var(--pdv-texte);
+  font-family: var(--pdv-font);
+  font-size: var(--pdv-fs-current);
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pdv-segmented__item.is-active {
+  padding: 8px 16px;
+  background: var(--pdv-texte);
+  color: var(--pdv-blanc);
+}
+
+.pdv-segmented__item:focus-visible {
+  outline: 2px solid var(--pdv-cta);
+  outline-offset: 2px;
+}
+
+/* Footer opticien Figma 155:52733 — mêmes gouttières que la nav */
+.pdv-footer {
+  background: var(--pdv-blanc);
+  flex-shrink: 0;
+}
+
+.pdv-footer > .container {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.pdv-footer__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.pdv-footer__logo {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+.pdv-footer__copy {
+  margin: 0;
+  font-size: var(--pdv-fs-label);
+  font-weight: 400;
+  line-height: 18px;
+  height: 18px;
+  color: var(--pdv-legende);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pdv-footer__nav {
+  display: flex;
+  align-items: flex-start;
+  gap: 80px;
+}
+
+.pdv-footer__col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pdv-footer__col li {
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+
+.pdv-footer__col a {
+  display: flex;
+  align-items: center;
+  height: 21px;
+  font-size: var(--pdv-fs-legend);
+  font-weight: 400;
+  line-height: 21px;
+  color: var(--pdv-texte);
+  text-decoration: none;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pdv-footer__col a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 991.98px) {
+  .pdv-footer > .container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+    padding-top: 32px;
+    padding-bottom: 32px;
+  }
+
+  .pdv-footer__nav {
+    flex-wrap: wrap;
+    gap: 32px 48px;
+  }
 }
 
 .pdv-choice {
@@ -3503,21 +3705,37 @@ body {
   flex-shrink: 0;
 }
 
-.pdv-login__pattern {
+.pdv-login-pattern {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  opacity: 0.5;
+  gap: 12px;
+  width: 1065.673px;
   pointer-events: none;
 }
 
-.pdv-login__pattern img {
-  height: 196px;
-  width: auto;
+.pdv-login-pattern__row {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+}
+
+.pdv-login-pattern__row--2 {
+  padding-left: 2.8px;
+  width: 100%;
+}
+
+.pdv-login-pattern__row--3 {
+  padding-left: 11px;
+}
+
+.pdv-login-pattern__row--4 {
+  padding-left: 8.1px;
+  width: 100%;
 }
 
 .pdv-login__logo {
@@ -3600,6 +3818,12 @@ body {
   margin: 0;
 }
 
+.pdv-login__help-body a {
+  font-weight: 600;
+  color: var(--pdv-texte);
+  text-decoration: underline;
+}
+
 .pdv-login__form--invite {
   gap: 32px;
 }
@@ -3680,29 +3904,6 @@ body {
 /* Brand panel — desktop split (Prod UI 145:20643) */
 .pdv-brand-panel {
   display: none;
-}
-
-.pdv-brand-panel__pattern {
-  position: absolute;
-  inset: -40px -80px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  opacity: 0.45;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.pdv-brand-panel__pattern-row {
-  display: flex;
-  gap: 0;
-  flex-shrink: 0;
-}
-
-.pdv-brand-panel__pattern-row img {
-  height: 196px;
-  width: auto;
-  flex-shrink: 0;
 }
 
 .pdv-brand-panel__content {
@@ -4130,13 +4331,9 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   gap: 12px;
   background: var(--pdv-blanc);
-  border: 1px solid transparent;
+  border: 0;
   border-radius: var(--pdv-radius);
   padding: 16px;
-}
-
-.pdv-notif-card.is-read {
-  border-color: #dff0ff;
 }
 
 .pdv-notif-card__head {
@@ -4228,8 +4425,9 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 150px;
-  padding: 16px;
+  box-sizing: border-box;
+  height: 150px;
+  padding: 0 16px;
   background: var(--pdv-blanc);
   border-radius: var(--pdv-radius);
   color: var(--pdv-legende);
@@ -4362,7 +4560,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .pdv-connexion-idle__dots {
-  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0;
 }
 
 .pdv-settings-list {
@@ -4466,7 +4666,6 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 8px;
 }
 
 .pdv-invite-copy__title {
@@ -4490,8 +4689,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .pdv-email-flow__title {
   margin: 0 0 8px;
-  font-size: 22px;
+  font-size: var(--pdv-fs-h5);
   font-weight: 700;
+  line-height: 1;
   color: var(--pdv-texte);
 }
 
@@ -4502,8 +4702,15 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--pdv-legende);
 }
 
+.pdv-password-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
 .pdv-field__control[readonly] {
-  color: var(--pdv-legende);
+  color: var(--pdv-texte);
 }
 
 .pdv-connexion-card__back img {
@@ -4549,6 +4756,20 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--pdv-field-bg);
   color: var(--pdv-texte);
   font-size: 14px;
+}
+
+.pdv-connexion-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 6px;
+}
+
+.pdv-connexion-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pdv-texte);
 }
 
 .pdv-back-link {

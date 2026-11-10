@@ -2,34 +2,30 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RendersPdvTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class IdentityOtpMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RendersPdvTemplate, SerializesModels;
 
     public function __construct(
         public readonly string $code,
         public readonly string $channel,
     ) {}
 
-    public function envelope(): Envelope
+    protected function templateSlug(): string
     {
-        return new Envelope(
-            subject: $this->channel === 'sms'
-                ? 'Code SMS de vérification — Perdues de Vue'
-                : 'Code de vérification — Perdues de Vue',
-        );
+        return 'identity_otp';
     }
 
-    public function content(): Content
+    protected function templateVars(): array
     {
-        return new Content(
-            markdown: 'mail.identity-otp',
-        );
+        return [
+            'code' => $this->code,
+            'highlight' => $this->code,
+        ];
     }
 }

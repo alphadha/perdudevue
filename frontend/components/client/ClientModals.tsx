@@ -28,12 +28,12 @@ export function DeclareLostModal({ pair, pending, onConfirm, onClose }: LostProp
         </div>
       </div>
       <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={onConfirm}>
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Déclarer comme perdue
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );
@@ -50,12 +50,12 @@ export function CancelLostModal({ pending, onConfirm, onClose }: Omit<LostProps,
         </p>
       </div>
       <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={onConfirm}>
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           J’ai retrouvé mes lunettes
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );
@@ -75,12 +75,12 @@ export function ClientInactiveModal({ pair, pending, onConfirm, onClose }: LostP
         </div>
       </div>
       <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={onConfirm}>
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Déclarer comme inactive
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );
@@ -99,9 +99,9 @@ export function ArchivePairModal({ pending, onConfirm, onClose }: Omit<LostProps
         <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={onConfirm}>
           Supprimer définitivement la paire
         </PdvButton>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );
@@ -127,9 +127,9 @@ export function DeleteAccountModal({ pending, onConfirm, onClose, error }: Logou
         <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={onConfirm}>
           Supprimer mon compte
         </PdvButton>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );
@@ -142,12 +142,12 @@ export function LogoutModal({ pending, onConfirm, onClose }: LogoutProps) {
         <p className="mb-0">Êtes-vous sûr(e) de vouloir vous déconnecter ?</p>
       </div>
       <div className="modal-footer flex-column">
-        <button type="button" className="btn btn-primary w-100" disabled={pending} onClick={onConfirm}>
+        <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={onConfirm}>
           Me déconnecter
-        </button>
-        <button type="button" className="btn btn-link" onClick={onClose}>
+        </PdvButton>
+        <PdvButton type="button" variant="tertiary" size="l" onClick={onClose}>
           Annuler
-        </button>
+        </PdvButton>
       </div>
     </BootstrapModal>
   );

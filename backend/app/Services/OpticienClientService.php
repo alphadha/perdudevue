@@ -15,7 +15,6 @@ use App\Support\SecureToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class OpticienClientService
@@ -362,9 +361,7 @@ class OpticienClientService
             return;
         }
 
-        $this->notifications->sendSms($recipient, 'identity_otp', function () use ($code): void {
-            Mail::to(config('mail.from.address'))->send(new IdentityOtpMail($code, 'sms'));
-        });
+        $this->notifications->sendIdentityOtpSms($recipient, $code);
     }
 
     /**

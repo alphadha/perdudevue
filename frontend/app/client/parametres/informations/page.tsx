@@ -7,6 +7,7 @@ import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvField from "@/components/pdv/PdvField";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import { isIdentityChallenge, type ClientProfile, type IdentityChallenge } from "@/lib/types";
 
 const PHONE_OTP_KEY = "pdv_phone_otp";
@@ -28,7 +29,7 @@ export default function ClientInformationsPage() {
         setProfile(data);
         setFirstName(data.first_name);
         setLastName(data.last_name);
-        setPhone(data.phone ?? "");
+        setPhone(formatPhoneFr(data.phone ?? ""));
       })
       .catch((caught) => {
         setError(caught instanceof ApiRequestError ? caught.message : "Impossible de charger le profil.");
@@ -37,7 +38,9 @@ export default function ClientInformationsPage() {
 
   const dirty =
     profile !== null &&
-    (firstName !== profile.first_name || lastName !== profile.last_name || phone !== (profile.phone ?? ""));
+    (firstName !== profile.first_name ||
+      lastName !== profile.last_name ||
+      formatPhoneFr(phone) !== formatPhoneFr(profile.phone ?? ""));
 
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -129,7 +132,7 @@ export default function ClientInformationsPage() {
             value={phone}
             error={fieldErrors.phone}
             required
-            onChange={(event) => setPhone(event.target.value)}
+            onChange={(event) => setPhone(formatPhoneFr(event.target.value.replace(/\D/g, "").slice(0, 10)))}
           />
         </div>
         <PdvButton type="submit" variant="primary" size="l" block disabled={pending || !dirty}>

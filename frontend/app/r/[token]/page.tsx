@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import LoginPattern from "@/components/LoginPattern";
 import ShopCard from "@/components/client/ShopCard";
 import ShopMapModal from "@/components/client/ShopMapModal";
 import PdvButton from "@/components/pdv/PdvButton";
@@ -21,13 +22,7 @@ function PublicBlocked({
   return (
     <div className="pdv-public pdv-public--blocked">
       <header className="pdv-login__hero pdv-login__hero--mobile">
-        <div className="pdv-login__pattern" aria-hidden>
-          <img src="/brand/login-pattern-a.svg" alt="" />
-          <img src="/brand/login-pattern-b.svg" alt="" />
-          <img src="/brand/login-pattern-a.svg" alt="" />
-          <img src="/brand/login-pattern-b.svg" alt="" />
-          <img src="/brand/login-pattern-a.svg" alt="" />
-        </div>
+        <LoginPattern />
         <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
       </header>
       <section className="pdv-public__blocked-card">

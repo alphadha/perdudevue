@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import BrandPanel from "@/components/BrandPanel";
+import LoginPattern from "@/components/LoginPattern";
 import FieldError from "@/components/FieldError";
 import PdvButton from "@/components/pdv/PdvButton";
 import PdvCheckbox from "@/components/pdv/PdvCheckbox";
@@ -20,13 +21,7 @@ type Invitation = {
 function AuthHero() {
   return (
     <header className="pdv-login__hero pdv-login__hero--mobile">
-      <div className="pdv-login__pattern" aria-hidden>
-        <img src="/brand/login-pattern-a.svg" alt="" />
-        <img src="/brand/login-pattern-b.svg" alt="" />
-        <img src="/brand/login-pattern-a.svg" alt="" />
-        <img src="/brand/login-pattern-b.svg" alt="" />
-        <img src="/brand/login-pattern-a.svg" alt="" />
-      </div>
+      <LoginPattern />
       <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
     </header>
   );

@@ -175,7 +175,7 @@ class RestitutionService
                 PairStatus::LivraisonDemandee->value,
             ])
             ->with(['client.opticians', 'shipments'])
-            ->orderByRaw("CASE status WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END", [
+            ->orderByRaw('CASE status WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END', [
                 PairStatus::ARecuperer->value,
                 PairStatus::LivraisonDemandee->value,
             ])
@@ -301,7 +301,12 @@ class RestitutionService
         }
 
         if (in_array('sms', $channels, true) && $client->consent_sms && $client->phone) {
-            $this->notifications->sendSms($client->phone, 'pair_found');
+            $this->notifications->sendSms(
+                $client->phone,
+                'pair_found',
+                null,
+                'Perdues de Vue : vos lunettes sont chez '.$shop->name.'. Code de restitution : '.(string) $pair->pickup_code,
+            );
         }
     }
 

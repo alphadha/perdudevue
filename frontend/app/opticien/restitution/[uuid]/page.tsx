@@ -9,6 +9,7 @@ import PairStatusBadge from "@/components/opticien/PairStatusBadge";
 import ResendPickupModal from "@/components/opticien/ResendPickupModal";
 import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import { downloadLabelFile } from "@/lib/pairUi";
 import { DISCARD_TOAST, type ToastState } from "@/lib/toasts";
 import { formatFrDate, type ShopRestitution, type ShippingLabelFile } from "@/lib/types";
@@ -93,11 +94,11 @@ export default function RestitutionFichePage() {
           Revenir aux restitutions
         </PdvButton>
       </p>
-      <div className="pdv-page-head">
+      <div className="pdv-page-head pdv-page-head--pair">
         <div>
           <h1>{dossierTitle}</h1>
         </div>
-        <div className="d-flex flex-wrap gap-2">
+        <div className="pdv-page-head__actions">
           {item.status === "a_recuperer" ? (
             <>
               <PdvButton
@@ -153,7 +154,7 @@ export default function RestitutionFichePage() {
                 {item.client.phone ? (
                   <div className="pdv-kv__row">
                     <span className="pdv-kv__label">Numéro de téléphone client</span>
-                    <span className="pdv-kv__value">{item.client.phone}</span>
+                    <span className="pdv-kv__value">{formatPhoneFr(item.client.phone)}</span>
                   </div>
                 ) : null}
                 {item.client.email ? (

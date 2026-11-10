@@ -2,32 +2,30 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RendersPdvTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class InvitationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RendersPdvTemplate, SerializesModels;
 
     public function __construct(
         public readonly string $token,
         public readonly string $firstName,
     ) {}
 
-    public function envelope(): Envelope
+    protected function templateSlug(): string
     {
-        return new Envelope(
-            subject: 'Activez votre espace — Perdues de Vue',
-        );
+        return 'invitation';
     }
 
-    public function content(): Content
+    protected function templateVars(): array
     {
-        return new Content(
-            markdown: 'mail.invitation',
-        );
+        return [
+            'firstName' => $this->firstName,
+            'url' => rtrim((string) config('app.frontend_url'), '/').'/invitation/'.$this->token,
+        ];
     }
 }

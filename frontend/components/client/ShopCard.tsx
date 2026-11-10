@@ -1,5 +1,6 @@
 "use client";
 
+import { formatPhoneFr } from "@/lib/formatPhone";
 import type { ClientShop } from "@/lib/types";
 
 type Props = {
@@ -19,7 +20,7 @@ export default function ShopCard({ shop, title, onMap }: Props) {
         <p className="pdv-shop-card__name">{shop.name}</p>
         <div className="pdv-shop-card__meta-block">
           {address ? <p className="pdv-shop-card__meta">{address}</p> : null}
-          {shop.phone ? <p className="pdv-shop-card__meta">Tél : {shop.phone}</p> : null}
+          {shop.phone ? <p className="pdv-shop-card__meta">Tél : {formatPhoneFr(shop.phone)}</p> : null}
         </div>
       </div>
       {shop.phone || shop.maps_url || onMap ? (

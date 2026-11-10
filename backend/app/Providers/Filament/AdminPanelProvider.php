@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\PlatformSettings;
 use App\Filament\Widgets\PdvStatsWidget;
+use App\Support\Brand;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -30,9 +31,9 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Perdues de Vue')
-            ->brandLogo(asset('images/brand/logo.svg'))
+            ->brandLogo(fn (): string => Brand::logoUrl())
             ->brandLogoHeight('2.5rem')
-            ->favicon(asset('images/brand/logo.svg'))
+            ->favicon(fn (): string => Brand::logoUrl())
             ->login()
             ->colors([
                 // CTA UI kit #24364D (shades Filament 500/600 = CTA exact)

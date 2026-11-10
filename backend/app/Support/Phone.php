@@ -4,6 +4,19 @@ namespace App\Support;
 
 final class Phone
 {
+    public static function toInternationalFr(?string $phone): string
+    {
+        $digits = self::digits($phone) ?? '';
+        if (str_starts_with($digits, '33')) {
+            return $digits;
+        }
+        if (strlen($digits) === 10 && str_starts_with($digits, '0')) {
+            return '33'.substr($digits, 1);
+        }
+
+        return $digits;
+    }
+
     public static function digits(?string $phone): ?string
     {
         if ($phone === null || $phone === '') {

@@ -7,7 +7,6 @@ import AddressAutocomplete, { type AddressSuggestion } from "@/components/Addres
 import AppToast from "@/components/AppToast";
 import ClientBackLink from "@/components/client/ClientBackLink";
 import PdvButton from "@/components/pdv/PdvButton";
-import PdvCheckbox from "@/components/pdv/PdvCheckbox";
 import PdvField from "@/components/pdv/PdvField";
 import RelayMap from "@/components/RelayMap";
 import { api, ApiRequestError } from "@/lib/api";
@@ -48,6 +47,11 @@ function formatPrice(cents: number) {
   return `${(cents / 100).toFixed(2).replace(".", ",")}€`;
 }
 
+function vatBreakdown(ttcCents: number) {
+  const ht = Math.round(ttcCents / 1.2);
+  return { ht, vat: ttcCents - ht, ttc: ttcCents };
+}
+
 function homeAddress(form: Draft["form"]) {
   return [form.address_line, form.address_complement, `${form.postal_code} ${form.city}`.trim()]
     .filter((part) => part.trim() !== "")
@@ -70,7 +74,6 @@ export default function DeliveryRequestPage() {
   const [addressQuery, setAddressQuery] = useState("");
   const [relaySearchPending, setRelaySearchPending] = useState(false);
   const [relaySearchError, setRelaySearchError] = useState<string | null>(null);
-  const [consent, setConsent] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     recipient_first_name: "",
@@ -209,7 +212,6 @@ export default function DeliveryRequestPage() {
         setMode(draft.mode);
         setRelayId(draft.relayId);
         setAddressQuery(draft.addressQuery ?? "");
-        setConsent(draft.consent);
         setForm({
           address_complement: "",
           ...draft.form,
@@ -253,14 +255,11 @@ export default function DeliveryRequestPage() {
     if (mode === "relay" && !relayId) {
       setRelaySearchError("Sélectionnez un point relais sur la carte.");
     }
-    if (!consent) {
-      nextErrors.consent_address = "Le consentement à l’usage de l’adresse pour l’expédition est obligatoire.";
-    }
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0 || (mode === "relay" && !relayId)) {
       return;
     }
-    persistDraft({ mode, relayId, addressQuery, consent, form });
+    persistDraft({ mode, relayId, addressQuery, consent: true, form });
     setStep("recap");
   }
 
@@ -271,14 +270,14 @@ export default function DeliveryRequestPage() {
     setPending(true);
     setPayError(null);
     setFieldErrors({});
-    persistDraft({ mode, relayId, addressQuery, consent, form });
+    persistDraft({ mode, relayId, addressQuery, consent: true, form });
     const addressLine = [form.address_line, form.address_complement].filter((part) => part.trim() !== "").join(", ");
     try {
       const shipment = await api<CheckoutShipment>(`/client/pairs/${pair.uuid}/shipments`, {
         method: "POST",
         body: JSON.stringify({
           mode,
-          consent_address: consent,
+          consent_address: true,
           relay_id: mode === "relay" ? relayId : undefined,
           recipient_first_name: form.recipient_first_name,
           recipient_last_name: form.recipient_last_name,
@@ -351,6 +350,7 @@ export default function DeliveryRequestPage() {
   const selectedRelay = quote.relays.find((relay) => relay.id === relayId) ?? null;
   const homeCarrier = quote.carriers?.home ?? quote.carrier ?? "Colissimo";
   const activeCents = mode === "relay" ? relayCents : homeCents;
+  const priceParts = vatBreakdown(activeCents);
   const destination =
     mode === "relay" && selectedRelay
       ? `${selectedRelay.address}, ${selectedRelay.postal_code} ${selectedRelay.city}`
@@ -409,7 +409,8 @@ export default function DeliveryRequestPage() {
                 <div className="pdv-ship-card__copy">
                   <p className="pdv-ship-card__lead">Vos lunettes directement chez vous.</p>
                   <p className="pdv-ship-card__hint">
-                    Votre adresse est utilisée uniquement pour la livraison et non à des fins commerciales.
+                    En choisissant cette option, vous acceptez que votre adresse serve à la livraison. Elle ne sera pas
+                    utilisée à des fins commerciales.
                   </p>
                 </div>
                 <div className="pdv-ship-card__fields">
@@ -485,7 +486,7 @@ export default function DeliveryRequestPage() {
                   <span className="pdv-ship-radio__mark" />
                 </span>
                 <label className="pdv-ship-card__label" htmlFor="mode-relay">
-                  En point relais
+                  En point Mondial Relay
                 </label>
               </span>
               <span className="pdv-ship-card__price">{formatPrice(relayCents)}</span>
@@ -526,16 +527,6 @@ export default function DeliveryRequestPage() {
             )}
           </div>
 
-          <div className="pdv-delivery__consent">
-            <PdvCheckbox
-              checked={consent}
-              aria-label="J’autorise l’usage de cette adresse uniquement pour l’expédition de mes lunettes, sans usage commercial."
-              onChange={setConsent}
-            />
-            <p className="pdv-delivery__consent-label">
-              J’autorise l’usage de cette adresse uniquement pour l’expédition de mes lunettes, sans usage commercial.
-            </p>
-          </div>
           {fieldErrors.consent_address ? <p className="pdv-field__error">{fieldErrors.consent_address}</p> : null}
 
           <PdvButton type="submit" variant="primary" size="l" block>
@@ -574,6 +565,27 @@ export default function DeliveryRequestPage() {
                 <img src="/icons/pdv/marker-pin-01.svg" alt="" width={18} height={18} />
                 {destination}
               </p>
+              {quote.eta_label ? (
+                <p>
+                  <img src="/icons/pdv/clock.svg" alt="" width={18} height={18} />
+                  {quote.eta_label}
+                </p>
+              ) : null}
+            </div>
+            <div className="pdv-recap-card__prices">
+              <p className="pdv-recap-card__label">Détails du prix</p>
+              <div className="pdv-recap-card__price-row">
+                <span>Prix HT</span>
+                <span>{formatPrice(priceParts.ht)}</span>
+              </div>
+              <div className="pdv-recap-card__price-row">
+                <span>TVA (20%)</span>
+                <span>{formatPrice(priceParts.vat)}</span>
+              </div>
+              <div className="pdv-recap-card__price-row">
+                <span>Prix TTC</span>
+                <span>{formatPrice(priceParts.ttc)}</span>
+              </div>
             </div>
           </section>
           <PdvButton type="button" variant="primary" size="l" block disabled={pending} onClick={() => void pay()}>

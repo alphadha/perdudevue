@@ -2,29 +2,27 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RendersPdvTemplate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class PasswordOtpMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RendersPdvTemplate, SerializesModels;
 
     public function __construct(public readonly string $code) {}
 
-    public function envelope(): Envelope
+    protected function templateSlug(): string
     {
-        return new Envelope(
-            subject: 'Votre code de réinitialisation — Perdues de Vue',
-        );
+        return 'password_otp';
     }
 
-    public function content(): Content
+    protected function templateVars(): array
     {
-        return new Content(
-            markdown: 'mail.password-otp',
-        );
+        return [
+            'code' => $this->code,
+            'highlight' => $this->code,
+        ];
     }
 }

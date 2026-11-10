@@ -2,16 +2,15 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RendersPdvTemplate;
 use App\Models\Optician;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class PairFoundMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RendersPdvTemplate, SerializesModels;
 
     public function __construct(
         public readonly string $firstName,
@@ -20,17 +19,25 @@ class PairFoundMail extends Mailable
         public readonly Optician $shop,
     ) {}
 
-    public function envelope(): Envelope
+    protected function templateSlug(): string
     {
-        return new Envelope(
-            subject: 'Vos lunettes ont été retrouvées — Perdues de Vue',
-        );
+        return 'pair_found';
     }
 
-    public function content(): Content
+    protected function templateVars(): array
     {
-        return new Content(
-            markdown: 'mail.pair-found',
-        );
+        $parts = array_filter([
+            $this->shop->address,
+            trim(($this->shop->postal_code ?? '').' '.($this->shop->city ?? '')),
+        ]);
+
+        return [
+            'firstName' => $this->firstName,
+            'shopName' => $this->shop->name,
+            'shopAddress' => $parts === [] ? '' : 'Lieu de retrait : '.implode(', ', $parts),
+            'pickupCode' => $this->pickupCode,
+            'highlight' => $this->pickupCode,
+            'url' => $this->publicUrl,
+        ];
     }
 }

@@ -138,25 +138,24 @@ class PlatformSettings extends Page
                                     $this->secret('stripe.webhook_secret', 'Secret webhook (whsec_…)', $settings),
                                 ]),
                             ]),
-                        Tab::make('SMTP')
+                        Tab::make('E-mail')
                             ->icon(Heroicon::OutlinedEnvelope)
                             ->schema([
-                                Section::make('Serveur e-mail')->columns(2)->schema([
-                                    Select::make('mail.mailer')
-                                        ->label('Mailer')
-                                        ->options([
-                                            'smtp' => 'SMTP',
-                                            'log' => 'Log (dev)',
-                                            'array' => 'Array (tests)',
-                                        ]),
-                                    $this->text('mail.host', 'Hôte'),
-                                    $this->text('mail.port', 'Port'),
-                                    $this->text('mail.encryption', 'Chiffrement (tls / ssl)'),
-                                    $this->text('mail.username', 'Utilisateur'),
-                                    $this->secret('mail.password', 'Mot de passe', $settings),
-                                    $this->text('mail.from_address', 'E-mail expéditeur'),
-                                    $this->text('mail.from_name', 'Nom expéditeur'),
-                                ]),
+                                Section::make('Brevo (API, pas SMTP)')
+                                    ->description('Envoi via https://api.brevo.com/v3/smtp/email avec la clé API (header api-key). Aucun hôte SMTP.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Select::make('mail.mailer')
+                                            ->label('Mailer')
+                                            ->options([
+                                                'brevo' => 'Brevo API',
+                                                'log' => 'Log (dev)',
+                                                'array' => 'Array (tests)',
+                                            ]),
+                                        $this->secret('mail.brevo_key', 'Clé API Brevo', $settings),
+                                        $this->text('mail.from_address', 'E-mail expéditeur'),
+                                        $this->text('mail.from_name', 'Nom expéditeur'),
+                                    ]),
                             ]),
                         Tab::make('Qonto')
                             ->icon(Heroicon::OutlinedBanknotes)
@@ -188,18 +187,18 @@ class PlatformSettings extends Page
                         Tab::make('SMS')
                             ->icon(Heroicon::OutlinedDevicePhoneMobile)
                             ->schema([
-                                Section::make('Provider SMS')->columns(2)->schema([
-                                    Select::make('sms.provider')
-                                        ->label('Provider')
-                                        ->options([
-                                            'log' => 'Log (dev)',
-                                            'twilio' => 'Twilio',
-                                            'ovh' => 'OVH',
-                                        ]),
-                                    $this->text('sms.from', 'Expéditeur'),
-                                    $this->secret('sms.api_key', 'Clé API', $settings),
-                                    $this->secret('sms.api_secret', 'Secret API', $settings),
-                                ]),
+                                Section::make('Brevo SMS')
+                                    ->description('Même clé API Brevo que les e-mails (BREVO_API_KEY). Envoi via /v3/transactionalSMS/sms.')
+                                    ->columns(2)
+                                    ->schema([
+                                        Select::make('sms.provider')
+                                            ->label('Provider')
+                                            ->options([
+                                                'brevo' => 'Brevo API',
+                                                'log' => 'Log (dev)',
+                                            ]),
+                                        $this->text('sms.from', 'Expéditeur (3–11 lettres, ex. PERDUESDV)'),
+                                    ]),
                             ]),
                     ]),
             ])

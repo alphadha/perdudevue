@@ -31,7 +31,10 @@
 }
 
 .fi-logo {
-  max-height: 2.5rem;
+  height: 40px !important;
+  width: auto !important;
+  max-height: 40px;
+  object-fit: contain;
 }
 
 /* Sidebar : texte / icônes navy foncé (pas bleu clair) */

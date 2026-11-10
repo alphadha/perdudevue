@@ -48,7 +48,7 @@ export default function PairRowMenu({
   if (pair.actions.can_download_label || pair.actions.can_mark_shipped) {
     items.push(
       {
-        label: "Télécharger le bordereau",
+        label: "Télécharger le bordereau d’envoi",
         disabled: !pair.actions.can_download_label,
         onClick: () => onDownloadLabel?.(pair),
       },
@@ -60,7 +60,7 @@ export default function PairRowMenu({
     );
   } else if (pair.status === "livraison_demandee") {
     items.push(
-      { label: "Télécharger le bordereau", disabled: true },
+      { label: "Télécharger le bordereau d’envoi", disabled: true },
       { label: "Indiquer comme en livraison", disabled: true },
     );
   }

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Listeners\RecordFilamentAuthAudit;
+use App\Mail\Transports\BrevoApiTransport;
 use App\Services\PlatformSettingsService;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
@@ -10,6 +11,7 @@ use Illuminate\Auth\Events\Logout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Mail::extend('brevo', function (array $config = []): BrevoApiTransport {
+            return new BrevoApiTransport(
+                (string) ($config['key'] ?? config('services.brevo.key', ''))
+            );
+        });
+
         Event::listen(Login::class, [RecordFilamentAuthAudit::class, 'handleLogin']);
         Event::listen(Failed::class, [RecordFilamentAuthAudit::class, 'handleFailed']);
         Event::listen(Logout::class, [RecordFilamentAuthAudit::class, 'handleLogout']);

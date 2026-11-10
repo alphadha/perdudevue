@@ -33,11 +33,7 @@ export default function ClientHomePage() {
         <p className="pdv-client-page-sub">Retrouvez ici toutes vos paires enregistrées.</p>
       </header>
       {pairs.length === 0 ? (
-        <p className="pdv-client-empty">
-          Aucune paire de lunette
-          <br />
-          enregistrée pour le moment
-        </p>
+        <p className="pdv-client-empty">Aucune paire de lunette enregistrée pour le moment</p>
       ) : (
         <div className="pdv-client-pairs">
           {pairs.map((pair) => (
@@ -51,7 +47,8 @@ export default function ClientHomePage() {
                   <PairStatusBadge status={pair.status} label={pair.status_label} />
                   {pair.pickup_code ? (
                     <span className="pdv-pickup-chip">
-                      Code de restitution : <strong>{pair.pickup_code}</strong>
+                      <span>Code de restitution :</span>
+                      <strong>{pair.pickup_code}</strong>
                     </span>
                   ) : null}
                 </div>

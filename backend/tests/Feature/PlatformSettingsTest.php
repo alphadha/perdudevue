@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\PlatformSettings;
 use App\Models\User;
 use App\Services\PlatformSettingsService;
 use App\Support\EnvFile;
@@ -47,7 +48,7 @@ class PlatformSettingsTest extends TestCase
             ->assertSee('Mondial Relay')
             ->assertSee('Colissimo')
             ->assertSee('Stripe')
-            ->assertSee('SMTP')
+            ->assertSee('Brevo')
             ->assertSee('Cartes');
     }
 
@@ -65,7 +66,7 @@ class PlatformSettingsTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Pages\PlatformSettings::class)
+            ->test(PlatformSettings::class)
             ->fillForm([
                 'mondial_relay.mode' => 'test',
                 'mondial_relay.api1.test.enseigne' => 'TTMRSDBX',
@@ -97,7 +98,7 @@ class PlatformSettingsTest extends TestCase
         ], $admin);
 
         Livewire::actingAs($admin)
-            ->test(\App\Filament\Pages\PlatformSettings::class)
+            ->test(PlatformSettings::class)
             ->fillForm([
                 'stripe.secret' => '',
             ])

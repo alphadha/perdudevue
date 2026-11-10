@@ -77,14 +77,10 @@ class PlatformSettingsService
             'stripe.secret' => ['env' => 'STRIPE_SECRET', 'label' => 'Clé secrète', 'group' => 'stripe', 'secret' => true],
             'stripe.webhook_secret' => ['env' => 'STRIPE_WEBHOOK_SECRET', 'label' => 'Secret webhook', 'group' => 'stripe', 'secret' => true],
 
-            'mail.mailer' => ['env' => 'MAIL_MAILER', 'label' => 'Mailer', 'group' => 'smtp', 'default' => 'smtp'],
-            'mail.host' => ['env' => 'MAIL_HOST', 'label' => 'Hôte SMTP', 'group' => 'smtp'],
-            'mail.port' => ['env' => 'MAIL_PORT', 'label' => 'Port', 'group' => 'smtp', 'default' => '587'],
-            'mail.username' => ['env' => 'MAIL_USERNAME', 'label' => 'Utilisateur', 'group' => 'smtp'],
-            'mail.password' => ['env' => 'MAIL_PASSWORD', 'label' => 'Mot de passe', 'group' => 'smtp', 'secret' => true],
-            'mail.encryption' => ['env' => 'MAIL_SCHEME', 'label' => 'Schéma / chiffrement (tls / ssl / vide)', 'group' => 'smtp', 'default' => 'tls'],
-            'mail.from_address' => ['env' => 'MAIL_FROM_ADDRESS', 'label' => 'E-mail expéditeur', 'group' => 'smtp'],
-            'mail.from_name' => ['env' => 'MAIL_FROM_NAME', 'label' => 'Nom expéditeur', 'group' => 'smtp'],
+            'mail.mailer' => ['env' => 'MAIL_MAILER', 'label' => 'Mailer', 'group' => 'mail', 'default' => 'log'],
+            'mail.brevo_key' => ['env' => 'BREVO_API_KEY', 'label' => 'Clé API Brevo', 'group' => 'mail', 'secret' => true],
+            'mail.from_address' => ['env' => 'MAIL_FROM_ADDRESS', 'label' => 'E-mail expéditeur', 'group' => 'mail'],
+            'mail.from_name' => ['env' => 'MAIL_FROM_NAME', 'label' => 'Nom expéditeur', 'group' => 'mail'],
 
             'qonto.secret' => ['env' => 'QONTO_SECRET', 'label' => 'Clé / secret API', 'group' => 'qonto', 'secret' => true],
             'qonto.iban' => ['env' => 'QONTO_IBAN', 'label' => 'IBAN', 'group' => 'qonto'],
@@ -93,10 +89,8 @@ class PlatformSettingsService
             'maps.maplibre_style_url' => ['env' => 'MAPLIBRE_STYLE_URL', 'label' => 'URL style MapLibre (optionnel)', 'group' => 'maps'],
             'google.maps_key' => ['env' => 'GOOGLE_MAPS_KEY', 'label' => 'Clé Google Maps (navigateur)', 'group' => 'maps', 'secret' => true],
 
-            'sms.provider' => ['env' => 'SMS_PROVIDER', 'label' => 'Provider (twilio / ovh / log)', 'group' => 'sms', 'default' => 'log'],
-            'sms.api_key' => ['env' => 'SMS_API_KEY', 'label' => 'Clé API', 'group' => 'sms', 'secret' => true],
-            'sms.api_secret' => ['env' => 'SMS_API_SECRET', 'label' => 'Secret API', 'group' => 'sms', 'secret' => true],
-            'sms.from' => ['env' => 'SMS_FROM', 'label' => 'Expéditeur / sender', 'group' => 'sms'],
+            'sms.provider' => ['env' => 'SMS_PROVIDER', 'label' => 'Provider (brevo / log)', 'group' => 'sms', 'default' => 'log'],
+            'sms.from' => ['env' => 'SMS_FROM', 'label' => 'Expéditeur SMS (3–11 lettres)', 'group' => 'sms', 'default' => 'PERDUESDV'],
         ];
     }
 
@@ -247,24 +241,18 @@ class PlatformSettingsService
             'services.google.maps_key' => $this->get('google.maps_key', (string) env('GOOGLE_MAPS_KEY', '')),
             'services.sms' => [
                 'provider' => $this->get('sms.provider', 'log'),
-                'api_key' => $this->get('sms.api_key'),
-                'api_secret' => $this->get('sms.api_secret'),
-                'from' => $this->get('sms.from'),
+                'from' => $this->get('sms.from', 'PERDUESDV'),
             ],
         ]);
 
         if (filled($this->get('mail.mailer'))) {
             config(['mail.default' => $this->get('mail.mailer')]);
         }
-        if (filled($this->get('mail.host'))) {
-            config([
-                'mail.mailers.smtp.scheme' => filled($this->get('mail.encryption')) ? $this->get('mail.encryption') : null,
-                'mail.mailers.smtp.host' => $this->get('mail.host'),
-                'mail.mailers.smtp.port' => (int) ($this->get('mail.port', '587') ?: 587),
-                'mail.mailers.smtp.username' => $this->get('mail.username'),
-                'mail.mailers.smtp.password' => $this->get('mail.password'),
-            ]);
-        }
+        $brevoKey = $this->get('mail.brevo_key', (string) env('BREVO_API_KEY', ''));
+        config([
+            'services.brevo.key' => $brevoKey,
+            'mail.mailers.brevo.key' => $brevoKey,
+        ]);
         if (filled($this->get('mail.from_address'))) {
             config([
                 'mail.from.address' => $this->get('mail.from_address'),

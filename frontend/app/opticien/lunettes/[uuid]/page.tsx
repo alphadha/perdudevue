@@ -8,9 +8,11 @@ import HandoverModal from "@/components/opticien/HandoverModal";
 import MarkShippedModal from "@/components/opticien/MarkShippedModal";
 import { PairEngraveModal, PairInactiveModal } from "@/components/opticien/PairActionModals";
 import PairStatusBadge from "@/components/opticien/PairStatusBadge";
+import ResendPickupModal from "@/components/opticien/ResendPickupModal";
 import { usePairStatusMutations } from "@/components/opticien/usePairStatusMutations";
 import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import { downloadAssignedCode, downloadLabelFile } from "@/lib/pairUi";
 import { formatFrDate, type ShopPair, type ShippingLabelFile } from "@/lib/types";
 
@@ -21,6 +23,7 @@ export default function PairFichePage() {
   const [toast, setToast] = useState<string | null>(null);
   const [handoverOpen, setHandoverOpen] = useState(false);
   const [shipOpen, setShipOpen] = useState(false);
+  const [resendOpen, setResendOpen] = useState(false);
 
   const showToast = useCallback((message: string) => {
     setToast(message);
@@ -108,36 +111,54 @@ export default function PairFichePage() {
           Revenir aux lunettes
         </PdvButton>
       </p>
-      <div className="pdv-page-head">
+      <div className="pdv-page-head pdv-page-head--pair">
         <div>
           <h1>{pair.title}</h1>
         </div>
-        <div className="d-flex flex-wrap gap-2">
+        <div className="pdv-page-head__actions">
           {pair.status === "a_graver" ? (
             <PdvButton
               variant="secondary"
               size="l"
-              iconLeft="/icons/pdv/download-01.svg"
+              iconLeft="/icons/pdv/share-03.svg"
               onClick={() => downloadAssignedCode(pair)}
             >
-              Télécharger le code assigné
+              Exporter le code assigné
             </PdvButton>
           ) : null}
           {pair.status === "active" ? (
-            <PdvButton variant="secondary" size="l" onClick={() => mutations.setInactivePair(pair)}>
+            <PdvButton
+              variant="secondary"
+              size="l"
+              iconLeft="/icons/pdv/clock-snooze.svg"
+              onClick={() => mutations.setInactivePair(pair)}
+            >
               Déclarer comme inactive
             </PdvButton>
           ) : null}
-          {pair.actions.can_hand_over ? (
-            <PdvButton variant="primary" size="l" onClick={() => setHandoverOpen(true)}>
-              Remettre au client
-            </PdvButton>
-          ) : pair.status === "a_recuperer" ? (
-            <PdvButton variant="primary" size="l" disabled>
-              Remettre au client
-            </PdvButton>
+          {pair.status === "a_recuperer" ? (
+            <>
+              <PdvButton
+                variant="secondary"
+                size="l"
+                iconLeft="/icons/pdv/mail-01.svg"
+                disabled={!pair.actions.can_resend_pickup}
+                onClick={() => setResendOpen(true)}
+              >
+                Relancer le client
+              </PdvButton>
+              <PdvButton
+                variant="primary"
+                size="l"
+                iconLeft="/icons/pdv/restitution-bottom.svg"
+                disabled={!pair.actions.can_hand_over}
+                onClick={() => setHandoverOpen(true)}
+              >
+                Remettre au client
+              </PdvButton>
+            </>
           ) : null}
-          {pair.actions.can_download_label || pair.actions.can_mark_shipped ? (
+          {pair.actions.can_download_label || pair.actions.can_mark_shipped || pair.status === "livraison_demandee" || pair.status === "en_livraison" ? (
             <>
               <PdvButton
                 variant="secondary"
@@ -146,22 +167,18 @@ export default function PairFichePage() {
                 disabled={!pair.actions.can_download_label}
                 onClick={() => void downloadLabel()}
               >
-                Télécharger le bordereau
+                Télécharger le bordereau d’envoi
               </PdvButton>
-              {pair.actions.can_mark_shipped ? (
-                <PdvButton variant="primary" size="l" onClick={() => setShipOpen(true)}>
+              {pair.status === "livraison_demandee" || pair.actions.can_mark_shipped ? (
+                <PdvButton
+                  variant="primary"
+                  size="l"
+                  disabled={!pair.actions.can_mark_shipped}
+                  onClick={() => setShipOpen(true)}
+                >
                   Indiquer comme en livraison
                 </PdvButton>
               ) : null}
-            </>
-          ) : pair.status === "livraison_demandee" ? (
-            <>
-              <PdvButton variant="secondary" size="l" disabled>
-                Télécharger le bordereau
-              </PdvButton>
-              <PdvButton variant="primary" size="l" disabled>
-                Indiquer comme en livraison
-              </PdvButton>
             </>
           ) : null}
         </div>
@@ -185,7 +202,7 @@ export default function PairFichePage() {
                 </div>
                 <div className="pdv-kv__row">
                   <span className="pdv-kv__label">Numéro de téléphone client</span>
-                  <span className="pdv-kv__value">{pair.client.phone}</span>
+                  <span className="pdv-kv__value">{formatPhoneFr(pair.client.phone)}</span>
                 </div>
                 <div className="pdv-kv__row">
                   <span className="pdv-kv__label">Adresse mail client</span>
@@ -244,6 +261,21 @@ export default function PairFichePage() {
         </div>
       </div>
 
+      {resendOpen ? (
+        <ResendPickupModal
+          uuid={pair.uuid}
+          onDone={(next) => {
+            setResendOpen(false);
+            showToast(next.message);
+          }}
+          onClose={(discarded) => {
+            setResendOpen(false);
+            if (discarded) {
+              showToast("Modifications non prises en compte");
+            }
+          }}
+        />
+      ) : null}
       {handoverOpen ? (
         <HandoverModal
           onDone={() => {

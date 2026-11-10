@@ -20,6 +20,16 @@ type Props = {
 
 type View = "idle" | "email-form" | "email-otp" | "password";
 
+function PasswordDots() {
+  return (
+    <span className="pdv-connexion-dots" aria-hidden>
+      {Array.from({ length: 10 }, (_, index) => (
+        <span key={index} />
+      ))}
+    </span>
+  );
+}
+
 function EyeToggle({ onToggle, label }: { onToggle: () => void; label: string }) {
   return (
     <button type="button" className="pdv-field__eye" aria-label={label} onClick={onToggle}>
@@ -290,13 +300,13 @@ export default function ConnexionSettings({
           ) : null}
         </div>
         {card ? (
-          <div className="pdv-connexion-card__value" aria-hidden>
-            ••••••••••
+          <div className="pdv-connexion-card__value">
+            <PasswordDots />
           </div>
         ) : (
           <div className="pdv-connexion-idle__value-row">
-            <p className="pdv-connexion-idle__dots" aria-hidden>
-              ••••••••••
+            <p className="pdv-connexion-idle__dots">
+              <PasswordDots />
             </p>
             <PdvButton type="button" variant="tertiary" onClick={openPassword}>
               Modifier
@@ -329,35 +339,41 @@ export default function ConnexionSettings({
   );
 
   const otpForm = (
-    <form className="pdv-otp-form" onSubmit={(event) => void confirmEmail(event)} noValidate>
-      <h2 className="pdv-otp-form__title">
-        Saisis le code à 6 chiffres envoyé à {challenge?.masked_email ?? "votre nouvelle adresse"}
-      </h2>
-      {otpError ? <p className="pdv-field__error">{otpError}</p> : null}
-      <div className="pdv-otp-form__digits" role="group" aria-label="Code à 6 chiffres">
-        {otpDigits.map((digit, index) => (
-          <input
-            key={index}
-            ref={(node) => {
-              otpRefs.current[index] = node;
-            }}
-            className={`pdv-otp-form__digit${otpError ? " is-invalid" : ""}`}
-            inputMode="numeric"
-            autoComplete={index === 0 ? "one-time-code" : "off"}
-            maxLength={1}
-            value={digit}
-            aria-label={`Chiffre ${index + 1}`}
-            onChange={(event) => updateDigit(index, event.target.value)}
-            onKeyDown={(event) => onOtpKeyDown(index, event.key)}
-            required
-          />
-        ))}
-      </div>
-      <div className="pdv-otp-form__resend">
-        <p>Vous n’avez pas reçu de code ?</p>
-        <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resendEmailCode()}>
-          {resendPending ? "Envoi…" : "Renvoyer un code"}
-        </button>
+    <form className="pdv-settings-card__stack" onSubmit={(event) => void confirmEmail(event)} noValidate>
+      <div className="pdv-otp-form">
+        <h2 className="pdv-otp-form__title">
+          Saisis le code à 6 chiffres envoyé
+          <br />
+          à {challenge?.masked_email ?? "votre nouvelle adresse"}
+        </h2>
+        {otpError ? <p className="pdv-field__error">{otpError}</p> : null}
+        <div className="pdv-otp-form__block">
+          <div className="pdv-otp-form__digits pdv-otp-form__digits--fluid" role="group" aria-label="Code à 6 chiffres">
+            {otpDigits.map((digit, index) => (
+              <input
+                key={index}
+                ref={(node) => {
+                  otpRefs.current[index] = node;
+                }}
+                className={`pdv-otp-form__digit${otpError ? " is-invalid" : ""}`}
+                inputMode="numeric"
+                autoComplete={index === 0 ? "one-time-code" : "off"}
+                maxLength={1}
+                value={digit}
+                aria-label={`Chiffre ${index + 1}`}
+                onChange={(event) => updateDigit(index, event.target.value)}
+                onKeyDown={(event) => onOtpKeyDown(index, event.key)}
+                required
+              />
+            ))}
+          </div>
+          <div className="pdv-otp-form__resend">
+            <p>Vous n’avez pas reçu de code ?</p>
+            <button type="button" className="pdv-otp-form__resend-btn" disabled={resendPending} onClick={() => void resendEmailCode()}>
+              {resendPending ? "Envoi…" : "Renvoyer un code"}
+            </button>
+          </div>
+        </div>
       </div>
       <PdvButton variant="primary" size="l" block type="submit" disabled={pending || otpValue.length < 6}>
         {pending ? "Vérification…" : "Confirmer"}
@@ -383,7 +399,7 @@ export default function ConnexionSettings({
           />
         }
       />
-      <div>
+      <div className="pdv-password-field">
         <PdvField
           id="new-password"
           label="Mot de passe*"
@@ -466,19 +482,19 @@ export default function ConnexionSettings({
           <div className="pdv-settings-card">{idleFields}</div>
         </div>
       ) : (
-        <section className="pdv-email-flow">
+        <div className="pdv-client-fiche">
           <button type="button" className="pdv-back-link" onClick={goIdle}>
             <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
             Revenir aux informations
           </button>
-          <h1 className="pdv-email-flow__title">{pageTitle}</h1>
-          {view === "email-otp" ? (
-            <p className="pdv-email-flow__lead">
-              Renseignez le code reçu par mail pour vérifier et valider votre nouvelle adresse e-mail.
-            </p>
-          ) : null}
-          <div className="pdv-connexion-card">{editor}</div>
-        </section>
+          <div className="pdv-phone-otp__intro">
+            <h1 className="pdv-client-fiche__title">{pageTitle}</h1>
+            {view === "email-otp" ? (
+              <p>Renseignez le code reçu par mail pour vérifier et valider votre nouvelle adresse e-mail.</p>
+            ) : null}
+          </div>
+          <div className="pdv-settings-card">{editor}</div>
+        </div>
       )}
     </>
   );

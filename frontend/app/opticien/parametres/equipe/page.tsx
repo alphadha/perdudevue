@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AppToast from "@/components/AppToast";
 import BootstrapModal from "@/components/opticien/BootstrapModal";
@@ -176,14 +177,17 @@ export default function OpticienTeamPage() {
       <AppToast title={toast?.title} message={toast?.message ?? null} variant={toast?.variant} />
       <div className="pdv-page-head">
         <div>
-          <h1>Mon équipe</h1>
+          <Link className="pdv-page-head__back" href="/opticien/parametres">
+            <img src="/icons/pdv/arrow-narrow-left.svg" alt="" width={24} height={24} />
+            <h1>Mon équipe</h1>
+          </Link>
           <p className="pdv-page-head__lead">
             Invitez vos collaborateurs et gérez leurs accès à votre espace.
           </p>
         </div>
         <PdvButton
           variant="primary"
-          size="m"
+          size="l"
           iconLeft="/icons/pdv/user-plus-01.svg"
           onClick={() => {
             setInvite(emptyInvite);
@@ -276,7 +280,7 @@ export default function OpticienTeamPage() {
                 <p className="pdv-invite-copy__title">Invitation par email</p>
                 <p className="pdv-invite-copy__body">
                   Votre collaborateur recevra un email pour activer son espace et créer son mot de passe. Il
-                  pourra gérer les clients, les paires et restitutions de votre magasin.
+                  pourra gérer les clients, les paires et les restitutions de votre magasin.
                 </p>
               </div>
             </div>
@@ -300,7 +304,7 @@ export default function OpticienTeamPage() {
       ) : null}
 
       {toRemove ? (
-        <BootstrapModal title="Retirer un collaborateur" onClose={() => setToRemove(null)}>
+        <BootstrapModal title="Retirer un collaborateur" size="md" onClose={() => setToRemove(null)}>
           <div className="modal-body">
             <p className="mb-0">
               Vous êtes sur le point de retirer {toRemove.first_name} {toRemove.last_name} de votre équipe. Il
@@ -312,9 +316,9 @@ export default function OpticienTeamPage() {
             <PdvButton type="button" variant="danger" size="l" block disabled={pending} onClick={() => void confirmRemove()}>
               Retirer le collaborateur
             </PdvButton>
-            <button type="button" className="btn btn-link" onClick={() => setToRemove(null)}>
+            <PdvButton type="button" variant="tertiary" onClick={() => setToRemove(null)}>
               Annuler
-            </button>
+            </PdvButton>
           </div>
         </BootstrapModal>
       ) : null}

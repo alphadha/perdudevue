@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Mail\IdentityOtpMail;
 use App\Models\Client;
 use App\Models\PhoneChangeChallenge;
 use App\Models\User;
@@ -11,7 +10,6 @@ use App\Support\Phone;
 use App\Support\SecureToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class ClientProfileService
@@ -96,7 +94,7 @@ class ClientProfileService
             'attempts' => 0,
         ])->save();
 
-        $this->sendSms($challenge->new_phone, $code);
+        $this->notifications->sendIdentityOtpSms($challenge->new_phone, $code);
         $this->audit->record($user, 'client.phone_otp_resend', $request);
 
         return new IdentityChallenge($plainToken, 'sms', null, Phone::mask($challenge->new_phone));
@@ -119,17 +117,10 @@ class ClientProfileService
             'expires_at' => now()->addMinutes(self::OTP_TTL_MINUTES),
         ]);
 
-        $this->sendSms($phone, $code);
+        $this->notifications->sendIdentityOtpSms($phone, $code);
         $this->audit->record($user, 'client.phone_otp', $request);
 
         return new IdentityChallenge($plain, 'sms', null, Phone::mask($phone));
-    }
-
-    private function sendSms(string $phone, string $code): void
-    {
-        $this->notifications->sendSms($phone, 'identity_otp', function () use ($code): void {
-            Mail::to(config('mail.from.address'))->send(new IdentityOtpMail($code, 'sms'));
-        });
     }
 
     private function usableChallenge(User $user, string $plainToken): PhoneChangeChallenge

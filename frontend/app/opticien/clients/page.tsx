@@ -13,6 +13,7 @@ import PdvRowActions from "@/components/pdv/PdvRowActions";
 import PdvPagination from "@/components/pdv/PdvPagination";
 import PdvSearchBar from "@/components/pdv/PdvSearchBar";
 import PdvTable, { type PdvTableColumn } from "@/components/pdv/PdvTable";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import { formatSyncLabel } from "@/lib/formatSync";
 import { PAIR_CREATED_TOAST } from "@/lib/pairUi";
 import { sortRows, toggleSort, type SortState } from "@/lib/tableSort";
@@ -31,7 +32,7 @@ const CLIENT_COLUMNS: PdvTableColumn<ShopClient, SortKey>[] = [
   { key: "last_name", label: "Nom", width: 170, render: (client) => client.last_name },
   { key: "first_name", label: "Prénom", width: 170, render: (client) => client.first_name },
   { key: "email", label: "Email", width: 220, render: (client) => client.email },
-  { key: "phone", label: "Téléphone", width: 120, render: (client) => client.phone },
+  { key: "phone", label: "Téléphone", width: 120, render: (client) => formatPhoneFr(client.phone) },
   { key: "pairs_count", label: "Paires enreg.", width: 120, render: (client) => client.pairs_count },
   { key: "pairs_lost_count", label: "Paires perdues", width: 130, render: (client) => client.pairs_lost_count },
 ];

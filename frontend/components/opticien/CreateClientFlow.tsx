@@ -5,6 +5,7 @@ import BootstrapModal from "@/components/opticien/BootstrapModal";
 import ClientFormFields from "@/components/opticien/ClientFormFields";
 import PdvButton from "@/components/pdv/PdvButton";
 import { api, ApiRequestError } from "@/lib/api";
+import { formatPhoneFr } from "@/lib/formatPhone";
 import {
   isDuplicatePayload,
   isIdentityChallenge,
@@ -275,7 +276,7 @@ export default function CreateClientFlow({ open, onCreated, onClose, onInfoToast
               <br />
               Adresse e-mail : {duplicate.client.email}
               <br />
-              Numéro de téléphone : {duplicate.client.phone}
+              Numéro de téléphone : {formatPhoneFr(duplicate.client.phone)}
             </p>
             <p className="mb-0">Échanger avec votre client pour savoir si ce compte est le sien.</p>
           </div>

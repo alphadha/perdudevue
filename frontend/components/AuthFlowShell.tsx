@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 import BrandPanel from "@/components/BrandPanel";
+import LoginPattern from "@/components/LoginPattern";
 
 type Props = {
   backHref: string;
@@ -20,13 +21,7 @@ export default function AuthFlowShell({ backHref, title, progress, children }: P
       <BrandPanel />
       <div className="pdv-login__main">
         <header className="pdv-login__hero pdv-login__hero--mobile">
-          <div className="pdv-login__pattern" aria-hidden>
-            <img src="/brand/login-pattern-a.svg" alt="" />
-            <img src="/brand/login-pattern-b.svg" alt="" />
-            <img src="/brand/login-pattern-a.svg" alt="" />
-            <img src="/brand/login-pattern-b.svg" alt="" />
-            <img src="/brand/login-pattern-a.svg" alt="" />
-          </div>
+          <LoginPattern />
           <img className="pdv-login__logo" src="/brand/logo-blanc.svg" alt="Perdues de Vue" />
         </header>
 

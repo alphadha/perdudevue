@@ -2,17 +2,16 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\RendersPdvTemplate;
 use App\Models\Pair;
 use App\Models\Shipment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
 class ShipmentShippedMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, RendersPdvTemplate, SerializesModels;
 
     public function __construct(
         public readonly string $firstName,
@@ -20,17 +19,23 @@ class ShipmentShippedMail extends Mailable
         public readonly Shipment $shipment,
     ) {}
 
-    public function envelope(): Envelope
+    protected function templateSlug(): string
     {
-        return new Envelope(
-            subject: 'Vos lunettes sont en cours d’expédition — Perdues de Vue',
-        );
+        return 'shipment_shipped';
     }
 
-    public function content(): Content
+    protected function templateVars(): array
     {
-        return new Content(
-            markdown: 'mail.shipment-shipped',
-        );
+        $tracking = filled($this->shipment->tracking_ref) ? (string) $this->shipment->tracking_ref : null;
+
+        return [
+            'firstName' => $this->firstName,
+            'pairTitle' => $this->pair->title(),
+            'carrier' => (string) $this->shipment->carrier,
+            'destination' => $this->shipment->destinationSummary(),
+            'trackingRef' => $tracking ?? '',
+            'highlight' => $tracking,
+            'url' => rtrim((string) config('app.frontend_url'), '/').'/client',
+        ];
     }
 }

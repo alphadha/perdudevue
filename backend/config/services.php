@@ -40,6 +40,10 @@ return [
         'iban' => env('QONTO_IBAN'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY'),
+    ],
+
     'mondial_relay' => [
         'mode' => env('MONDIAL_RELAY_MODE', 'test'),
         'api1' => [
@@ -101,9 +105,7 @@ return [
 
     'sms' => [
         'provider' => env('SMS_PROVIDER', 'log'),
-        'api_key' => env('SMS_API_KEY'),
-        'api_secret' => env('SMS_API_SECRET'),
-        'from' => env('SMS_FROM'),
+        'from' => env('SMS_FROM', 'PERDUESDV'),
     ],
 
 ];

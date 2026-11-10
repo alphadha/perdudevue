@@ -304,7 +304,7 @@ export default function LunettesPage() {
                 columns={pairColumns}
                 rows={pageRows}
                 getRowId={(pair) => pair.uuid}
-                empty="Aucune paire pour le moment."
+                empty="Aucune paire de lunette enregistrée pour le moment"
                 sort={sort}
                 onSort={(key) => setSort((current) => toggleSort(current, key))}
                 selection={{
